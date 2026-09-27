@@ -1,1 +1,121 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: "Geist";
+  src: url("Geist-Variable-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("GeistMono-Variable-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pixelify Sans";
+  src: url("PixelifySans-Variable-latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+:root {
+  --slate-50: oklch(98.5% 0.004 277);
+  --slate-100: oklch(95.5% 0.010 277);
+  --slate-200: oklch(92.5% 0.016 277);
+  --slate-300: oklch(87% 0.028 277);
+  --slate-400: oklch(76% 0.042 277);
+  --slate-450: oklch(69% 0.048 277);
+  --slate-500: oklch(62.6% 0.054 277);
+  --slate-600: oklch(50.2% 0.061 277);
+  --slate-700: oklch(40% 0.062 277);
+  --slate-800: oklch(31% 0.060 277);
+  --slate-850: oklch(28.5% 0.059 277);
+  --slate-900: oklch(26.2% 0.058 277);
+  --slate-950: oklch(22.5% 0.050 277);
+  --slate-975: oklch(20.2% 0.044 277);
+
+  --gold-100: oklch(95% 0.050 92);
+  --gold-300: oklch(85% 0.146 90);
+  --gold-600: oklch(56% 0.110 80);
+
+  --green-300: oklch(81.2% 0.094 158);
+  --green-600: oklch(53.2% 0.094 162);
+
+  --red-300: oklch(78% 0.100 25);
+  --red-600: oklch(55% 0.160 25);
+
+  --white: oklch(100% 0 0);
+}
+
+@theme static {
+  --background-color-level-0: light-dark(var(--white), var(--slate-975));
+  --background-color-level-1: light-dark(var(--slate-50), var(--slate-950));
+  --background-color-level-2: light-dark(var(--white), var(--slate-900));
+  --background-color-level-3: light-dark(var(--slate-100), var(--slate-800));
+  --background-color-action: var(--gold-300);
+  --background-color-highlight: var(--gold-300);
+  --background-color-data: light-dark(var(--slate-500), var(--slate-400));
+  --background-color-data-strong: light-dark(var(--slate-600), var(--slate-200));
+  --background-color-data-soft: light-dark(var(--slate-300), var(--slate-700));
+  --background-color-data-track: light-dark(var(--slate-100), var(--slate-800));
+
+  --text-color-primary: light-dark(var(--slate-900), var(--slate-50));
+  --text-color-secondary: light-dark(var(--slate-700), var(--slate-400));
+  --text-color-tertiary: light-dark(var(--slate-600), var(--slate-450));
+  --text-color-on-action: light-dark(var(--slate-900), var(--slate-975));
+  --text-color-success: light-dark(var(--green-600), var(--green-300));
+  --text-color-danger: light-dark(var(--red-600), var(--red-300));
+
+  --border-color-primary: light-dark(var(--slate-300), var(--slate-700));
+  --border-color-secondary: light-dark(var(--slate-200), var(--slate-850));
+
+  --ring-color-focus: light-dark(var(--slate-500), var(--slate-400));
+
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-pixel: "Pixelify Sans", "Geist", ui-sans-serif, sans-serif;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-display: 64px;
+  --text-display--line-height: 64px;
+  --text-display--letter-spacing: -0.035em;
+
+  --font-weight-regular: 400;
+
+  --tracking-display: -0.035em;
+  --tracking-snug: -0.01em;
+  --tracking-pixel: 0.02em;
+
+  --radius-bar: 3px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --container-sidebar: 240px;
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--background-color-level-0);
+    color: var(--text-color-primary);
+  }
+}
