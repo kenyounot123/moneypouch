@@ -1,0 +1,16 @@
+# Runs the production image locally, the way a self-hoster would.
+# For day-to-day development use bin/dev instead.
+services:
+  app:
+    build: .
+    image: moneypouch:local
+    ports:
+      - "8080:80"
+    environment:
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Set SECRET_KEY_BASE in .env}
+      SOLID_QUEUE_IN_PUMA: "true"
+    volumes:
+      - moneypouch-data:/rails/storage
+
+volumes:
+  moneypouch-data:
