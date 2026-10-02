@@ -1,0 +1,51 @@
+<aside class="sticky top-0 hidden h-dvh w-sidebar shrink-0 flex-col justify-between border-r border-secondary bg-level-1 px-5 pt-7 pb-6 md:flex">
+  <div class="flex flex-col gap-8">
+    <div class="flex items-center gap-2.5 pl-1">
+      <%= image_tag "pouch.png", alt: "", width: 34, height: 34, class: "size-[34px] shrink-0 [image-rendering:pixelated]" %>
+      <span class="font-pixel text-lg font-bold tracking-pixel">MoneyPouch</span>
+    </div>
+
+    <nav class="flex flex-col gap-0.5">
+      <%= link_to root_path, aria: { current: "page" }, class: "flex items-center gap-2.5 rounded-md bg-level-3 px-3 py-[9px] font-medium text-primary" do %>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" class="shrink-0" aria-hidden="true">
+          <rect x="2" y="2" width="5" height="5" rx="1" />
+          <rect x="9" y="2" width="5" height="5" rx="1" />
+          <rect x="2" y="9" width="5" height="5" rx="1" />
+          <rect x="9" y="9" width="5" height="5" rx="1" />
+        </svg>
+        Overview
+      <% end %>
+
+      <a href="#" class="flex items-center gap-2.5 rounded-md px-3 py-[9px] text-secondary hover:bg-level-3 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" class="shrink-0" aria-hidden="true">
+          <path d="M3 4h10M3 8h10M3 12h6" stroke-linecap="round" />
+        </svg>
+        Transactions
+      </a>
+
+      <a href="#" class="flex items-center gap-2.5 rounded-md px-3 py-[9px] text-secondary hover:bg-level-3 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" class="shrink-0" aria-hidden="true">
+          <path d="M2.5 8.5V3h5.5l5.5 5.5-5 5-6-5z" stroke-linejoin="round" />
+          <circle cx="5.5" cy="6" r="1" fill="currentColor" stroke="none" />
+        </svg>
+        Categories
+      </a>
+
+      <a href="#" class="flex items-center gap-2.5 rounded-md px-3 py-[9px] text-secondary hover:bg-level-3 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" class="shrink-0" aria-hidden="true">
+          <path d="M2 12l4-4 3 3 5-6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Trends
+      </a>
+    </nav>
+  </div>
+
+  <div class="flex flex-col gap-3.5">
+    <p class="pl-1 text-xs text-tertiary">812 entries since Feb 2025</p>
+
+    <div class="flex gap-1 rounded-md bg-level-3 p-1">
+      <%= button_to "Light", light_theme_path, method: :patch, form: { class: "flex-1" }, data: { action: "click->background#toggle", theme: "light" }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary in-data-[theme=light]:bg-level-2 in-data-[theme=light]:font-medium in-data-[theme=light]:text-primary in-data-[theme=light]:shadow-control" %>
+      <%= button_to "Dark", dark_theme_path, method: :patch, form: { class: "flex-1" }, data: { action: "click->background#toggle", theme: "dark" }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary in-data-[theme=dark]:bg-level-2 in-data-[theme=dark]:font-medium in-data-[theme=dark]:text-primary in-data-[theme=dark]:shadow-control" %>
+    </div>
+  </div>
+</aside>

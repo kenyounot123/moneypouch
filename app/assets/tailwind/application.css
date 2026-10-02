@@ -77,12 +77,18 @@
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-pixel: "Pixelify Sans", "Geist", ui-sans-serif, sans-serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --text-xs: 12px;
+  --text-xs--line-height: 16px;
   --text-sm: 13px;
+  --text-sm--line-height: 16px;
   --text-base: 14px;
+  --text-base--line-height: 18px;
   --text-md: 16px;
+  --text-md--line-height: 20px;
   --text-lg: 18px;
+  --text-lg--line-height: 22px;
   --text-display: 64px;
   --text-display--line-height: 64px;
   --text-display--letter-spacing: -0.035em;
@@ -99,6 +105,8 @@
   --radius-lg: 12px;
 
   --container-sidebar: 240px;
+
+  --shadow-control: 0 1px 2px #00000014;
 }
 
 @layer base {
@@ -117,5 +125,10 @@
   body {
     background-color: var(--background-color-level-0);
     color: var(--text-color-primary);
+    font-family: var(--font-ui);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
