@@ -11,5 +11,8 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Defines the root path route ("/")
+  resource :dark_theme, controller: "dark_theme", only: :update
+  resource :light_theme, controller: "light_theme", only: :update
+
   root "welcome#index"
 end
