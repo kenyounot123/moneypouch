@@ -3,7 +3,9 @@
 one:
   amount_in_cents: 1
   currency: MyString
+  user: one
 
 two:
   amount_in_cents: 1
   currency: MyString
+  user: one

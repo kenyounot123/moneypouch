@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_02_014722) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_03_220528) do
   create_table "sessions", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "ip_address"
@@ -25,6 +25,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_014722) do
     t.string "currency"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_transactions_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -33,8 +35,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_014722) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "background"
+    t.string "simplefin_setup_token"
+    t.string "simplefin_access_url"
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
   add_foreign_key "sessions", "users"
+  add_foreign_key "transactions", "users"
 end
