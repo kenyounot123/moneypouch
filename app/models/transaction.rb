@@ -5,11 +5,22 @@ class Transaction < ApplicationRecord
   scope :kept, -> { where(discarded_at: nil) }
   scope :discarded, -> { where.not(discarded_at: nil) }
 
+  def self.last_category_for(name)
+    eager_load(:category)
+      .where("lower(transactions.name) = ?", name.downcase(:ascii))
+      .order(occurred_on: :desc, id: :desc)
+      .first&.category
+  end
+
   def added_on
     (created_at || Time.current).in_time_zone.to_date
   end
 
-  def discard = update!(discarded_at: Time.current)
+  def discard
+    update!(discarded_at: Time.current)
+  end
 
-  def restore = update!(discarded_at: nil)
+  def restore
+    update!(discarded_at: nil)
+  end
 end

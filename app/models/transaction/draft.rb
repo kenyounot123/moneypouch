@@ -1,4 +1,4 @@
-class Draft
+class Transaction::Draft
   MISSING_AMOUNT = "Add an amount"
   MISSING_NAME = "Add a name"
 
@@ -82,7 +82,9 @@ class Draft
           word.to_i if word&.match?(YEAR) && years(today).cover?(word.to_i)
         end
 
-        def years(today) = (today.year - 20)..(today.year + 1)
+        def years(today)
+          (today.year - 20)..(today.year + 1)
+        end
 
         def dated(year, month, day, today)
           return unless Date.valid_date?(year, month, day)
@@ -130,11 +132,7 @@ class Draft
     elsif reading.category_word
       user.categories.named(reading.category_word).first || Category.new(user:, name: reading.category_word)
     else
-      user.transactions.eager_load(:category)
-        .where("lower(transactions.name) = ?", reading.name.downcase(:ascii))
-        .where.not(id: editing)
-        .order(occurred_on: :desc, id: :desc)
-        .first&.category
+      user.transactions.excluding(editing).last_category_for(reading.name)
     end
   end
   private_class_method :resolve_category
@@ -149,17 +147,23 @@ class Draft
     @category = category
   end
 
-  def category_name = category&.name
+  def category_name
+    category&.name
+  end
 
-  def inferred? = category.present? && @reading.category_word.nil?
+  def inferred?
+    category.present? && @reading.category_word.nil?
+  end
 
-  def valid? = errors.empty?
+  def valid?
+    errors.empty?
+  end
 
-  def money_in? = amount_in_cents.to_i.positive?
+  def money_in?
+    amount_in_cents.to_i.positive?
+  end
 
   def attributes
     { name:, amount_in_cents:, occurred_on:, category:, line: }
   end
-
-  def to_partial_path = "drafts/draft"
 end

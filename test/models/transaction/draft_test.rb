@@ -1,6 +1,6 @@
 require "test_helper"
 
-class DraftGrammarTest < ActiveSupport::TestCase
+class Transaction::Draft::GrammarTest < ActiveSupport::TestCase
   SUNDAY = Date.new(2026, 9, 27)
 
   test "reads a plain amount as money out" do
@@ -203,10 +203,12 @@ class DraftGrammarTest < ActiveSupport::TestCase
   end
 
   private
-    def read(line, today: SUNDAY) = Draft::Grammar.read(line, today:).to_h
+    def read(line, today: SUNDAY)
+      Transaction::Draft::Grammar.read(line, today:).to_h
+    end
 end
 
-class DraftTest < ActiveSupport::TestCase
+class Transaction::DraftTest < ActiveSupport::TestCase
   SUNDAY = Date.new(2026, 9, 27)
 
   test "returns the attributes a transaction saves" do
@@ -264,10 +266,10 @@ class DraftTest < ActiveSupport::TestCase
     assert_equal [ nil, false, [ "Add an amount" ] ], [ draft.category, draft.valid?, draft.errors ]
   end
 
-  test "reports money in and renders through the draft partial" do
+  test "reports money in" do
     draft = parse("+2000 paycheck")
 
-    assert_equal [ true, true, "drafts/draft" ], [ draft.valid?, draft.money_in?, draft.to_partial_path ]
+    assert_equal [ true, true ], [ draft.valid?, draft.money_in? ]
     assert_not parse("coffee 5").money_in?
   end
 
@@ -275,12 +277,14 @@ class DraftTest < ActiveSupport::TestCase
     user = users(:one)
 
     assert_no_difference [ "Transaction.count", "Category.count" ] do
-      assert_queries_count(1) { Draft.parse("taxi 30 #travel", user:, today: SUNDAY) }
-      assert_queries_count(1) { Draft.parse("blue bottle 6", user:, today: SUNDAY) }
+      assert_queries_count(1) { Transaction::Draft.parse("taxi 30 #travel", user:, today: SUNDAY) }
+      assert_queries_count(1) { Transaction::Draft.parse("blue bottle 6", user:, today: SUNDAY) }
     end
     assert_equal [ "Food" ], user.categories.map(&:name)
   end
 
   private
-    def parse(line, user: users(:one), editing: nil) = Draft.parse(line, user:, today: SUNDAY, editing:)
+    def parse(line, user: users(:one), editing: nil)
+      Transaction::Draft.parse(line, user:, today: SUNDAY, editing:)
+    end
 end
