@@ -12,7 +12,7 @@ Open `/`. Without a session the app redirects to `/session/new`.
 
 ## Driving it with mp.mjs
 
-- `mp.mjs signout --port N`, then `mp.mjs signin demo <password> --port N`. The `demo` password is `demo_password` in `db/seeds.rb`. `boot` already signs in.
+- `mp.mjs signout --port N`, then `mp.mjs signin demo <password> --port N`. The `demo` password is `demo-password`, set in `db/seeds.rb`. `boot` already signs in.
 - Wrong password: `mp.mjs signin demo wrong --port N`, then `mp.mjs text '#alert' --port N` prints the alert. Screenshot with `shot`.
 - Proof of success is the printed URL `http://localhost:N/` and a screenshot showing the sidebar.
 
