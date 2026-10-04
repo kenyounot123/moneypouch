@@ -3,9 +3,9 @@
 ## Sub-features
 
 - `Draft::Grammar.read(line, today:)` reads a typed line into a `Draft::Reading` with `name`, `amount_in_cents`, `category_word`, `occurred_on`, and `errors`. It is pure.
-- `Draft.parse(line, user:, today:, excluding: nil)` adds the category and never writes.
+- `Draft.parse(line, user:, today:, editing: nil)` adds the category and never writes.
   - A `#word` matches the user's category, ignoring ASCII case. No match gives an unsaved `Category`.
-  - With no `#word`, the category comes from the user's latest kept transaction with the same name, skipping the `excluding:` row.
+  - With no `#word`, the category comes from the user's latest kept transaction with the same name, skipping the `editing:` row.
 - Amounts: `5`, `5.50`, `$5.50`, `.50`, `-5`, `1,650` read as money out. A leading `+` reads as money in. A marked amount (`$`, a sign, cents, or a thousands comma) wins over bare numbers, else the last bare number wins.
 - Dates: `sep 26`, `sep 1st`, `sep 26 2025`, `9/26`, `9/26/26`, `2026-09-26`, `today`, `yesterday`, and full weekday names. No date means `today`.
 - Errors: `Add an amount` and `Add a name`.
