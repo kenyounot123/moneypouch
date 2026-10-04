@@ -21,7 +21,7 @@ Every command except `boot` and `query` takes `--port N`. With exactly one insta
 $M boot --port 3101
 ```
 
-Prints `http://localhost:3101/ port=3101 user=demo` once the app is signed in on the Overview. Omit `--port` to take the first free port from 3100.
+Prints `http://localhost:3101/ port=3101 user=demo` once the app is signed in on the Overview. Without `--port`, `boot` reuses the single running instance, or takes the first free port from 3100 when none runs. With several running it asks for `--port`. Concurrent boots in one checkout serialize on `tmp/verify/setup.lock`.
 
 `boot` is idempotent. A second call on the same port reuses the server and browser and prints the same URL. Two ports run side by side (separate server, separate Chrome profile). Both share the one development SQLite database, so writes from one show in the other.
 
@@ -48,7 +48,7 @@ Prints JSON with `serverAlive`, `chromeAlive`, `up` (the `/up` status), the curr
 | Click | `$M click 'button[data-theme="dark"]' --port N` |
 | Screenshot | `$M shot /tmp/x/overview.png --port N` (`--full` for the whole page) |
 | Resize viewport | `$M resize 375 812 --port N`. Persists across commands. Prints `scrollWidth`; equal to the width means no horizontal scroll. |
-| Switch theme | `$M theme dark --port N`. Clicks the sidebar button; prints `html[data-theme]`. |
+| Switch theme | `$M theme dark --port N`. Real mouse click on the sidebar button, so the page must show the sidebar (`goto /` first). Waits for `html[data-theme]` and the `theme` cookie, and fails if the button is missing. |
 | Navigate | `$M goto /session/new --port N` |
 | Sign in or out | `$M signin demo wrong --port N`, `$M signout --port N` |
 | Page text | `$M text '#alert' --port N` |
@@ -57,7 +57,7 @@ Prints JSON with `serverAlive`, `chromeAlive`, `up` (the `/up` status), the curr
 
 Handles that exist today: quick add input `[aria-label="Quick add"]`, theme buttons `button[data-theme="light"|"dark"]`, sign-in fields `#username` and `#password`, flash `#alert` and `#notice`.
 
-`query` runs a Ruby expression through `bin/rails runner` inside `ActiveRecord::Base.while_preventing_writes`. A write raises `ReadOnlyError`. It talks to the development database, so it needs no running instance.
+`query` evaluates the Ruby expression in `bin/rails runner` after reopening the database with SQLite `readonly: true`. `User.delete_all` and every other write fails with `SQLite3::ReadOnlyException`. The guard is the database connection, not a Ruby sandbox: `File.write` and `system` still run, so treat the expression as trusted input. It talks to the development database, so it needs no running instance.
 
 The sign-in form is rate limited to 10 attempts per 3 minutes per client. A wrong-password drive costs one attempt.
 
