@@ -5,7 +5,7 @@ class Transaction < ApplicationRecord
   scope :kept, -> { where(discarded_at: nil) }
   scope :discarded, -> { where.not(discarded_at: nil) }
 
-  def stashed_on
+  def added_on
     (created_at || Time.current).in_time_zone.to_date
   end
 

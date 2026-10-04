@@ -36,12 +36,12 @@ namespace :dev do
         name, dollars, category = index % 4 == 0 ? variants[(index / 4) % variants.size] : merchants.sample
         cents = -rand((dollars.begin * 100)..(dollars.end * 100))
       end
-      stashed_at = occurred_on.in_time_zone.change(hour: rand(7..22), min: rand(60))
+      added_at = occurred_on.in_time_zone.change(hour: rand(7..22), min: rand(60))
       amount = format("%s%.2f", cents.positive? ? "+" : "", cents.abs / 100.0)
 
       { user_id: user.id, category_id: categories.fetch(category).id, name: name, amount_in_cents: cents, currency: "USD",
         occurred_on: occurred_on, line: "#{name} #{amount} ##{category} #{occurred_on.iso8601}",
-        created_at: stashed_at, updated_at: stashed_at }
+        created_at: added_at, updated_at: added_at }
     end
     rows.each_slice(1000) { |batch| Transaction.insert_all!(batch) }
 
