@@ -21,7 +21,6 @@ namespace :dev do
                  Tiburon Napa Sonoma Petaluma Novato Larkspur Pacifica Millbrae Belmont Woodside Atherton Milpitas
                  Livermore Pleasanton Dublin Danville Lafayette Orinda Walnut Concord Martinez Benicia Vallejo
                  Albany Piedmont Montclair Rockridge Temescal Fruitvale Jingletown ]
-    # 31 merchants by 67 places gives about 2000 names, which every fourth row of 10000 covers.
     variants = merchants.product(places).map { |(name, dollars, category), place| [ "#{name} #{place}", dollars, category ] }
 
     categories = (merchants.map(&:last) << "Income").uniq.index_with do |name|
