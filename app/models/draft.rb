@@ -160,6 +160,4 @@ class Draft
   def attributes
     { name:, amount_in_cents:, occurred_on:, category:, line: }
   end
-
-  def to_partial_path = "drafts/draft"
 end

@@ -264,10 +264,10 @@ class DraftTest < ActiveSupport::TestCase
     assert_equal [ nil, false, [ "Add an amount" ] ], [ draft.category, draft.valid?, draft.errors ]
   end
 
-  test "reports money in and renders through the draft partial" do
+  test "reports money in" do
     draft = parse("+2000 paycheck")
 
-    assert_equal [ true, true, "drafts/draft" ], [ draft.valid?, draft.money_in?, draft.to_partial_path ]
+    assert_equal [ true, true ], [ draft.valid?, draft.money_in? ]
     assert_not parse("coffee 5").money_in?
   end
 
