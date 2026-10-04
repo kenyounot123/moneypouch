@@ -76,7 +76,7 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 
 **Files.**
 
-- [ ] Edit `app/models/transaction.rb`, `app/models/transaction/draft.rb`, and `test/models/transaction/draft_test.rb`.
+- [ ] Edit `app/models/transaction/draft.rb` and `test/models/transaction/draft_test.rb`.
 - [ ] Create `app/controllers/drafts_controller.rb`, `app/views/drafts/show.html.erb`, and `app/views/drafts/_draft.html.erb`.
 - [ ] Create `app/views/shared/_quick_add.html.erb` from the bar markup in `app/views/welcome/index.html.erb`.
 - [ ] Create `app/javascript/controllers/quick_add_controller.js` and `app/javascript/controllers/time_zone_controller.js`.
@@ -87,12 +87,11 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 
 - [ ] Change `Transaction::Draft::MISSING_AMOUNT` to `Type an amount, like 5.50` and `MISSING_NAME` to `Type a name, like coffee`. Update the literal expectations in `draft_test.rb`.
 - [ ] Add `dated` to `Transaction::Draft::Reading` and delegate `Draft#dated?`. It is true only when the line names a date, so `coffee 5` is not dated and `coffee 5 today` is.
-- [ ] Remember money in per name. Add `signed` to `Reading`, true when the amount carries a typed `+` or `-`. Replace `Transaction.last_category_for(name)` with `Transaction.latest_named(name)`, which returns the latest kept row with that name. `Draft.parse` takes the category from that row as today, and when the amount is not `signed` and that row is money in, it reads the amount as money in. So `Paycheck 2400` after a `Paycheck +2400` reads as money in, and `Paycheck -2400` stays money out.
 - [ ] Set a `time_zone` cookie from the browser in `time_zone_controller.js`, copying the cookie pattern in `background_controller.js`. Wrap each request in `Time.use_zone` from that cookie in `ApplicationController`, falling back to UTC for an unknown zone, so `Date.current` is the user's today.
 - [ ] Add `resource :draft, only: :show`. `DraftsController#show` parses `params[:line]` plus `params[:completion]` with `Transaction::Draft.parse(line, user: Current.user, today: Date.current)` and renders `<turbo-frame id="draft">`.
 - [ ] Render `drafts/_draft.html.erb` with two parts, matching the prototype's C3 markup.
-  - [ ] The preview row, shaped like a Recent row. Name, category with `(new)` when the category is unsaved, the date as Today, Yesterday, or `Sep 24`, and the amount. Money in shows the amount with a `+` in the success color and the caption `Money in` under it. Money out shows the amount alone. A missing name or amount shows its error as a red outlined callout with a warning icon in the spot where that value goes. The row carries `data-inferred-category` when `inferred?`.
-  - [ ] The legend. `5.50` amount, `@` date, and `#` category. Money in has no legend part, since the row's caption and the remembered sign cover it. A part the line uses gets the highlight chip and a check. The amount part turns red while the line is not empty and has no amount. An empty line shows only the legend.
+  - [ ] The preview row, shaped like a Recent row. Name, category with `(new)` when the category is unsaved, the date as Today, Yesterday, or `Sep 24`, and the amount. An amount is money out unless the line types a `+` before it, as the grammar reads it today. Money in shows the amount with a `+` in the success color and the caption `Money in` under it. Money out shows the amount alone. A missing name or amount shows its error as a red outlined callout with a warning icon in the spot where that value goes. The row carries `data-inferred-category` when `inferred?`.
+  - [ ] The legend. `5.50` amount, `@` date, and `#` category. Money in has no legend part. The row's `Money in` caption confirms a typed `+`. A part the line uses gets the highlight chip and a check. The amount part turns red while the line is not empty and has no amount. An empty line shows only the legend.
 - [ ] Make `quick_add_controller.js` set the frame's `src` to `/draft?line=` on each `input` event. Turbo cancels the stale request, so only the latest line paints. Expose a `quick-add:preview` event whose `detail` carries a `line` and an optional `completion`, so Q3 to Q5 can preview a pending change without owning the frame.
 - [ ] Remove the static `$5.50`, `Food`, and `Sep 26` pills from the bar.
 - [ ] Let the amount callout wrap below the name at phone width, as the prototype's `flex-wrap` and `basis-44` row does.
@@ -103,7 +102,6 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] `draft_test.rb` gains a case that `Paycheck 2400` reads `240000` when the user's latest `Paycheck` row is money in, and that `Paycheck -2400` reads `-240000`.
 - [ ] `draft_test.rb` gains literal cases that `coffee 5` reads `dated: false` and `coffee 5 yesterday`, `coffee 5 sep 24`, and `coffee 5 9/24` read `dated: true`. Run `bin/rails test test/models/transaction/draft_test.rb`.
 - [ ] `drafts_controller_test.rb` gains a case that `GET /draft?line=coffee` contains `Type an amount, like 5.50`, and a case that another user's categories never appear. Run `bin/rails test`.
 
@@ -113,7 +111,7 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 - [ ] Lane 2. Type `Trader Joe's 64.12 sep 18 #Shopping` one character at a time with `$M type` and screenshot after each word. Save `preview-steps.png`. Pass when the row always matches the text typed so far.
 - [ ] Lane 3. Type `5.50` only. Save `missing-name.png`. Pass when the name spot shows `Type a name, like coffee` as a red callout.
 - [ ] Lane 4. Type `lunch 12 #brandnew`. Save `new-category.png`. Pass when the row shows `brandnew (new)` and `$M query 'Category.count'` is unchanged.
-- [ ] Lane 5. Seed a `Paycheck` row of `240000` for `demo` with `bin/rails runner` before boot, then type `Paycheck 2400`, then `Paycheck -2400`. Save `money-in.png`. Pass when the first shows `+$2,400.00` with `Money in` and the second shows `$2,400.00` with no caption.
+- [ ] Lane 5. Type `Paycheck +2400`, then `Paycheck 2400`. Save `money-in.png`. Pass when the first shows `+$2,400.00` with `Money in` and the second shows `$2,400.00` with no caption.
 - [ ] Lane 6. Clear the field. Save `empty.png`. Pass when only the legend shows and no row or callout remains.
 - [ ] Lane 7. Set the `time_zone` cookie to `Pacific/Kiritimati` with `$M js`, reload with `$M goto /`, and type `tea 3 today`. Save `zone.png`. Pass when the row date equals today in that zone, as `$M query 'Time.use_zone("Pacific/Kiritimati") { Date.current }'` prints.
 - [ ] Lane 8. Type `Spotify yesterday` at 375 by 812. Save `phone.png`. Pass when the callout wraps below the name, `$M resize` prints `scrollWidth=375`, and nothing overlaps.
@@ -398,7 +396,7 @@ It settled these questions in a browser, driven with real key events.
 - The missing-amount callout reads at a glance in light and dark, and at phone width it wraps below the name. See `media/prototype-missing-amount.jpg` and `media/prototype-missing-amount-phone.jpg`.
 - `#` with the last category used for that name first makes the common case two keys. See `media/prototype-category-menu.jpg`.
 - `@` with arrow keys, PageUp, `t`, and `y` picks any past date without the mouse, and the picked words parse. See `media/prototype-calendar.jpg`.
-- A remembered sign reads `Paycheck 2400` as money in with a `Money in` caption, and `Paycheck -2400` as money out. See `media/prototype-money-in.jpg`.
+- `Paycheck +2400` reads as money in with a `Money in` caption, and a bare `Paycheck 2400` reads as money out. See `media/prototype-money-in.jpg`.
 - A whole line, `Trader Joe's 64.12 #Shopping sep 18`, takes about 20 keys.
 
 These stay unproven until the owners measure them.
@@ -412,14 +410,14 @@ These stay unproven until the owners measure them.
 - **A read-back sentence**, as the closed quick add plan had. The preview row shows the same facts in the shape the row will have, and the legend teaches the syntax the sentence never showed.
 - **`due:` or `on:` as the date trigger.** `@` is one key, pairs with `#`, and needs no grammar change because the pick writes words the grammar already reads.
 - **A stacked session list after Enter.** It confirms backdated adds next to the bar, but the operator chose the toast. The toast names the added row, which covers a backdated add that lands below the fold.
-- **A `+20` money in part in the legend.** The operator wants the bar free of it. A remembered sign per name plus the `Money in` caption shows the sign where the amount is, and a typed `-` overrides it.
+- **A `+20` money in part in the legend.** The operator wants the bar free of it. The `Money in` caption confirms a typed `+` where the amount is.
+- **A sign remembered per name.** A bare amount after a money-in row would read as money in. The operator chose one rule instead. Money out is the default, and only a typed `+` means money in.
 - **Hard delete for undo.** `Transaction#discard` already exists, and a hard delete loses data the undo should keep.
 
 ## Appendix C. Risks
 
 - **Open decision for the operator.** Can a person pick a future date? Q5 blocks it, matching "where did my money go". The grammar accepts up to one year ahead when the year is typed. Allowing it means one `max` change in `calendar_controller.js`.
 - **A literal `@` in a name.** A pasted `@y` skips the calendar and stays in the name. Q5's owner watches whether the grammar should drop a bare `@`.
-- **A remembered sign can surprise.** A name used once for a refund turns its next bare amount into money in. The `Money in` caption shows it before Enter, and a typed `-` fixes it. Q1's owner watches whether the caption is enough.
 - **Preview latency on slow hosts.** Q1 measures it. If p95 exceeds 100 milliseconds, raise it before Q2 builds on the frame.
 - **Morph and focus.** Q2's spike decides between morph and a permanent bar before the rest of Q2.
 - **`Ctrl+Z` in the field.** Q2 binds undo only while the field is empty and the toast shows, so text undo inside the field keeps working.
