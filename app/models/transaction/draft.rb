@@ -1,4 +1,4 @@
-class Draft
+class Transaction::Draft
   MISSING_AMOUNT = "Add an amount"
   MISSING_NAME = "Add a name"
 
@@ -132,11 +132,7 @@ class Draft
     elsif reading.category_word
       user.categories.named(reading.category_word).first || Category.new(user:, name: reading.category_word)
     else
-      user.transactions.eager_load(:category)
-        .where("lower(transactions.name) = ?", reading.name.downcase(:ascii))
-        .where.not(id: editing)
-        .order(occurred_on: :desc, id: :desc)
-        .first&.category
+      user.transactions.excluding(editing).last_category_for(reading.name)
     end
   end
   private_class_method :resolve_category
