@@ -67,7 +67,13 @@ const chromeNeedle = (port) => `--user-data-dir=${profileFor(port)}`
 const serverUp = (s, port) => !!s && ours(s.serverPid, ...serverNeedles(port))
 const chromeUp = (s, port) => !!s && ours(s.chromePid, chromeNeedle(port))
 const readState = (port) => { try { return JSON.parse(fs.readFileSync(path.join(dirFor(port), "state.json"), "utf8")) } catch { return null } }
-const writeState = (port, s) => { fs.mkdirSync(dirFor(port), { recursive: true }); fs.writeFileSync(path.join(dirFor(port), "state.json"), JSON.stringify(s, null, 2)) }
+const writeState = (port, s) => {
+  fs.mkdirSync(dirFor(port), { recursive: true })
+  const file = path.join(dirFor(port), "state.json")
+  const tmp = `${file}.${process.pid}.tmp`
+  fs.writeFileSync(tmp, JSON.stringify(s, null, 2))
+  fs.renameSync(tmp, file)
+}
 
 function liveInstances() {
   const known = fs.existsSync(STATE_ROOT) ? fs.readdirSync(STATE_ROOT).filter((p) => /^\d+$/.test(p)) : []
@@ -111,7 +117,7 @@ async function withLock(fn) {
       await sleep(250)
     }
   }
-  const release = () => fs.rmSync(lock, { force: true })
+  const release = () => { try { if (Number(fs.readFileSync(lock, "utf8")) === process.pid) fs.rmSync(lock, { force: true }) } catch {} }
   process.on("exit", release)
   try { return await fn() } finally { release() }
 }
@@ -258,6 +264,8 @@ async function hold(flags) {
   let session, applied
   for (;;) {
     const s = readState(port)
+    if (!s && !fs.existsSync(path.join(dirFor(port), "state.json"))) return
+    if (!s) { await sleep(150); continue }
     if (!chromeUp(s, port)) return
     try {
       if (session) await session.evaluate("1")
@@ -340,10 +348,13 @@ async function doctor(flags) {
     out.url = await b.evaluate("location.href")
     out.theme = await b.evaluate("document.documentElement.dataset.theme")
     out.viewport = s.viewport
+    out.inner = await b.evaluate("[innerWidth, innerHeight]")
     b.close()
   }
+  out.holderAlive = holderUp(s, port)
   console.log(JSON.stringify(out))
-  if (!out.serverAlive || out.up !== 200) process.exit(1)
+  const innerMatches = out.inner && out.inner[0] === s.viewport.width && out.inner[1] === s.viewport.height
+  if (!out.serverAlive || out.up !== 200 || !out.chromeAlive || !out.holderAlive || !innerMatches) process.exit(1)
 }
 
 const READONLY_RUNNER = `
@@ -361,7 +372,7 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   key <Key>                          Enter, Escape, Tab, ArrowDown, Backspace, a, Meta+k, Shift+Tab
   click <selector>                   mouse click on the element's center
   shot <file.png> [--full]           screenshot the viewport, or the whole page with --full
-  resize <w> <h>                     resize the browser window; the size persists in Chrome itself
+  resize <w> <h>                     set the emulated viewport; the per-instance holder keeps it between commands
   theme light|dark                   click the sidebar theme button on the current page
   signin <user> <password>           sign in through the form
   signout                            DELETE /session and land on the sign-in page
@@ -421,9 +432,10 @@ async function main() {
       const s = readState(port)
       s.viewport = { width: Number(args[0]), height: Number(args[1]) }
       writeState(port, s)
-      for (let i = 0; i < 50 && (await b.evaluate("innerWidth")) !== s.viewport.width; i++) await sleep(100)
-      const [w, h] = await b.evaluate("[innerWidth, innerHeight]")
-      if (w !== s.viewport.width) die(`viewport holder did not apply ${s.viewport.width}x${s.viewport.height}; see ${dirFor(port)}/holder.log`)
+      const dims = () => b.evaluate("[innerWidth, innerHeight]")
+      for (let i = 0; i < 50 && (await dims()).join("x") !== `${s.viewport.width}x${s.viewport.height}`; i++) await sleep(100)
+      const [w, h] = await dims()
+      if (w !== s.viewport.width || h !== s.viewport.height) die(`viewport holder did not apply ${s.viewport.width}x${s.viewport.height}; see ${dirFor(port)}/holder.log`)
       console.log(`${w}x${h} scrollWidth=${await b.evaluate("document.documentElement.scrollWidth")}`)
     } else if (cmd === "theme") {
       if (!["light", "dark"].includes(args[0])) die("theme takes light or dark")

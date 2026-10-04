@@ -37,7 +37,7 @@ Per-instance state lives in `tmp/verify/<port>/` (gitignored): `state.json`, `se
 $M doctor --port 3101
 ```
 
-Prints JSON with `serverAlive`, `chromeAlive`, `up` (the `/up` status), the current `url`, `theme`, and `viewport`. Exit 1 when the server is down or `/up` is not 200. Run it first whenever a drive behaves oddly. A port that is busy with a process this skill did not start makes `boot` refuse with an error instead of attaching.
+Prints JSON with `serverAlive`, `chromeAlive`, `holderAlive`, `up` (the `/up` status), the current `url`, `theme`, the recorded `viewport`, and the live `inner` size. Exit 1 when the server or Chrome is down, `/up` is not 200, the viewport holder is dead, or `inner` differs from `viewport`. Run it first whenever a drive behaves oddly. A port that is busy with a process this skill did not start makes `boot` refuse with an error instead of attaching.
 
 ## Drive
 
@@ -46,7 +46,7 @@ Prints JSON with `serverAlive`, `chromeAlive`, `up` (the `/up` status), the curr
 | Type into a field | `$M type '[aria-label="Quick add"]' 'coffee 5.50' --port N` (add `--clear` to replace). Types key by key, so keydown handlers fire. Prints the field value. |
 | Press a key | `$M key Enter --port N`. Also `Escape`, `Tab`, `ArrowDown`, `Backspace`, a single character, `Meta+k`, `Shift+Tab`. |
 | Click | `$M click 'button[data-theme="dark"]' --port N` |
-| Screenshot | `$M shot /tmp/x/overview.png --port N` (`--full` for the whole page) |
+| Screenshot | `$M shot /tmp/x/overview.png --port N` (`--full` for the whole page; it fires page resize events while it captures, so take full-page shots last when a lane watches resize events or popovers) |
 | Resize viewport | `$M resize 375 812 --port N`. A small detached holder process per instance keeps the emulated viewport applied between commands, so the page does not see a resize until the next `resize`. Chrome headless cannot shrink its window below 500 px, which is why emulation is used. Prints `scrollWidth`; equal to the width means no horizontal scroll. |
 | Switch theme | `$M theme dark --port N`. Real mouse click on the sidebar button, so the page must show the sidebar (`goto /` first). Waits for `html[data-theme]` and the `theme` cookie, and fails if the button is missing. |
 | Navigate | `$M goto /session/new --port N` |
