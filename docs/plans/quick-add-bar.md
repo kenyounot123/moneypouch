@@ -2,7 +2,7 @@
 
 The quick add bar on the Overview becomes the place where a person types one line per purchase and sees exactly what will be saved before pressing Enter.
 A preview row shows the row that will land in Recent, and a legend under it names what the line can hold and checks each part the line already uses.
-Three typing aids keep hands on the keyboard. `#` opens the categories with the usual one first, `@` opens a calendar driven by arrow keys, and Tab finishes a name used before.
+Three typing aids keep hands on the keyboard. `#` opens the categories with the last one used for that name first, `@` opens a calendar driven by arrow keys, and Tab finishes a name used before.
 The rule the program enforces is that `Transaction::Draft` alone decides what a line means. The client only edits text and never parses it.
 The PR ids in order are Q1 to Q5. The prototype that chose this design is [prototypes/quick-add-bar.html](prototypes/quick-add-bar.html), variant **C3 · Assist**.
 
@@ -76,7 +76,7 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 
 **Files.**
 
-- [ ] Edit `app/models/transaction/draft.rb` and `test/models/transaction/draft_test.rb`.
+- [ ] Edit `app/models/transaction.rb`, `app/models/transaction/draft.rb`, and `test/models/transaction/draft_test.rb`.
 - [ ] Create `app/controllers/drafts_controller.rb`, `app/views/drafts/show.html.erb`, and `app/views/drafts/_draft.html.erb`.
 - [ ] Create `app/views/shared/_quick_add.html.erb` from the bar markup in `app/views/welcome/index.html.erb`.
 - [ ] Create `app/javascript/controllers/quick_add_controller.js` and `app/javascript/controllers/time_zone_controller.js`.
@@ -87,21 +87,23 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 
 - [ ] Change `Transaction::Draft::MISSING_AMOUNT` to `Type an amount, like 5.50` and `MISSING_NAME` to `Type a name, like coffee`. Update the literal expectations in `draft_test.rb`.
 - [ ] Add `dated` to `Transaction::Draft::Reading` and delegate `Draft#dated?`. It is true only when the line names a date, so `coffee 5` is not dated and `coffee 5 today` is.
+- [ ] Remember money in per name. Add `signed` to `Reading`, true when the amount carries a typed `+` or `-`. Replace `Transaction.last_category_for(name)` with `Transaction.latest_named(name)`, which returns the latest kept row with that name. `Draft.parse` takes the category from that row as today, and when the amount is not `signed` and that row is money in, it reads the amount as money in. So `Paycheck 2400` after a `Paycheck +2400` reads as money in, and `Paycheck -2400` stays money out.
 - [ ] Set a `time_zone` cookie from the browser in `time_zone_controller.js`, copying the cookie pattern in `background_controller.js`. Wrap each request in `Time.use_zone` from that cookie in `ApplicationController`, falling back to UTC for an unknown zone, so `Date.current` is the user's today.
 - [ ] Add `resource :draft, only: :show`. `DraftsController#show` parses `params[:line]` plus `params[:completion]` with `Transaction::Draft.parse(line, user: Current.user, today: Date.current)` and renders `<turbo-frame id="draft">`.
 - [ ] Render `drafts/_draft.html.erb` with two parts, matching the prototype's C3 markup.
-  - [ ] The preview row, shaped like a Recent row. Name, category with `(usual)` when `inferred?` or `(new)` when the category is unsaved, the date as Today, Yesterday, or `Sep 24`, and the amount. A missing name or amount shows its error as a red outlined callout with a warning icon in the spot where that value goes. The row carries `data-inferred-category` when `inferred?`.
-  - [ ] The legend. `5.50` amount, `@` date, `#` category, and `+20` money in. A part the line uses gets the highlight chip and a check. The amount part turns red while the line is not empty and has no amount. An empty line shows only the legend.
+  - [ ] The preview row, shaped like a Recent row. Name, category with `(new)` when the category is unsaved, the date as Today, Yesterday, or `Sep 24`, and the amount. Money in shows the amount with a `+` in the success color and the caption `Money in` under it. Money out shows the amount alone. A missing name or amount shows its error as a red outlined callout with a warning icon in the spot where that value goes. The row carries `data-inferred-category` when `inferred?`.
+  - [ ] The legend. `5.50` amount, `@` date, and `#` category. Money in has no legend part, since the row's caption and the remembered sign cover it. A part the line uses gets the highlight chip and a check. The amount part turns red while the line is not empty and has no amount. An empty line shows only the legend.
 - [ ] Make `quick_add_controller.js` set the frame's `src` to `/draft?line=` on each `input` event. Turbo cancels the stale request, so only the latest line paints. Expose a `quick-add:preview` event whose `detail` carries a `line` and an optional `completion`, so Q3 to Q5 can preview a pending change without owning the frame.
 - [ ] Remove the static `$5.50`, `Food`, and `Sep 26` pills from the bar.
 - [ ] Let the amount callout wrap below the name at phone width, as the prototype's `flex-wrap` and `basis-44` row does.
 
 **You see.**
 
-- [ ] Typing `Spotify yesterday` shows a preview row `Spotify`, `Subscriptions (usual) · Yesterday`, and the callout `Type an amount, like 5.50`. The legend shows `@` date with a check and `5.50` amount in red.
+- [ ] Typing `Spotify yesterday` shows a preview row `Spotify`, `Subscriptions · Yesterday`, and the callout `Type an amount, like 5.50`. The legend shows `@` date with a check and `5.50` amount in red.
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
+- [ ] `draft_test.rb` gains a case that `Paycheck 2400` reads `240000` when the user's latest `Paycheck` row is money in, and that `Paycheck -2400` reads `-240000`.
 - [ ] `draft_test.rb` gains literal cases that `coffee 5` reads `dated: false` and `coffee 5 yesterday`, `coffee 5 sep 24`, and `coffee 5 9/24` read `dated: true`. Run `bin/rails test test/models/transaction/draft_test.rb`.
 - [ ] `drafts_controller_test.rb` gains a case that `GET /draft?line=coffee` contains `Type an amount, like 5.50`, and a case that another user's categories never appear. Run `bin/rails test`.
 
@@ -111,7 +113,7 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 - [ ] Lane 2. Type `Trader Joe's 64.12 sep 18 #Shopping` one character at a time with `$M type` and screenshot after each word. Save `preview-steps.png`. Pass when the row always matches the text typed so far.
 - [ ] Lane 3. Type `5.50` only. Save `missing-name.png`. Pass when the name spot shows `Type a name, like coffee` as a red callout.
 - [ ] Lane 4. Type `lunch 12 #brandnew`. Save `new-category.png`. Pass when the row shows `brandnew (new)` and `$M query 'Category.count'` is unchanged.
-- [ ] Lane 5. Type `paycheck +2400`. Save `money-in.png`. Pass when the amount shows `+$2,400.00` in the success color and the legend checks money in.
+- [ ] Lane 5. Seed a `Paycheck` row of `240000` for `demo` with `bin/rails runner` before boot, then type `Paycheck 2400`, then `Paycheck -2400`. Save `money-in.png`. Pass when the first shows `+$2,400.00` with `Money in` and the second shows `$2,400.00` with no caption.
 - [ ] Lane 6. Clear the field. Save `empty.png`. Pass when only the legend shows and no row or callout remains.
 - [ ] Lane 7. Set the `time_zone` cookie to `Pacific/Kiritimati` with `$M js`, reload with `$M goto /`, and type `tea 3 today`. Save `zone.png`. Pass when the row date equals today in that zone, as `$M query 'Time.use_zone("Pacific/Kiritimati") { Date.current }'` prints.
 - [ ] Lane 8. Type `Spotify yesterday` at 375 by 812. Save `phone.png`. Pass when the callout wraps below the name, `$M resize` prints `scrollWidth=375`, and nothing overlaps.
@@ -219,12 +221,12 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 - [ ] Add `resources :completions, only: :index`. `CompletionsController#index` returns JSON with the user's distinct kept names, each with its latest category, ranked by use count then latest `occurred_on`, plus the user's category names.
 - [ ] Fetch the list in `completion_controller.js` when the bar gains focus and again on `turbo:morph` after each add.
 - [ ] Offer a name only while the caret is at the end, the line has at least 2 characters, and the line holds no digit, `#`, `@`, `$`, or `+`. Match by case-insensitive prefix and offer the first ranked hit.
-- [ ] Send the remainder as `completion` through `quick-add:preview`. `drafts/_draft.html.erb` renders the typed part in full color, the remainder dimmed, and a `Tab` key chip. The category comes from the completed name, so `Tra` shows `Food (usual)`.
+- [ ] Send the remainder as `completion` through `quick-add:preview`. `drafts/_draft.html.erb` renders the typed part in full color, the remainder dimmed, and a `Tab` key chip. The category comes from the completed name, so `Tra` shows `Food`.
 - [ ] Make Tab replace the line with the full name plus a space. Tab with no offer keeps its normal focus move.
 
 **You see.**
 
-- [ ] Typing `Tra` shows `Trader Joe's` with `der Joe's` dimmed, a `Tab` chip, and `Food (usual) · Today`. Tab turns the line into `Trader Joe's `.
+- [ ] Typing `Tra` shows `Trader Joe's` with `der Joe's` dimmed, a `Tab` chip, and `Food · Today`. Tab turns the line into `Trader Joe's `.
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
@@ -233,7 +235,7 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `sonnet` at the PR head, per the boot recipe.
 
 - [ ] Lane 1. Regression lane against trunk. Type `Tra` and press Tab at trunk and head. Trunk moves focus away, so record that and gate the head result. Save `tab.png`. Pass when the head line reads `Trader Joe's ` and focus stays in the bar.
-- [ ] Lane 2. Type `Tra` and screenshot before Tab. Save `offer.png`. Pass when the row shows the dimmed remainder, the `Tab` chip, and the usual category.
+- [ ] Lane 2. Type `Tra` and screenshot before Tab. Save `offer.png`. Pass when the row shows the dimmed remainder, the `Tab` chip, and the completed name's category.
 - [ ] Lane 3. Type `Tra 6`. Save `no-offer-digit.png`. Pass when no remainder shows.
 - [ ] Lane 4. Type `T`. Save `too-short.png`. Pass when no remainder shows.
 - [ ] Lane 5. Move the caret into the middle of `Trad` with `$M key ArrowLeft`. Save `mid-caret.png`. Pass when no remainder shows and Tab moves focus.
@@ -274,14 +276,14 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 **Build.**
 
 - [ ] Open a listbox under the bar when the word at the caret starts with `#`. Set `role="combobox"`, `aria-expanded`, and `aria-controls` on the field and `role="option"` with `aria-selected` on each item.
-- [ ] Filter the user's categories by case-insensitive prefix of the text after `#`. Put the category from the preview row's `data-inferred-category` first and tag it `usual`.
+- [ ] Filter the user's categories by case-insensitive prefix of the text after `#`. Put the category from the preview row's `data-inferred-category` first, with no tag.
 - [ ] When the typed word matches no category, end the list with `New category <word>`.
 - [ ] Make Up and Down move the selection, Tab or Enter replace the word with `#<Category> `, a click do the same, and Esc close the list and keep the text.
 - [ ] Place the list under the word at the caret, clamped inside the bar's width, as the prototype's `place` function does.
 
 **You see.**
 
-- [ ] On `Trader Joe's 64.12 #`, the list opens with `Food usual` selected and a `Tab` chip. Tab turns the line into `Trader Joe's 64.12 #Food `, and the legend checks category.
+- [ ] On `Trader Joe's 64.12 #`, the list opens with `Food` first and selected. Tab turns the line into `Trader Joe's 64.12 #Food `, and the legend checks category.
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
@@ -289,7 +291,7 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `sonnet` at the PR head, per the boot recipe.
 
-- [ ] Lane 1. Regression lane against trunk. Type `Trader Joe's 64.12 #` at trunk and head. Trunk has no list, so record that and gate the head result. Save `menu.png`. Pass when the head list opens with the usual category first.
+- [ ] Lane 1. Regression lane against trunk. Type `Trader Joe's 64.12 #` at trunk and head. Trunk has no list, so record that and gate the head result. Save `menu.png`. Pass when the head list opens with `Food`, the last category used for `Trader Joe's`, first.
 - [ ] Lane 2. Type `#sh` and press Tab. Save `filter.png`. Pass when the word becomes `#Shopping ` and the rest of the line is unchanged.
 - [ ] Lane 3. Type `#`, press Down twice, press Enter. Save `arrows.png`. Pass when the third item is picked and nothing is added.
 - [ ] Lane 4. Type `#brandnew` and press Tab. Save `new.png`. Pass when the list showed `New category brandnew` and the row shows `brandnew (new)`.
@@ -310,7 +312,7 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 **Review gate.** The operator reviews before merge.
 
 - [ ] Copy lane 1, 4, and 9 screenshots into `docs/plans/media/Q4-review-<slug>.png`.
-- [ ] Record a 30 to 60 second video of picking the usual category, filtering to another, and making a new one. Save it as `docs/plans/media/Q4-review.mp4`.
+- [ ] Record a 30 to 60 second video of picking the first category, filtering to another, and making a new one. Save it as `docs/plans/media/Q4-review.mp4`.
 - [ ] Post the screenshots and the video in chat. Stop at merge-ready. Wait for the operator's click.
 
 **Merge.**
@@ -337,11 +339,11 @@ Each live lane runs in its own remote subagent at the PR head. Drive through the
 - [ ] Make Esc close the calendar and remove the `@`. Make any other printable key remove the `@`, close the calendar, and type the key.
 - [ ] Grey out future days and stop the cursor at today. This is the operator's open decision in Appendix C, so build it behind one `max` value.
 - [ ] Send the line with the cursor's date word in place of `@` through `quick-add:preview`, so the row shows the date before the pick.
-- [ ] Show the footer hints in two columns, `←↑↓→ move`, `Tab pick`, `t today`, and `y yesterday`.
+- [ ] Show the footer hints on one row, `←↑↓→ move`, `t today`, and `y yesterday`. Tab and Enter both pick, so they need no hint.
 
 **You see.**
 
-- [ ] On `Lyft 9 @`, the calendar opens on today. PageUp then Tab turns the line into `Lyft 9 aug 27 ` and the row shows `Transport (usual) · Aug 27`.
+- [ ] On `Lyft 9 @`, the calendar opens on today. PageUp then Tab turns the line into `Lyft 9 aug 27 ` and the row shows `Transport · Aug 27`.
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
@@ -394,9 +396,10 @@ It settled these questions in a browser, driven with real key events.
 - A preview row beats pills and in-field highlighting. Pills hide below 640 pixels, and the highlight overlay drifted from the caret once and could not show a misread.
 - A legend beats hints inside the row. Hints inside the row vanished once a category was inferred, which is when a person wants to override it.
 - The missing-amount callout reads at a glance in light and dark, and at phone width it wraps below the name. See `media/prototype-missing-amount.jpg` and `media/prototype-missing-amount-phone.jpg`.
-- `#` with the usual category first makes the common case two keys. See `media/prototype-category-menu.jpg`.
+- `#` with the last category used for that name first makes the common case two keys. See `media/prototype-category-menu.jpg`.
 - `@` with arrow keys, PageUp, `t`, and `y` picks any past date without the mouse, and the picked words parse. See `media/prototype-calendar.jpg`.
-- A whole line, `Trader Joe's 64.12 #Shopping sep 18`, takes about 20 keys with every legend part checked. See `media/prototype-full-line.jpg`.
+- A remembered sign reads `Paycheck 2400` as money in with a `Money in` caption, and `Paycheck -2400` as money out. See `media/prototype-money-in.jpg`.
+- A whole line, `Trader Joe's 64.12 #Shopping sep 18`, takes about 20 keys.
 
 These stay unproven until the owners measure them.
 
@@ -409,12 +412,14 @@ These stay unproven until the owners measure them.
 - **A read-back sentence**, as the closed quick add plan had. The preview row shows the same facts in the shape the row will have, and the legend teaches the syntax the sentence never showed.
 - **`due:` or `on:` as the date trigger.** `@` is one key, pairs with `#`, and needs no grammar change because the pick writes words the grammar already reads.
 - **A stacked session list after Enter.** It confirms backdated adds next to the bar, but the operator chose the toast. The toast names the added row, which covers a backdated add that lands below the fold.
+- **A `+20` money in part in the legend.** The operator wants the bar free of it. A remembered sign per name plus the `Money in` caption shows the sign where the amount is, and a typed `-` overrides it.
 - **Hard delete for undo.** `Transaction#discard` already exists, and a hard delete loses data the undo should keep.
 
 ## Appendix C. Risks
 
 - **Open decision for the operator.** Can a person pick a future date? Q5 blocks it, matching "where did my money go". The grammar accepts up to one year ahead when the year is typed. Allowing it means one `max` change in `calendar_controller.js`.
 - **A literal `@` in a name.** A pasted `@y` skips the calendar and stays in the name. Q5's owner watches whether the grammar should drop a bare `@`.
+- **A remembered sign can surprise.** A name used once for a refund turns its next bare amount into money in. The `Money in` caption shows it before Enter, and a typed `-` fixes it. Q1's owner watches whether the caption is enough.
 - **Preview latency on slow hosts.** Q1 measures it. If p95 exceeds 100 milliseconds, raise it before Q2 builds on the frame.
 - **Morph and focus.** Q2's spike decides between morph and a permanent bar before the rest of Q2.
 - **`Ctrl+Z` in the field.** Q2 binds undo only while the field is empty and the toast shows, so text undo inside the field keeps working.

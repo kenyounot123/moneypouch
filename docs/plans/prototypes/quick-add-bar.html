@@ -97,7 +97,7 @@
 
 <script>
 const TODAY = new Date(2026, 8, 27)
-const CATEGORIES = ["Housing", "Food", "Transport", "Shopping", "Fun", "Subscriptions", "Health"]
+const CATEGORIES = ["Housing", "Food", "Transport", "Shopping", "Fun", "Subscriptions", "Health", "Income"]
 const MONTHS = Object.fromEntries(["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"].flatMap((m, i) => [[m, i]]).concat([["sept", 8]]))
 const WEEKDAYS = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]
 
@@ -109,6 +109,7 @@ let rows = [
   { name: "Uniqlo", category: "Shopping", date: new Date(2026, 8, 22), cents: -4990 },
   { name: "Lyft", category: "Transport", date: new Date(2026, 8, 20), cents: -1830 },
   { name: "Walgreens", category: "Health", date: new Date(2026, 8, 18), cents: -2104 },
+  { name: "Paycheck", category: "Income", date: new Date(2026, 8, 15), cents: 240000 },
 ]
 let lastAdded = null
 
@@ -133,10 +134,10 @@ function parse(line) {
   const amounts = tokens.filter(t => !t.kind).map(t => ({ t, m: t.text.match(/^([+-])?(\$)?(\d{1,3}(?:,\d{3})+|\d+)?(?:\.(\d{1,2}))?$/) }))
     .filter(a => a.m && (a.m[3] || a.m[4]))
   const pick = amounts.find(a => a.m[1] || a.m[2] || a.m[4] || a.m[3]?.includes(",")) || amounts.at(-1)
-  let cents = null
+  let cents = null, signTyped = false
   if (pick) {
     const v = parseInt((pick.m[3] || "0").replaceAll(",", "")) * 100 + parseInt((pick.m[4] || "0").padEnd(2, "0"))
-    if (v > 0) { cents = pick.m[1] === "+" ? v : -v; pick.t.kind = "amount" }
+    if (v > 0) { cents = pick.m[1] === "+" ? v : -v; signTyped = !!pick.m[1]; pick.t.kind = "amount" }
   }
   const name = tokens.filter(t => !t.kind).map(t => t.text).join(" ")
   let category = null, inferred = false, newCategory = false
@@ -148,6 +149,8 @@ function parse(line) {
     if (hit) { category = hit.category; inferred = true }
   }
   const errors = [cents === null && "Add an amount", !name && "Add a name"].filter(Boolean)
+  const last = name && rows.find(r => r.name.toLowerCase() === name.toLowerCase())
+  if (cents !== null && !signTyped && last && last.cents > 0) cents = -cents
   return { tokens, name, cents, date: date || TODAY, dateTyped: !!date, category, inferred, newCategory, categoryWord, errors }
 }
 
@@ -294,7 +297,6 @@ function assistLegend(p, typed) {
     { keys: ["5.50"], label: "amount", on: p.cents !== null && p.cents < 0, missing: typed && p.cents === null },
     { keys: ["@"], label: "date", on: p.dateTyped },
     { keys: ["#"], label: "category", on: !!p.categoryWord },
-    { keys: ["+20"], label: "money in", on: p.cents > 0 },
   ]
   return parts.map(x => `
     <span class="inline-flex items-center gap-1.5 whitespace-nowrap ${x.on ? "text-primary" : x.missing ? "text-danger" : "text-tertiary"}">
@@ -355,7 +357,7 @@ function mountAssist(slot) {
       popup.className = popup.className.replace(/\bw-\S+/g, "") + " w-56"
       popup.innerHTML = open.items.map((c, i) => `
           <button data-pick="${i}" class="flex w-full cursor-pointer items-center justify-between rounded-sm px-2.5 py-1.5 text-left ${i === open.index ? "bg-level-3" : ""}">
-            <span>${esc(c)}${c === open.usual ? ' <span class="text-xs text-tertiary">usual</span>' : ""}</span>${i === open.index ? `<span class="${KBD}">Tab</span>` : ""}
+            <span>${esc(c)}</span>
           </button>`).join("")
         + (typedName && !CATEGORIES.some(c => c.toLowerCase() === typedName.toLowerCase())
           ? `<button data-pick="new" class="flex w-full cursor-pointer items-center justify-between rounded-sm px-2.5 py-1.5 text-left ${open.index === open.items.length ? "bg-level-3" : ""}"><span>New category <span class="font-medium">${esc(typedName)}</span></span>${open.index === open.items.length ? `<span class="${KBD}">Tab</span>` : ""}</button>` : "")
@@ -377,8 +379,8 @@ function mountAssist(slot) {
           ${["S", "M", "T", "W", "T", "F", "S"].map(d => `<span class="pb-1 text-xs text-tertiary">${d}</span>`).join("")}
           ${cells.join("")}
         </div>
-        <div class="mt-1.5 grid grid-cols-2 gap-x-2.5 gap-y-1.5 border-t border-secondary px-2 pt-2 pb-1 text-xs text-tertiary">
-          <span><span class="${KBD}">←↑↓→</span> move</span><span><span class="${KBD}">Tab</span> pick</span><span><span class="${KBD}">t</span> today</span><span><span class="${KBD}">y</span> yesterday</span>
+        <div class="mt-1.5 flex flex-wrap gap-x-3 gap-y-1.5 border-t border-secondary px-2 pt-2 pb-1 text-xs text-tertiary">
+          <span><span class="${KBD}">←↑↓→</span> move</span><span><span class="${KBD}">t</span> today</span><span><span class="${KBD}">y</span> yesterday</span>
         </div>`
     }
     place(open.word)
@@ -407,10 +409,10 @@ function mountAssist(slot) {
     const nameHtml = suggestion
       ? `${esc(v.trimStart())}<span class="font-normal text-tertiary">${esc(suggestion)}</span> <span class="${KBD} font-normal">Tab</span>`
       : p.name ? esc(p.name) : typed ? `<span class="${DANGER_BOX}">${WARN}${MISSING_NAME}</span>` : ""
-    const amountHtml = p.cents !== null ? `<span class="${p.cents > 0 ? "text-success" : ""}">${money(p.cents)}</span>`
+    const amountHtml = p.cents !== null ? (p.cents > 0 ? `<span class="flex flex-col items-end gap-0.5 text-success"><span>${money(p.cents)}</span><span class="font-sans text-xs">Money in</span></span>` : money(p.cents))
       : `<span data-error class="${DANGER_BOX} font-sans">${WARN}${MISSING_AMOUNT}</span>`
     const shown = suggestion ? parse(v.trimStart() + suggestion) : p
-    const categoryHtml = suggestion && shown.category ? esc(shown.category) + ' <span class="text-xs">(usual)</span>' : p.category ? esc(p.category) + (p.inferred ? ' <span class="text-xs">(usual)</span>' : p.newCategory ? ' <span class="text-xs">(new)</span>' : "") : "Uncategorized"
+    const categoryHtml = suggestion && shown.category ? esc(shown.category) : p.category ? esc(p.category) + (p.newCategory ? ' <span class="text-xs">(new)</span>' : "") : "Uncategorized"
     const row = typed ? `
       <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-3">
         <div class="flex w-2 shrink-0 justify-center"><div class="size-1.5 rounded-[1px] border border-(--background-color-highlight)"></div></div>
