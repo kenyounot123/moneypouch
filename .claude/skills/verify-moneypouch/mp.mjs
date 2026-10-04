@@ -16,7 +16,7 @@ const CHROME = process.env.MP_CHROME || [
   ...["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"].map(onPath),
 ].find((p) => p && fs.existsSync(p))
 
-const VALUE_FLAGS = new Set(["port"])
+const VALUE_FLAGS = new Set(["port", "delay", "text", "timeout", "end", "log", "report"])
 
 const NAMED_KEYS = {
   Enter: { code: "Enter", vk: 13, text: "\r" }, Escape: { code: "Escape", vk: 27 },
@@ -24,6 +24,7 @@ const NAMED_KEYS = {
   ArrowUp: { code: "ArrowUp", vk: 38 }, ArrowDown: { code: "ArrowDown", vk: 40 },
   ArrowLeft: { code: "ArrowLeft", vk: 37 }, ArrowRight: { code: "ArrowRight", vk: 39 },
   Home: { code: "Home", vk: 36 }, End: { code: "End", vk: 35 },
+  PageUp: { code: "PageUp", vk: 33 }, PageDown: { code: "PageDown", vk: 34 },
 }
 const MODS = { Alt: 1, Control: 2, Ctrl: 2, Meta: 4, Cmd: 4, Shift: 8 }
 
@@ -134,7 +135,7 @@ async function cdpSession(port) {
     ws.onerror = () => { clearTimeout(timer); rej(new Error("could not open the DevTools socket")) }
   })
   let id = 0
-  const pending = new Map(), waiters = []
+  const pending = new Map(), waiters = [], listeners = []
   const failAll = (why) => { for (const { rej } of pending.values()) rej(new Error(why)); pending.clear() }
   ws.onclose = () => failAll("DevTools socket closed")
   ws.onerror = () => failAll("DevTools socket error")
@@ -144,7 +145,10 @@ async function cdpSession(port) {
       const { res, rej } = pending.get(m.id)
       pending.delete(m.id)
       m.error ? rej(new Error(m.error.message)) : res(m.result)
-    } else if (m.method) waiters.filter((w) => w.method === m.method).forEach((w) => w.res(m.params))
+    } else if (m.method) {
+      waiters.filter((w) => w.method === m.method).forEach((w) => w.res(m.params))
+      listeners.filter((l) => l.method === m.method).forEach((l) => l.fn(m.params))
+    }
   }
   const send = (method, params = {}, ms = 20000) => new Promise((res, rej) => {
     const i = ++id
@@ -177,7 +181,7 @@ async function cdpSession(port) {
     if (printable?.shift) modifiers |= 8
     const def = named ?? printable
     const text = modifiers & ~8 ? undefined : named ? named.text : name
-    const base = { key: name, code: def.code, windowsVirtualKeyCode: def.vk, nativeVirtualKeyCode: def.vk, modifiers }
+    const base = { key: name, code: def.code, windowsVirtualKeyCode: def.vk, modifiers }
     await send("Input.dispatchKeyEvent", { type: text ? "keyDown" : "rawKeyDown", ...base, text })
     await send("Input.dispatchKeyEvent", { type: "keyUp", ...base })
   }
@@ -189,7 +193,8 @@ async function cdpSession(port) {
     await send("Input.dispatchMouseEvent", { type: "mouseMoved", ...box })
     for (const type of ["mousePressed", "mouseReleased"]) await send("Input.dispatchMouseEvent", { type, ...box, button: "left", clickCount: 1 })
   }
-  return { send, evaluate, goto, settle, key, typeChar, focus, click, close: () => ws.close() }
+  const on = (method, fn) => listeners.push({ method, fn })
+  return { send, evaluate, goto, settle, key, typeChar, focus, click, on, close: () => ws.close() }
 }
 
 async function signIn(b, port, user, password) {
@@ -261,7 +266,7 @@ const holderUp = (s, port) => !!s && ours(s.holderPid, holderNeedle(port))
 
 async function hold(flags) {
   const port = Number(flags.port)
-  let session, applied
+  let session, applied, appliedZone
   for (;;) {
     const s = readState(port)
     if (!s && !fs.existsSync(path.join(dirFor(port), "state.json"))) return
@@ -269,13 +274,18 @@ async function hold(flags) {
     if (!chromeUp(s, port)) return
     try {
       if (session) await session.evaluate("1")
-    } catch { session = null; applied = null }
+    } catch { session = null; applied = null; appliedZone = null }
     try {
       session ??= await cdpSession(port)
       const want = JSON.stringify(s.viewport)
       if (applied !== want) {
         await session.send("Emulation.setDeviceMetricsOverride", { width: s.viewport.width, height: s.viewport.height, deviceScaleFactor: 1, mobile: s.viewport.width < 500 })
         applied = want
+      }
+      const zone = s.timezone ?? ""
+      if (appliedZone !== zone) {
+        await session.send("Emulation.setTimezoneOverride", { timezoneId: zone })
+        appliedZone = zone
       }
     } catch (e) { console.error(e.message); session = null }
     await sleep(150)
@@ -324,6 +334,7 @@ async function stop(flags) {
   const port = resolvePort(flags)
   const s = readState(port)
   if (!s) return console.log(`nothing recorded for ${port}`)
+  if (recorderUp(s, port)) await recordStop(port)
   const targets = [[s.holderPid, holderNeedle(port)], [s.chromePid, chromeNeedle(port)], [s.serverPid, serverNeedles(port)]].filter(([pid, needles]) => ours(pid, ...[needles].flat()))
   const allGone = () => targets.every(([pid]) => !alive(pid))
   for (const [pid] of targets) process.kill(pid, "SIGTERM")
@@ -352,9 +363,169 @@ async function doctor(flags) {
     b.close()
   }
   out.holderAlive = holderUp(s, port)
+  out.timezone = s?.timezone ?? null
+  out.recording = recorderUp(s, port) ? s.recording.file : null
   console.log(JSON.stringify(out))
   const innerMatches = out.inner && out.inner[0] === s.viewport.width && out.inner[1] === s.viewport.height
   if (!out.serverAlive || out.up !== 200 || !out.chromeAlive || !out.holderAlive || !innerMatches) process.exit(1)
+}
+
+async function server(flags, action) {
+  const port = resolvePort(flags)
+  let s = readState(port) ?? die(`nothing recorded for ${port}; run: mp.mjs boot --port ${port}`)
+  if (action === "stop") {
+    if (!serverUp(s, port)) return console.log(`server on ${port} already down`)
+    process.kill(s.serverPid, "SIGTERM")
+    for (let i = 0; i < 80 && alive(s.serverPid); i++) await sleep(100)
+    if (alive(s.serverPid)) process.kill(s.serverPid, "SIGKILL")
+    for (let i = 0; i < 30 && !(await portFree(port)); i++) await sleep(100)
+    return console.log(`server on ${port} down`)
+  }
+  if (action !== "start") die("server takes stop or start")
+  await withLock(async () => {
+    if (!serverUp(s, port)) {
+      if (!(await portFree(port))) die(`port ${port} is in use by a process this skill did not start`)
+      s = await startServer(port, readState(port))
+      writeState(port, s)
+    }
+    await waitUp(port, s)
+  })
+  console.log(`server on ${port} up`)
+}
+
+async function zone(flags, name) {
+  const port = resolvePort(flags)
+  if (!name) die("zone takes an IANA name such as Pacific/Kiritimati, or off")
+  const s = readState(port)
+  if (name === "off") delete s.timezone
+  else s.timezone = name
+  writeState(port, s)
+  const b = await cdpSession(port)
+  const resolved = "Intl.DateTimeFormat().resolvedOptions().timeZone"
+  const want = name === "off" ? Intl.DateTimeFormat().resolvedOptions().timeZone : name
+  let now
+  for (let i = 0; i < 50 && (now = await b.evaluate(resolved)) !== want; i++) await sleep(100)
+  b.close()
+  if (now !== want) die(`browser zone is ${now}, not ${want}; see ${dirFor(port)}/holder.log`)
+  console.log(`${now} (reload with goto so the page reads it on load)`)
+}
+
+const recorderNeedle = (port) => `mp.mjs recorder --port ${port}`
+const recorderUp = (s, port) => !!s?.recording && ours(s.recording.pid, recorderNeedle(port))
+
+async function recorder(flags) {
+  const port = Number(flags.port)
+  const frames = path.join(dirFor(port), "frames")
+  fs.mkdirSync(frames, { recursive: true })
+  const b = await cdpSession(port)
+  const index = []
+  b.on("Page.screencastFrame", ({ data, metadata, sessionId }) => {
+    const file = path.join(frames, `${String(index.length).padStart(6, "0")}.jpg`)
+    fs.writeFileSync(file, Buffer.from(data, "base64"))
+    index.push({ file, at: metadata.timestamp })
+    b.send("Page.screencastFrameAck", { sessionId }).catch(() => {})
+  })
+  const { viewport } = readState(port)
+  await b.send("Page.startScreencast", { format: "jpeg", quality: 85, maxWidth: viewport.width, maxHeight: viewport.height, everyNthFrame: 1 })
+  const finish = () => {
+    fs.writeFileSync(path.join(frames, "index.json"), JSON.stringify({ frames: index, end: Date.now() / 1000 }))
+    process.exit(0)
+  }
+  process.on("SIGTERM", finish)
+  setInterval(() => {}, 1 << 30)
+}
+
+async function recordStart(port, file) {
+  if (!file?.endsWith(".mp4")) die("record start takes an output path ending in .mp4")
+  if (!onPath("ffmpeg")) die("record needs ffmpeg on PATH")
+  const s = readState(port)
+  if (recorderUp(s, port)) die(`already recording to ${s.recording.file}; run: mp.mjs record stop`)
+  fs.rmSync(path.join(dirFor(port), "frames"), { recursive: true, force: true })
+  const log = fs.openSync(path.join(dirFor(port), "recorder.log"), "a")
+  const child = spawn(process.execPath, [fileURLToPath(import.meta.url), "recorder", "--port", String(port)], { detached: true, stdio: ["ignore", log, log] })
+  child.unref()
+  writeState(port, { ...s, recording: { pid: child.pid, file: path.resolve(file) } })
+  for (let i = 0; i < 50 && !fs.existsSync(path.join(dirFor(port), "frames", "000000.jpg")); i++) await sleep(100)
+  if (!fs.existsSync(path.join(dirFor(port), "frames", "000000.jpg"))) die(`recorder sent no frame within 5s; see ${dirFor(port)}/recorder.log`)
+  console.log(`recording to ${path.resolve(file)}`)
+}
+
+async function recordStop(port) {
+  const s = readState(port)
+  if (!recorderUp(s, port)) die(`not recording on ${port}`)
+  process.kill(s.recording.pid, "SIGTERM")
+  for (let i = 0; i < 50 && alive(s.recording.pid); i++) await sleep(100)
+  const frames = path.join(dirFor(port), "frames")
+  const { frames: list, end } = JSON.parse(fs.readFileSync(path.join(frames, "index.json"), "utf8"))
+  const lines = list.flatMap((f, i) => [`file '${f.file}'`, `duration ${((list[i + 1]?.at ?? end) - f.at).toFixed(3)}`])
+  lines.push(`file '${list.at(-1).file}'`)
+  fs.writeFileSync(path.join(frames, "concat.txt"), lines.join("\n"))
+  fs.mkdirSync(path.dirname(s.recording.file), { recursive: true })
+  const r = spawnSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", path.join(frames, "concat.txt"), "-fps_mode", "cfr", "-r", "30", "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-pix_fmt", "yuv420p", s.recording.file], { encoding: "utf8" })
+  if (r.status !== 0) die(`ffmpeg failed; frames kept in ${frames}\n${r.stderr}`)
+  fs.rmSync(frames, { recursive: true, force: true })
+  const { recording } = s
+  delete s.recording
+  writeState(port, s)
+  console.log(`${recording.file} ${(end - list[0].at).toFixed(1)}s ${list.length} frames`)
+}
+
+const percentile = (sorted, p) => sorted[Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1)]
+
+function latencyReport(file) {
+  const samples = fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l))
+  const ms = samples.map((x) => x.ms).filter((x) => x !== null).sort((a, b) => a - b)
+  const round = (x) => x === undefined ? null : Math.round(x * 10) / 10
+  console.log(JSON.stringify({ n: samples.length, timeouts: samples.length - ms.length, p50: round(percentile(ms, 50)), p95: round(percentile(ms, 95)), max: round(ms.at(-1)) }))
+}
+
+const LATENCY_PROBE = (end, timeout) => `window.__mpLatency = new Promise((resolve) => {
+  addEventListener("keydown", (e) => {
+    const painted = () => setTimeout(() => requestAnimationFrame(() => setTimeout(() => resolve(performance.now() - e.timeStamp))))
+    if (${JSON.stringify(end)} === "paint") painted()
+    else document.addEventListener(${JSON.stringify(end)}, painted, { capture: true, once: true })
+  }, { capture: true, once: true })
+  setTimeout(() => resolve(null), ${timeout})
+}); true`
+
+const QUIET_PROBE = (end, ms) => `new Promise((resolve) => {
+  let last = performance.now()
+  const seen = () => { last = performance.now() }
+  document.addEventListener(${JSON.stringify(end)}, seen, true)
+  const check = () => {
+    if (performance.now() - last < ${ms}) return setTimeout(check, 25)
+    document.removeEventListener(${JSON.stringify(end)}, seen, true)
+    resolve(true)
+  }
+  check()
+})`
+
+async function latency(b, keyName, flags) {
+  if (!flags.end) die("latency needs --end <event>, such as turbo:frame-render or turbo:morph, or --end paint")
+  if (flags.end !== "paint") await b.evaluate(QUIET_PROBE(flags.end, 250))
+  await b.evaluate(LATENCY_PROBE(flags.end, Number(flags.timeout ?? 5000)))
+  await b.key(keyName)
+  const ms = await b.evaluate("window.__mpLatency")
+  const sample = { key: keyName, end: flags.end, ms: ms === null ? null : Math.round(ms * 10) / 10 }
+  if (flags.log) fs.appendFileSync(flags.log, `${JSON.stringify(sample)}\n`)
+  console.log(JSON.stringify(sample))
+  if (ms === null) process.exitCode = 1
+}
+
+const WAIT_PROBE = (selector, text) => `(() => {
+  const hit = [...document.querySelectorAll(${JSON.stringify(selector)})].find((e) => ${JSON.stringify(text ?? null)} === null || e.innerText.includes(${JSON.stringify(text ?? "")}))
+  return hit ? hit.innerText.trim().replace(/\\s+/g, " ").slice(0, 300) || "(matched, no text)" : null
+})()`
+
+async function wait(b, selector, flags) {
+  if (!selector) die("wait needs a selector")
+  const end = Date.now() + Number(flags.timeout ?? 5000)
+  for (;;) {
+    const hit = await b.evaluate(WAIT_PROBE(selector, flags.text)).catch(() => null)
+    if (flags.gone ? hit === null : hit !== null) return console.log(flags.gone ? `gone ${selector}` : hit)
+    if (Date.now() > end) die(`timed out: ${selector}${flags.text ? ` with text ${JSON.stringify(flags.text)}` : ""} ${flags.gone ? "still present" : "not found"}`)
+    await sleep(50)
+  }
 }
 
 const READONLY_RUNNER = `
@@ -368,8 +539,11 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   stop                               stop this instance and remove its state
   doctor                             print instance health as JSON, exit 1 if unhealthy
   goto <path>                        navigate, e.g. /session/new
-  type <selector> <text> [--clear]   focus the element and type text key by key
-  key <Key>                          Enter, Escape, Tab, ArrowDown, Backspace, a, Meta+k, Shift+Tab
+  type <selector> <text> [--clear] [--delay ms]
+                                     focus the element and type text key by key, --delay ms between keys
+  key <Key> [<Key>...]               Enter, Escape, Tab, ArrowDown, Backspace, a, Meta+z, Shift+Tab; several keys go back to back
+  wait <selector> [--text s] [--gone] [--timeout ms]
+                                     poll until an element matches (and contains s), or until none does; prints its text
   click <selector>                   mouse click on the element's center
   shot <file.png> [--full]           screenshot the viewport, or the whole page with --full
   resize <w> <h>                     set the emulated viewport; the per-instance holder keeps it between commands
@@ -378,7 +552,14 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   signout                            DELETE /session and land on the sign-in page
   js <expr>                          evaluate JS in the page, print the JSON result
   text [selector]                    print visible text
-  query <ruby>                       evaluate Ruby against a read-only SQLite connection`
+  query <ruby>                       evaluate Ruby against a read-only SQLite connection
+  server stop|start                  stop or start only the Rails server; the page and its field stay as they are
+  zone <IANA>|off                    emulate the browser time zone; the holder keeps it between commands
+  record start <file.mp4> | record stop
+                                     screencast the page to an mp4 (needs ffmpeg); stop also finalizes it
+  latency <Key> --end <event>|paint [--log file.jsonl] [--timeout ms]
+                                     press Key and print ms from its keydown to the paint after <event> fires
+  latency --report file.jsonl        print n, timeouts, p50, p95, max of logged samples`
 
 async function main() {
   const { flags, rest } = parseArgs(process.argv.slice(2))
@@ -387,11 +568,21 @@ async function main() {
   if (cmd === "hold") return hold(flags)
   if (cmd === "stop") return stop(flags)
   if (cmd === "doctor") return doctor(flags)
+  if (cmd === "recorder") return recorder(flags)
+  if (cmd === "server") return server(flags, args[0])
+  if (cmd === "zone") return zone(flags, args[0])
+  if (cmd === "record") {
+    const port = resolvePort(flags)
+    if (args[0] === "start") return recordStart(port, args[1])
+    if (args[0] === "stop") return recordStop(port)
+    die("record takes start <file.mp4> or stop")
+  }
+  if (cmd === "latency" && flags.report) return latencyReport(flags.report)
   if (cmd === "query") {
     if (!args[0]) die("query needs a Ruby expression")
     return console.log(rails(["runner", READONLY_RUNNER], { MP_QUERY: args[0] }).trim())
   }
-  if (!["goto", "type", "key", "click", "shot", "resize", "theme", "signin", "signout", "js", "text"].includes(cmd)) {
+  if (!["goto", "type", "key", "click", "shot", "resize", "theme", "signin", "signout", "js", "text", "wait", "latency"].includes(cmd)) {
     console.error(USAGE)
     process.exit(cmd ? 1 : 0)
   }
@@ -408,12 +599,16 @@ async function main() {
         await b.evaluate("document.activeElement.select()")
         await b.key("Backspace")
       }
-      for (const ch of args[1]) await b.typeChar(ch)
+      for (const ch of args[1]) {
+        await b.typeChar(ch)
+        if (flags.delay) await sleep(Number(flags.delay))
+      }
       console.log(JSON.stringify(await b.evaluate("document.activeElement.value")))
     } else if (cmd === "key") {
-      await b.key(args[0])
+      if (!args.length) die("key needs at least one key")
+      for (const k of args) await b.key(k)
       await sleep(200)
-      console.log(`pressed ${args[0]}`)
+      console.log(`pressed ${args.join(" ")}`)
     } else if (cmd === "click") {
       await b.click(args[0])
       await b.settle()
@@ -457,6 +652,10 @@ async function main() {
       console.log(JSON.stringify(await b.evaluate(args[0])))
     } else if (cmd === "text") {
       console.log(await b.evaluate(`document.querySelector(${JSON.stringify(args[0] || "body")}).innerText`))
+    } else if (cmd === "wait") {
+      await wait(b, args[0], flags)
+    } else if (cmd === "latency") {
+      await latency(b, args[0], flags)
     }
   } finally {
     b.close()
