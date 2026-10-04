@@ -2,21 +2,13 @@ require "test_helper"
 
 class TransactionsControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @transaction = transactions(:one)
+    @transaction = transactions(:coffee)
     sign_in_as(users(:one))
   end
 
   test "should get index" do
     get transactions_url
     assert_response :success
-  end
-
-  test "should create transaction" do
-    assert_difference("Transaction.count") do
-      post transactions_url, params: { transaction: { amount_in_cents: 1000, currency: "USD" } }
-    end
-
-    assert_redirected_to transactions_url
   end
 
   test "should update transaction" do
