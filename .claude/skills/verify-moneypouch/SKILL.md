@@ -25,7 +25,7 @@ Prints `http://localhost:3101/ port=3101 user=demo` once the app is signed in on
 
 `boot` is idempotent. A second call on the same port reuses the server and browser and prints the same URL. Two ports run side by side (separate server, separate Chrome profile). Both share the one development SQLite database, so writes from one show in the other.
 
-What it does, in order: builds Tailwind once if `app/assets/builds/tailwind.css` is missing, `bin/rails db:prepare`, `bin/rails db:seed` (creates `demo` with `find_or_create_by!`), starts `bin/rails server` detached on the port, waits for `/up` to return 200, starts headless Chrome, signs in through the real form. It does not use `bin/dev`: foreman exits without a TTY because the Tailwind watcher dies. `.claude/launch.json` still runs `bin/dev` for humans.
+What it does, in order: builds Tailwind once if `app/assets/builds/tailwind.css` is missing, `bin/rails db:prepare`, `bin/rails db:seed` (creates `demo` or resets its password to the seeded one), starts `bin/rails server` detached on the port, waits for `/up` to return 200, starts headless Chrome, signs in through the real form. It does not use `bin/dev`: foreman exits without a TTY because the Tailwind watcher dies. `.claude/launch.json` still runs `bin/dev` for humans.
 
 A fresh clone needs only `bin/setup --skip-server` first (installs gems, prepares the database). Then `boot` works with no other step.
 

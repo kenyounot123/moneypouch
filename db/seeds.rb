@@ -10,7 +10,5 @@
 
 unless Rails.env.production?
   demo_password = "demo-password"
-  User.find_or_create_by!(username: "demo") do |user|
-    user.password = demo_password
-  end
+  User.find_or_initialize_by(username: "demo").update!(password: demo_password)
 end
