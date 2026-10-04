@@ -7,3 +7,8 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+unless Rails.env.production?
+  demo_password = "demo-password"
+  User.find_or_initialize_by(username: "demo").update!(password: demo_password)
+end

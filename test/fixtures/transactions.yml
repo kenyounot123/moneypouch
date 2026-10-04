@@ -1,11 +1,14 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
-one:
-  amount_in_cents: 1
-  currency: MyString
+coffee:
   user: one
+  category: food
+  name: Blue Bottle
+  amount_in_cents: -550
+  occurred_on: 2026-10-01
+  line: Blue Bottle 5.50 #Food 2026-10-01
 
-two:
-  amount_in_cents: 1
-  currency: MyString
+paycheck:
   user: one
+  name: Paycheck
+  amount_in_cents: 200000
+  occurred_on: 2026-10-01
+  line: +2000 Paycheck 2026-10-01
