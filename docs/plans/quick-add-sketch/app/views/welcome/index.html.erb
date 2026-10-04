@@ -1,0 +1,42 @@
+<%# Excerpt. P5 swaps the static bar and Recent; P6 swaps every number.
+    Locals come from WelcomeController: @spending (Spending), @recent (5 rows). %>
+<div class="flex min-h-dvh">
+  <%= render "shared/sidebar", current: :overview %>
+
+  <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
+    <%= render "shared/quick_add" %>
+
+    <% if @recent.empty? %>
+      <p class="text-secondary">Nothing stashed yet. Type what you spent above, like coffee 5.50.</p>
+    <% else %>
+      <div class="flex min-w-0 flex-col gap-2.5">
+        <p class="text-secondary">Spent in <%= @spending.month.name %></p>
+        <p class="font-sans text-5xl font-semibold tracking-display sm:text-display"><%= money(@spending.total_cents, sign: false) %></p>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
+          <div class="flex w-[300px] max-w-full shrink-0 gap-0.5">
+            <% @spending.month.days_in_month.times do |i| %>
+              <div class="h-2.5 flex-1 rounded-[2px] <%= i < @spending.month.elapsed_days ? "bg-highlight" : "bg-data-track" %>"></div>
+            <% end %>
+          </div>
+          <p class="text-sm text-tertiary">Day <%= @spending.month.elapsed_days %> of <%= @spending.month.days_in_month %></p>
+          <%# comparison: "↓ $265 (8.6%) vs. Aug 1–27"; text-success when down, text-danger when up; percent omitted when nil %>
+        </div>
+      </div>
+      <%# Week/Month/Year toggle removed (P6). %>
+
+      <%# "Where it went": @spending.shares.each_with_index { |share, i| name, fill, money(cents), share% }
+          "Daily":         @spending.days -> bar heights from day.fill (64px max), future days bg-data-track,
+                           biggest day bg-data-strong, today bg-highlight; caption from @spending.biggest_day %>
+
+      <section class="flex min-w-0 flex-1 flex-col gap-1">
+        <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+          <h2 class="font-pixel text-lg font-semibold tracking-pixel">Recent</h2>
+          <p class="text-sm text-tertiary"><%= @spending.count %> this month</p>
+        </div>
+        <ul class="flex flex-col gap-1">
+          <%= render partial: "transactions/transaction", collection: @recent %>
+        </ul>
+      </section>
+    <% end %>
+  </main>
+</div>

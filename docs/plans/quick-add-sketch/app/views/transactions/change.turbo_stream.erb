@@ -1,0 +1,14 @@
+<%# P5/P9. The one success response for every write (create, update, destroy, restoration).
+    It never touches rows: the client morph-refreshes the page right after
+    rendering this (support/write.js), so totals, day groups, Recent, and a
+    restored row's position all come from one server render.
+      inverse  the request that undoes this write, or nil on an undo replay
+      toast    e.g. "Deleted. Press u to undo." -%>
+<%# locals: (inverse:, toast: nil) -%>
+<% if inverse %>
+  <%= turbo_stream.append "undo_entries" do %>
+    <template data-keyboard-target="entry"
+              data-method="<%= inverse[:method] %>" data-url="<%= inverse[:url] %>" data-line="<%= inverse[:line] %>"></template>
+  <% end %>
+<% end %>
+<%= turbo_stream.update "toast", toast.to_s if toast %>

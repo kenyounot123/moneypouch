@@ -1,0 +1,23 @@
+<%# P5. The read-back for a draft, or its first error. Rendered by `render @draft`
+    inside <turbo-frame id="draft"> under the bar. A blank line shows the example
+    hint instead of "Add an amount". Reads, for example:
+      Spent $5.50 on coffee, yesterday · Food (like last time)
+      Got $2,000.00 from paycheck, today · Uncategorized -%>
+<%# locals: (draft:) -%>
+<%= turbo_frame_tag "draft", class: "block min-h-5 pl-5 text-md text-secondary", aria: { live: "polite" } do %>
+  <% if draft.line.blank? %>
+    <span class="text-tertiary">Try: coffee 5.50 yesterday #food</span>
+  <% elsif !draft.valid? %>
+    <%= render "drafts/error", message: draft.errors.first %>
+  <% else %>
+    <%= draft.money_in? ? "Got" : "Spent" %>
+    <span class="font-mono font-medium <%= draft.money_in? ? "text-success" : "text-primary" %>"><%= money(draft.amount_in_cents.abs) %></span>
+    <%= draft.money_in? ? "from" : "on" %>
+    <span class="font-medium text-primary"><%= draft.name %></span>, <%= relative_day(draft.occurred_on) %> ·
+    <% if draft.category %>
+      <span class="font-medium text-primary"><%= draft.category_name %></span><% if draft.inferred? %> <span class="text-tertiary">(like last time)</span><% end %>
+    <% else %>
+      <span class="text-tertiary">Uncategorized</span>
+    <% end %>
+  <% end %>
+<% end %>

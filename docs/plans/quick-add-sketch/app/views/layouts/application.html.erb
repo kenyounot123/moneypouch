@@ -1,0 +1,32 @@
+<%# Excerpt. Only the lines this program adds are shown. %>
+<!DOCTYPE html>
+<%# P5: time-zone sits beside background on <html>, so the sign-in page sets the
+    cookie before the first authenticated request computes today. %>
+<html data-controller="background time-zone" data-theme="<%= Current.user&.background.presence || "light" %>">
+  <head>
+    <%# ... %>
+    <%# P5: after every write, support/write.js visits the same URL with
+        action "replace"; these make that visit a morph that keeps scroll. %>
+    <%= turbo_refresh_method_tag :morph %>
+    <%= turbo_refresh_scroll_tag :preserve %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <%# P9: keyboard owns global shortcuts, row selection, the undo stack, and the
+      toast. It drives the bar through an outlet. The undo stack is the
+      server-appended entries in #undo_entries, permanent across morphs and
+      visits; a reload ends it (P9 lane 8). %>
+  <body data-controller="keyboard"
+        data-keyboard-quick-add-outlet="#quick_add"
+        data-action="keydown@document->keyboard#press">
+    <%= yield %>
+
+    <% if authenticated? %>
+      <div id="undo_entries" data-turbo-permanent hidden></div>
+      <div id="toast" data-turbo-permanent data-keyboard-target="toast" role="status" aria-live="polite" hidden
+           class="fixed bottom-6 left-1/2 -translate-x-1/2 rounded-md bg-level-3 px-4 py-2.5 text-sm shadow-xs"></div>
+      <%= render "shared/shortcuts" %>
+    <% end %>
+  </body>
+</html>

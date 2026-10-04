@@ -1,0 +1,27 @@
+<%# P5 (from the Recent row markup), P9 adds the keyboard data.
+    One partial, every list:
+      Overview Recent      <%= render partial: "transactions/transaction", collection: @recent %>
+      Month list, per day  <%= render partial: "transactions/transaction", collection: transactions, locals: { dated: false } %>
+    No Turbo Stream ever renders it alone: every write morph-refreshes the page, so the row
+    only renders inside its page and is always in the right list, day, and order.
+
+    The 2px-wide dot column from the mockup becomes the keyboard selection marker
+    (aria-selected, set by keyboard#select). data-transaction-* is all keyboard
+    needs: the URL for PATCH/DELETE/restoration and the line `e` loads. %>
+<%# locals: (transaction:, dated: true) -%>
+<li id="<%= dom_id transaction %>"
+    class="group flex items-center gap-3 border-b border-secondary py-3 last:border-b-0"
+    data-keyboard-target="row"
+    data-transaction-url="<%= transaction_path(transaction) %>"
+    data-transaction-line="<%= transaction.editable_line %>">
+  <div class="flex w-2 shrink-0 justify-center">
+    <div class="hidden size-1.5 rounded-[1px] bg-highlight group-aria-selected:block"></div>
+  </div>
+  <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+    <p class="truncate font-medium"><%= transaction.name %></p>
+    <p class="text-sm text-tertiary">
+      <%= transaction.category&.name || "Uncategorized" %><% if dated %> · <%= short_date(transaction.occurred_on) %><% end %>
+    </p>
+  </div>
+  <p class="w-[90px] shrink-0 text-right font-mono <%= "text-success" if transaction.money_in? %>"><%= money(transaction.amount_in_cents) %></p>
+</li>

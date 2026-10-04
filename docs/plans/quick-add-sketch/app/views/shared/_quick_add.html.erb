@@ -1,0 +1,61 @@
+<%# P5 (extracted from welcome/index), shared by Overview and /transactions (P7).
+    Call site:  <%= render "shared/quick_add" %>
+
+    data-turbo-permanent + a stable id: the refresh morph after every write skips
+    this element, and a visit between Overview and Transactions carries it over, so
+    a half-typed line is never clobbered. Its two controllers split by knowledge:
+      completion  token under the cursor, ranking, popup        (P8)
+      quick-add   the line's lifecycle: preview, submit, edit   (P5, P9)
+    Action order on the line field matters: completion's keydown runs first and calls
+    stopImmediatePropagation when it consumes Tab/Enter/Esc/Up/Down. %>
+<%= form_with url: transactions_path, method: :post, id: "quick_add",
+      data: {
+        turbo_permanent: true,
+        controller: "completion quick-add",
+        quick_add_draft_url_value: draft_path,
+        quick_add_create_url_value: transactions_path,
+        completion_url_value: completions_path,
+        action: "submit->quick-add#submit quick-add:committed->completion#stale"
+      },
+      class: "relative" do |form| %>
+  <div class="flex h-15 shrink-0 items-center gap-3 rounded-lg border border-primary bg-level-2 pr-2 pl-5 shadow-xs">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" class="shrink-0 stroke-(--background-color-data)" aria-hidden="true">
+      <path d="M9 3v12M3 9h12" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
+
+    <%= form.text_field :line, autocomplete: "off", spellcheck: false,
+          aria: { label: "Quick add", autocomplete: "list", controls: "completion_popup" },
+          placeholder: "coffee 5.50 yesterday",
+          data: {
+            quick_add_target: "line", completion_target: "line",
+            action: %w[
+              keydown->completion#navigate
+              keydown.esc->quick-add#escape
+              input->completion#suggest
+              input->quick-add#preview
+              focus->completion#load
+            ].join(" ")
+          },
+          class: "min-w-0 flex-1 bg-transparent text-md outline-none placeholder:text-tertiary" %>
+
+    <button type="submit" data-quick-add-target="submit"
+            class="shrink-0 cursor-pointer rounded-md bg-action px-4 py-2.5 font-pixel text-[15px] leading-[18px] font-semibold whitespace-nowrap tracking-pixel text-on-action hover:brightness-95">
+      <span data-quick-add-target="label">Stash it ↵</span>
+    </button>
+  </div>
+
+  <%# The read-back or the first error: drafts/_draft. quick-add#preview sets src per
+      input and Turbo keeps only the latest response; a 422 from a rejected save
+      updates the same frame. %>
+  <%= turbo_frame_tag "draft", data: { quick_add_target: "frame" }, class: "mt-2.5 block min-h-5 pl-5 text-md text-secondary", aria: { live: "polite" } %>
+
+  <%# P8 popup. Rows are cloned from the template so styling stays in ERB. %>
+  <ul id="completion_popup" role="listbox" data-completion-target="popup" hidden
+      class="absolute inset-x-0 top-full z-10 mt-1.5 max-w-full overflow-hidden rounded-lg border border-primary bg-level-2 shadow-xs"></ul>
+  <template data-completion-target="option">
+    <li role="option" class="flex cursor-pointer items-center justify-between gap-3 px-5 py-2.5 aria-selected:bg-level-3">
+      <span data-slot="label" class="truncate"></span>
+      <span data-slot="hint" class="shrink-0 text-sm text-tertiary"></span>
+    </li>
+  </template>
+<% end %>

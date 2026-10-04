@@ -1,0 +1,11 @@
+<%# Excerpt. locals: (current:) one of :overview, :transactions (P7 adds the local).
+    P6 replaces the hard-coded count with one query: %>
+<%# locals: (current:) -%>
+<% count, since = Current.user.transactions.pick(Arel.sql("count(*)"), Arel.sql("min(occurred_on)")) %>
+<%# nav: link_to root_path ... aria: { current: ("page" if current == :overview) }
+         link_to transactions_path ... aria: { current: ("page" if current == :transactions) }
+    The active style keys off aria-current (aria-[current=page]:bg-level-3 ...),
+    so the markup has one class list per link, not an if/else of two. %>
+<% if count.positive? %>
+  <p class="pl-1 text-xs text-tertiary"><%= pluralize(count, "transaction") %> since <%= since.strftime("%b %Y") %></p>
+<% end %>

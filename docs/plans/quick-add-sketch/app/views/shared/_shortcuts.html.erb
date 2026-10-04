@@ -1,0 +1,22 @@
+<%# P9. A native <dialog>: showModal() traps focus, Esc closes it for free.
+    keyboard#toggleHelp opens/closes it on `?`. The list is the single source for
+    the overlay text; keyboard_controller.js has the matching key map. %>
+<dialog data-keyboard-target="help" aria-label="Keyboard shortcuts"
+        class="m-auto w-[min(420px,calc(100vw-32px))] rounded-lg border border-primary bg-level-2 p-6 text-primary shadow-xs backdrop:bg-black/30">
+  <h2 class="pb-4 font-pixel text-lg font-semibold tracking-pixel">Shortcuts</h2>
+  <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2.5 text-sm">
+    <% [
+      [ "n  /", "Focus quick add" ],
+      [ "j  k", "Select next / previous row" ],
+      [ "e", "Edit selected row" ],
+      [ "d d", "Delete selected row" ],
+      [ "u", "Undo last stash, edit, or delete" ],
+      [ "Tab", "Accept completion" ],
+      [ "Esc", "Close, cancel, or leave the bar" ],
+      [ "?", "Show or hide this list" ]
+    ].each do |keys, action| %>
+      <dt class="font-mono"><%= keys %></dt>
+      <dd class="text-secondary"><%= action %></dd>
+    <% end %>
+  </dl>
+</dialog>

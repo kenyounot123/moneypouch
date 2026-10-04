@@ -1,0 +1,32 @@
+<%# P7. @month: Month, @days: { Date => [Transaction] } newest day first.
+    Day total = money out for the day (same meaning as the Overview's "Spent"),
+    summed in Ruby from rows already loaded: no extra query. %>
+<div class="flex min-h-dvh">
+  <%= render "shared/sidebar", current: :transactions %>
+
+  <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
+    <%= render "shared/quick_add" %>
+
+    <nav class="flex items-baseline justify-between border-b border-secondary pb-3">
+      <%= link_to "←", transactions_path(month: @month.previous), aria: { label: "Previous month" } %>
+      <h1 class="font-pixel text-lg font-semibold tracking-pixel"><%= @month.first.strftime("%B %Y") %></h1>
+      <%= link_to "→", transactions_path(month: @month.next), aria: { label: "Next month" } %>
+    </nav>
+
+    <% if @days.empty? %>
+      <p class="text-secondary">Nothing stashed in <%= @month.name %>.</p>
+    <% end %>
+
+    <% @days.each do |date, transactions| %>
+      <section id="day_<%= date.iso8601 %>" class="flex flex-col gap-1">
+        <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+          <h2 class="font-medium"><%= date.strftime("%a, %b %-d") %></h2>
+          <p class="font-mono text-sm text-tertiary"><%= money(transactions.select { !it.money_in? }.sum(&:amount_in_cents), sign: false) %></p>
+        </div>
+        <ul class="flex flex-col gap-1">
+          <%= render partial: "transactions/transaction", collection: transactions, locals: { dated: false } %>
+        </ul>
+      </section>
+    <% end %>
+  </main>
+</div>
