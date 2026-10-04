@@ -2,7 +2,8 @@ namespace :dev do
   desc "Add N realistic transactions for the demo user across the last 12 months"
   task :transactions, [ :count ] => :environment do |_, args|
     count = Integer(args.fetch(:count, 100))
-    user = User.find_or_create_by!(username: "demo") { |demo| demo.password = SecureRandom.base58(24) }
+    Rails.application.load_seed
+    user = User.find_by!(username: "demo")
 
     merchants = {
       "Food" => [ [ "Blue Bottle", 4..7 ], [ "Sweetgreen", 12..18 ], [ "Chipotle", 10..16 ], [ "Joe's Pizza", 4..12 ],
