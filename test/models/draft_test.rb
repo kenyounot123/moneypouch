@@ -18,9 +18,46 @@ class DraftGrammarTest < ActiveSupport::TestCase
       read("+2000 paycheck"))
   end
 
-  test "takes the first amount and leaves later numbers in the name" do
-    assert_equal({ name: "eleven 5", amount_in_cents: -700, category_word: nil, occurred_on: SUNDAY, errors: [] },
+  test "takes the last bare number when no amount is marked" do
+    assert_equal({ name: "7 eleven", amount_in_cents: -500, category_word: nil, occurred_on: SUNDAY, errors: [] },
       read("7 eleven 5"))
+    assert_equal({ name: "Route 66 diner", amount_in_cents: -1200, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("Route 66 diner 12"))
+  end
+
+  test "prefers a marked amount over bare numbers" do
+    assert_equal({ name: "Forever 21", amount_in_cents: -4000, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("Forever 21 $40"))
+    assert_equal({ name: "Studio 54", amount_in_cents: -2050, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("Studio 54 20.50"))
+  end
+
+  test "takes the first of two marked amounts" do
+    assert_equal({ name: "gift $5", amount_in_cents: -1200, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("$12 gift $5"))
+  end
+
+  test "reads thousands commas, bare cents, and a minus sign" do
+    assert_equal({ name: "rent", amount_in_cents: -165000, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("rent 1,650"))
+    assert_equal({ name: "rent", amount_in_cents: -165000, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("rent $1,650.00"))
+    assert_equal({ name: "gum", amount_in_cents: -50, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("gum .50"))
+    assert_equal({ name: "coffee", amount_in_cents: -500, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("coffee -5"))
+  end
+
+  test "keeps a misgrouped comma in the name" do
+    assert_equal({ name: "rent 16,50", amount_in_cents: nil, category_word: nil, occurred_on: SUNDAY, errors: [ "Add an amount" ] },
+      read("rent 16,50"))
+  end
+
+  test "drops trailing punctuation from a hash word" do
+    assert_equal({ name: "lunch", amount_in_cents: -1200, category_word: "food", occurred_on: SUNDAY, errors: [] },
+      read("lunch 12 #food,"))
+    assert_equal({ name: "lunch #!", amount_in_cents: -1200, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("lunch #! 12"))
   end
 
   test "reads a hash word as the category" do
@@ -56,6 +93,23 @@ class DraftGrammarTest < ActiveSupport::TestCase
       read("rent 1650 sep 26"))
   end
 
+  test "reads a month, day, and year" do
+    assert_equal({ name: "rent", amount_in_cents: -165000, category_word: nil, occurred_on: Date.new(2025, 9, 26), errors: [] },
+      read("sep 26 2025 rent 1650"))
+  end
+
+  test "reads a four digit number outside the year window after a month and day as the amount" do
+    assert_equal({ name: "rent", amount_in_cents: -165000, category_word: nil, occurred_on: Date.new(2026, 9, 26), errors: [] },
+      read("sep 26 1650 rent"))
+  end
+
+  test "reads ordinal days" do
+    assert_equal({ name: "rent", amount_in_cents: -165000, category_word: nil, occurred_on: Date.new(2026, 9, 1), errors: [] },
+      read("sep 1st rent 1650"))
+    assert_equal({ name: "coffee", amount_in_cents: -500, category_word: nil, occurred_on: Date.new(2026, 9, 26), errors: [] },
+      read("Sep 26TH coffee 5"))
+  end
+
   test "reads a month and day with no year as the latest past one" do
     assert_equal({ name: "gift", amount_in_cents: -4000, category_word: nil, occurred_on: Date.new(2026, 12, 30), errors: [] },
       read("dec 30 gift 40", today: Date.new(2027, 1, 2)))
@@ -69,6 +123,22 @@ class DraftGrammarTest < ActiveSupport::TestCase
   test "reads a slash date" do
     assert_equal({ name: "lunch", amount_in_cents: -1200, category_word: nil, occurred_on: Date.new(2025, 12, 31), errors: [] },
       read("12/31 lunch 12"))
+  end
+
+  test "reads a slash date with a year" do
+    assert_equal({ name: "lunch", amount_in_cents: -1200, category_word: nil, occurred_on: Date.new(2026, 9, 26), errors: [] },
+      read("lunch 12 9/26/2026"))
+    assert_equal({ name: "lunch", amount_in_cents: -1200, category_word: nil, occurred_on: Date.new(2025, 9, 26), errors: [] },
+      read("lunch 12 9/26/25"))
+  end
+
+  test "keeps a written-out date outside the last 20 years and the next year in the name" do
+    assert_equal({ name: "lunch 2062-09-26", amount_in_cents: -1200, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("lunch 12 2062-09-26"))
+    assert_equal({ name: "lunch 9/26/1990", amount_in_cents: -1200, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("lunch 12 9/26/1990"))
+    assert_equal({ name: "feb 30 2026 rent", amount_in_cents: -1200, category_word: nil, occurred_on: SUNDAY, errors: [] },
+      read("feb 30 2026 rent 12"))
   end
 
   test "reads an ISO date as written" do
