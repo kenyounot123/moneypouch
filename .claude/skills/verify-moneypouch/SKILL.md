@@ -29,7 +29,7 @@ What it does, in order: builds Tailwind once if `app/assets/builds/tailwind.css`
 
 A fresh clone needs only `bin/setup --skip-server` first (installs gems, prepares the database). Then `boot` works with no other step.
 
-Per-instance state lives in `tmp/verify/<port>/` (gitignored): `state.json`, `server.log`, `chrome.log`, the Chrome profile.
+Per-instance state lives in `tmp/verify/<port>/` (gitignored): `state.json`, `server.log`, `chrome.log`, `holder.log`, the Chrome profile.
 
 ## Doctor
 
@@ -47,7 +47,7 @@ Prints JSON with `serverAlive`, `chromeAlive`, `up` (the `/up` status), the curr
 | Press a key | `$M key Enter --port N`. Also `Escape`, `Tab`, `ArrowDown`, `Backspace`, a single character, `Meta+k`, `Shift+Tab`. |
 | Click | `$M click 'button[data-theme="dark"]' --port N` |
 | Screenshot | `$M shot /tmp/x/overview.png --port N` (`--full` for the whole page) |
-| Resize viewport | `$M resize 375 812 --port N`. Persists across commands. Prints `scrollWidth`; equal to the width means no horizontal scroll. |
+| Resize viewport | `$M resize 375 812 --port N`. A small detached holder process per instance keeps the emulated viewport applied between commands, so the page does not see a resize until the next `resize`. Chrome headless cannot shrink its window below 500 px, which is why emulation is used. Prints `scrollWidth`; equal to the width means no horizontal scroll. |
 | Switch theme | `$M theme dark --port N`. Real mouse click on the sidebar button, so the page must show the sidebar (`goto /` first). Waits for `html[data-theme]` and the `theme` cookie, and fails if the button is missing. |
 | Navigate | `$M goto /session/new --port N` |
 | Sign in or out | `$M signin demo wrong --port N`, `$M signout --port N` |
@@ -74,7 +74,7 @@ The sign-in form is rate limited to 10 attempts per 3 minutes per client. A wron
 $M stop --port 3101
 ```
 
-Stops that instance's Chrome and Rails server by recorded pid and deletes `tmp/verify/<port>/`. It never kills by name. Screenshots you saved outside `tmp/verify/` survive. The development database and the `demo` user stay.
+Stops that instance's viewport holder, Chrome and Rails server by recorded pid and deletes `tmp/verify/<port>/`. It never kills by name. Screenshots you saved outside `tmp/verify/` survive. The development database and the `demo` user stay.
 
 ## Gotchas
 

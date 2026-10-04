@@ -97,9 +97,16 @@ async function withLock(fn) {
   const lock = path.join(STATE_ROOT, "setup.lock")
   const deadline = Date.now() + 300000
   for (;;) {
-    try { fs.writeFileSync(lock, String(process.pid), { flag: "wx" }); break } catch {
-      const holder = Number(fs.readFileSync(lock, "utf8"))
-      if (!holder || !alive(holder)) { fs.rmSync(lock, { force: true }); continue }
+    const mine = `${lock}.${process.pid}`
+    fs.writeFileSync(mine, String(process.pid))
+    try { fs.linkSync(mine, lock); fs.rmSync(mine); break } catch {
+      fs.rmSync(mine, { force: true })
+      let holder
+      try { holder = Number(fs.readFileSync(lock, "utf8")) } catch { continue }
+      if (!alive(holder)) {
+        try { if (Number(fs.readFileSync(lock, "utf8")) === holder) fs.rmSync(lock, { force: true }) } catch {}
+        continue
+      }
       if (Date.now() > deadline) die(`setup lock ${lock} held by pid ${holder} for over 5 minutes`)
       await sleep(250)
     }
@@ -144,8 +151,6 @@ async function cdpSession(port) {
     waiters.push({ method, res: (p) => { clearTimeout(timer); res(p) } })
   })
   await send("Page.enable")
-  const viewport = (v) => send("Emulation.setDeviceMetricsOverride", { width: v.width, height: v.height, deviceScaleFactor: 1, mobile: v.width < 500 })
-  await viewport(s.viewport)
   const evaluate = async (expression) => {
     const r = await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true })
     if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text)
@@ -178,7 +183,7 @@ async function cdpSession(port) {
     await send("Input.dispatchMouseEvent", { type: "mouseMoved", ...box })
     for (const type of ["mousePressed", "mouseReleased"]) await send("Input.dispatchMouseEvent", { type, ...box, button: "left", clickCount: 1 })
   }
-  return { send, evaluate, goto, settle, key, typeChar, focus, click, viewport, close: () => ws.close() }
+  return { send, evaluate, goto, settle, key, typeChar, focus, click, close: () => ws.close() }
 }
 
 async function signIn(b, port, user, password) {
@@ -245,6 +250,37 @@ async function startChrome(port, s) {
   die(`Chrome did not open its DevTools port within 15s; see ${logFile}`)
 }
 
+const holderNeedle = (port) => `mp.mjs hold --port ${port}`
+const holderUp = (s, port) => !!s && ours(s.holderPid, holderNeedle(port))
+
+async function hold(flags) {
+  const port = Number(flags.port)
+  let session, applied
+  for (;;) {
+    const s = readState(port)
+    if (!chromeUp(s, port)) return
+    try {
+      if (session) await session.evaluate("1")
+    } catch { session = null; applied = null }
+    try {
+      session ??= await cdpSession(port)
+      const want = JSON.stringify(s.viewport)
+      if (applied !== want) {
+        await session.send("Emulation.setDeviceMetricsOverride", { width: s.viewport.width, height: s.viewport.height, deviceScaleFactor: 1, mobile: s.viewport.width < 500 })
+        applied = want
+      }
+    } catch (e) { console.error(e.message); session = null }
+    await sleep(150)
+  }
+}
+
+async function startHolder(port, s) {
+  const log = fs.openSync(path.join(dirFor(port), "holder.log"), "a")
+  const holder = spawn(process.execPath, [fileURLToPath(import.meta.url), "hold", "--port", String(port)], { detached: true, stdio: ["ignore", log, log] })
+  holder.unref()
+  return { ...s, holderPid: holder.pid }
+}
+
 async function boot(flags) {
   return withLock(async () => {
     const live = liveInstances()
@@ -261,8 +297,13 @@ async function boot(flags) {
       s = await startChrome(port, s)
       writeState(port, s)
     }
+    if (!holderUp(s, port)) {
+      s = await startHolder(port, s)
+      writeState(port, s)
+    }
     await waitUp(port, s)
     const b = await cdpSession(port)
+    for (let i = 0; i < 50 && (await b.evaluate("innerWidth")) !== s.viewport.width; i++) await sleep(100)
     await signIn(b, port, "demo", demoPassword())
     const url = await b.evaluate("location.href")
     b.close()
@@ -275,7 +316,7 @@ async function stop(flags) {
   const port = resolvePort(flags)
   const s = readState(port)
   if (!s) return console.log(`nothing recorded for ${port}`)
-  const targets = [[s.chromePid, chromeNeedle(port)], [s.serverPid, serverNeedles(port)]].filter(([pid, needles]) => ours(pid, ...[needles].flat()))
+  const targets = [[s.holderPid, holderNeedle(port)], [s.chromePid, chromeNeedle(port)], [s.serverPid, serverNeedles(port)]].filter(([pid, needles]) => ours(pid, ...[needles].flat()))
   const allGone = () => targets.every(([pid]) => !alive(pid))
   for (const [pid] of targets) process.kill(pid, "SIGTERM")
   for (let i = 0; i < 80 && !allGone(); i++) await sleep(100)
@@ -320,7 +361,7 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   key <Key>                          Enter, Escape, Tab, ArrowDown, Backspace, a, Meta+k, Shift+Tab
   click <selector>                   mouse click on the element's center
   shot <file.png> [--full]           screenshot the viewport, or the whole page with --full
-  resize <w> <h>                     set the viewport, persists across commands
+  resize <w> <h>                     resize the browser window; the size persists in Chrome itself
   theme light|dark                   click the sidebar theme button on the current page
   signin <user> <password>           sign in through the form
   signout                            DELETE /session and land on the sign-in page
@@ -332,6 +373,7 @@ async function main() {
   const { flags, rest } = parseArgs(process.argv.slice(2))
   const [cmd, ...args] = rest
   if (cmd === "boot") return boot(flags)
+  if (cmd === "hold") return hold(flags)
   if (cmd === "stop") return stop(flags)
   if (cmd === "doctor") return doctor(flags)
   if (cmd === "query") {
@@ -379,8 +421,10 @@ async function main() {
       const s = readState(port)
       s.viewport = { width: Number(args[0]), height: Number(args[1]) }
       writeState(port, s)
-      await b.viewport(s.viewport)
-      console.log(`${s.viewport.width}x${s.viewport.height} scrollWidth=${await b.evaluate("document.documentElement.scrollWidth")}`)
+      for (let i = 0; i < 50 && (await b.evaluate("innerWidth")) !== s.viewport.width; i++) await sleep(100)
+      const [w, h] = await b.evaluate("[innerWidth, innerHeight]")
+      if (w !== s.viewport.width) die(`viewport holder did not apply ${s.viewport.width}x${s.viewport.height}; see ${dirFor(port)}/holder.log`)
+      console.log(`${w}x${h} scrollWidth=${await b.evaluate("document.documentElement.scrollWidth")}`)
     } else if (cmd === "theme") {
       if (!["light", "dark"].includes(args[0])) die("theme takes light or dark")
       await b.click(`button[data-theme="${args[0]}"]`)
