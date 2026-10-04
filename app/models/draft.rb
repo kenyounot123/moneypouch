@@ -4,22 +4,19 @@ class Draft
 
   Reading = Data.define(:name, :amount_in_cents, :category_word, :occurred_on, :errors)
 
-  # Rules run in a fixed order, and each date and category rule takes only the first word it matches,
-  # so "sep 26 rent 1650" reads 26 as a day.
   module Grammar
     MONTHS = Date::MONTHNAMES.compact.each.with_index(1)
       .flat_map { |month, number| [ [ month.downcase, number ], [ month[0, 3].downcase, number ] ] }
       .to_h.merge("sept" => 9).freeze
-    # Full names only, since "sat", "sun", and "wed" are also words in names.
-    WEEKDAYS = Date::DAYNAMES.map(&:downcase).each_with_index.to_h.freeze
+    FULL_WEEKDAYS = Date::DAYNAMES.map(&:downcase).each_with_index.to_h.freeze
     DAY = /\A(\d{1,2})(?:st|nd|rd|th)?\z/i
     YEAR = /\A\d{4}\z/
     SLASH_DATE = %r{\A(\d{1,2})/(\d{1,2})(?:/(\d{2}|\d{4}))?\z}
     ISO_DATE = /\A(\d{4})-(\d{1,2})-(\d{1,2})\z/
     CATEGORY = /\A#(\S*?)[[:punct:]]*\z/
     AMOUNT = /\A(?<sign>[+-])?(?<symbol>\$)?(?<dollars>\d{1,3}(?:,\d{3})+|\d+)?(?:\.(?<cents>\d{1,2}))?\z/
-    # Seven dollar digits keep the cents inside a 32-bit integer column.
     MAX_DOLLAR_DIGITS = 7
+    LEAP_CYCLE_YEARS = 4
 
     class << self
       def read(line, today:)
@@ -48,11 +45,9 @@ class Draft
           index = words.each_cons(2).find_index { |month, day| MONTHS.key?(month.downcase) && day.match?(DAY) } or return
           month, day, year = words[index, 3]
           month, day = MONTHS[month.downcase], day[DAY, 1].to_i
-          # A four-digit number outside the year window is more likely the amount ("sep 26 1650 rent").
-          year = year&.match?(YEAR) && years(today).cover?(year.to_i) ? year.to_i : nil
+          year = typed_year(year, today)
           date = year ? dated(year, month, day, today) : latest(month, day, today)
           width = year ? 3 : 2
-          # An impossible date like "feb 30" stays in the name as one word, so its day cannot become the amount.
           words[index, width] = date ? [] : [ words[index, width].join(" ") ]
           date
         end
@@ -78,29 +73,29 @@ class Draft
             case word
             when "today" then today
             when "yesterday" then today.prev_day
-            else today - (today.wday - WEEKDAYS[word]) % 7 if WEEKDAYS.key?(word)
+            else today - (today.wday - FULL_WEEKDAYS[word]) % 7 if FULL_WEEKDAYS.key?(word)
             end
           end
         end
 
+        def typed_year(word, today)
+          word.to_i if word&.match?(YEAR) && years(today).cover?(word.to_i)
+        end
+
         def years(today) = (today.year - 20)..(today.year + 1)
 
-        # A date with its year typed out, kept only inside today minus 20 years through today plus 1 year.
         def dated(year, month, day, today)
           return unless Date.valid_date?(year, month, day)
           date = Date.new(year, month, day)
           date if date.between?(today.prev_year(20), today.next_year)
         end
 
-        # Walks back past non-leap years so "feb 29" lands on the last leap day.
         def latest(month, day, today)
-          today.year.downto(today.year - 4)
+          today.year.downto(today.year - LEAP_CYCLE_YEARS)
             .filter_map { |year| Date.new(year, month, day) if Date.valid_date?(year, month, day) }
             .find { |date| date <= today }
         end
 
-        # A marked amount ($, a sign, cents, or a thousands comma) wins, else the last bare number,
-        # so "Forever 21 $40" and "7 eleven 5" keep the number in the name.
         def take_amount(words)
           amounts = words.each_with_index.filter_map do |word, index|
             cents, marked = money(word)
@@ -123,16 +118,13 @@ class Draft
     end
   end
 
-  # excluding is the row being edited, so an edit cannot infer its category from itself.
-  def self.parse(line, user:, today:, excluding: nil)
+  def self.parse(line, user:, today:, editing: nil)
     line = line.to_s
     reading = Grammar.read(line, today:)
-    new(line:, reading:, category: resolve_category(reading, user, excluding))
+    new(line:, reading:, category: resolve_category(reading, user, editing))
   end
 
-  # One query either way. A first-use category comes back unsaved, so the transaction's
-  # save persists both together and a preview never writes.
-  def self.resolve_category(reading, user, excluding)
+  def self.resolve_category(reading, user, editing)
     if reading.errors.any?
       nil
     elsif reading.category_word
@@ -140,7 +132,7 @@ class Draft
     else
       user.transactions.eager_load(:category)
         .where("lower(transactions.name) = ?", reading.name.downcase(:ascii))
-        .where.not(id: excluding)
+        .where.not(id: editing)
         .order(occurred_on: :desc, id: :desc)
         .first&.category
     end

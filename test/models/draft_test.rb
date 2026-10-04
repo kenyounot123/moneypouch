@@ -244,7 +244,7 @@ class DraftTest < ActiveSupport::TestCase
     newer = users(:one).transactions.create!(name: "Blue Bottle", amount_in_cents: -600, occurred_on: "2026-10-02", category: cafe)
 
     assert_equal "Cafe", parse("blue bottle 6").category_name
-    assert_equal "Food", parse("blue bottle 6", excluding: newer).category_name
+    assert_equal "Food", parse("blue bottle 6", editing: newer).category_name
   end
 
   test "infers only from the same user's kept transactions" do
@@ -255,7 +255,7 @@ class DraftTest < ActiveSupport::TestCase
   end
 
   test "leaves the edited row out of inference" do
-    assert_nil parse("blue bottle 6", excluding: transactions(:coffee)).category
+    assert_nil parse("blue bottle 6", editing: transactions(:coffee)).category
   end
 
   test "skips the category lookup when the line has errors" do
@@ -282,5 +282,5 @@ class DraftTest < ActiveSupport::TestCase
   end
 
   private
-    def parse(line, user: users(:one), excluding: nil) = Draft.parse(line, user:, today: SUNDAY, excluding:)
+    def parse(line, user: users(:one), editing: nil) = Draft.parse(line, user:, today: SUNDAY, editing:)
 end
