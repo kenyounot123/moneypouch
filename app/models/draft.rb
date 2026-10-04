@@ -82,7 +82,9 @@ class Draft
           word.to_i if word&.match?(YEAR) && years(today).cover?(word.to_i)
         end
 
-        def years(today) = (today.year - 20)..(today.year + 1)
+        def years(today)
+          (today.year - 20)..(today.year + 1)
+        end
 
         def dated(year, month, day, today)
           return unless Date.valid_date?(year, month, day)
@@ -149,13 +151,21 @@ class Draft
     @category = category
   end
 
-  def category_name = category&.name
+  def category_name
+    category&.name
+  end
 
-  def inferred? = category.present? && @reading.category_word.nil?
+  def inferred?
+    category.present? && @reading.category_word.nil?
+  end
 
-  def valid? = errors.empty?
+  def valid?
+    errors.empty?
+  end
 
-  def money_in? = amount_in_cents.to_i.positive?
+  def money_in?
+    amount_in_cents.to_i.positive?
+  end
 
   def attributes
     { name:, amount_in_cents:, occurred_on:, category:, line: }

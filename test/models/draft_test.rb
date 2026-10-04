@@ -203,7 +203,9 @@ class DraftGrammarTest < ActiveSupport::TestCase
   end
 
   private
-    def read(line, today: SUNDAY) = Draft::Grammar.read(line, today:).to_h
+    def read(line, today: SUNDAY)
+      Draft::Grammar.read(line, today:).to_h
+    end
 end
 
 class DraftTest < ActiveSupport::TestCase
@@ -282,5 +284,7 @@ class DraftTest < ActiveSupport::TestCase
   end
 
   private
-    def parse(line, user: users(:one), editing: nil) = Draft.parse(line, user:, today: SUNDAY, editing:)
+    def parse(line, user: users(:one), editing: nil)
+      Draft.parse(line, user:, today: SUNDAY, editing:)
+    end
 end

@@ -9,7 +9,11 @@ class Transaction < ApplicationRecord
     (created_at || Time.current).in_time_zone.to_date
   end
 
-  def discard = update!(discarded_at: Time.current)
+  def discard
+    update!(discarded_at: Time.current)
+  end
 
-  def restore = update!(discarded_at: nil)
+  def restore
+    update!(discarded_at: nil)
+  end
 end
