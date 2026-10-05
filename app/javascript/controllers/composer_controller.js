@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { addDays, addMonths, calendarMarkup, dateWord, dayId, earlier, isoDay, parseDay } from "controllers/quick_add/calendar"
+import { addDays, addMonths, calendarMarkup, dateWord, dayId, earlier, isoDay, parseDay } from "controllers/composer/calendar"
 
 const KEYMAP = {
   none: {
@@ -37,7 +37,7 @@ const POPUP_SIZES = {
 
 export default class extends Controller {
   static targets = ["field", "row", "popup", "undo", "failure"]
-  static values = { draftUrl: String, categories: Array, today: String }
+  static values = { voucherUrl: String, categories: Array, today: String }
 
   connect() {
     this.popup = null
@@ -105,7 +105,7 @@ export default class extends Controller {
   }
 
   complete() {
-    const completion = this.hasRowTarget && this.rowTarget.dataset.line === this.fieldTarget.value && this.rowTarget.dataset.completion
+    const completion = this.hasRowTarget && this.rowTarget.dataset.shorthand === this.fieldTarget.value && this.rowTarget.dataset.completion
     if (!completion || !this.caretAtEnd) return false
     this.fieldTarget.value = `${completion} `
     this.refresh()
@@ -216,7 +216,7 @@ export default class extends Controller {
   categoryPopup(word, previous) {
     const query = word.text.slice(1).toLowerCase()
     const row = this.hasRowTarget ? this.rowTarget.dataset : {}
-    const fresh = !query && row.line === this.fieldTarget.value
+    const fresh = !query && row.shorthand === this.fieldTarget.value
     const inferred = fresh ? row.inferredCategory ?? null : previous ? previous.inferred : row.inferredCategory
     const names = [inferred, ...this.categoriesValue.filter((name) => name !== inferred)].filter(Boolean)
     const items = names.filter((name) => name.toLowerCase().startsWith(query)).map((name) => ({ name }))
@@ -259,13 +259,13 @@ export default class extends Controller {
     const popup = this.popupTarget
     popup.setAttribute("role", "listbox")
     popup.replaceChildren(...this.popup.items.map((item, index) => this.option(item, index)))
-    return `quick-add-option-${this.popup.index}`
+    return `composer-option-${this.popup.index}`
   }
 
   option(item, index) {
     const selected = index === this.popup.index
     const option = document.createElement("div")
-    option.id = `quick-add-option-${index}`
+    option.id = `composer-option-${index}`
     option.dataset.index = index
     option.setAttribute("role", "option")
     option.setAttribute("aria-selected", String(selected))
@@ -317,12 +317,12 @@ export default class extends Controller {
   }
 
   previewUrl() {
-    const params = new URLSearchParams({ line: this.previewLine() })
+    const params = new URLSearchParams({ shorthand: this.previewShorthand() })
     if (!this.popup && this.caretAtEnd) params.set("complete", "1")
-    return `${this.draftUrlValue}?${params}`
+    return `${this.voucherUrlValue}?${params}`
   }
 
-  previewLine() {
+  previewShorthand() {
     const { value } = this.fieldTarget
     if (!this.popup) return value
     const { word } = this.popup
@@ -352,7 +352,7 @@ export default class extends Controller {
   }
 
   get frame() {
-    return this.element.querySelector("turbo-frame#draft")
+    return this.element.querySelector("turbo-frame#voucher")
   }
 }
 

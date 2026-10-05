@@ -1,6 +1,6 @@
 ---
 name: verify-moneypouch
-description: Drive the MoneyPouch Rails web app headless the way a user does. Boot on a chosen port, sign in as the seeded demo user, type, press keys, click, wait for a render, screenshot, record video, time keypress-to-paint, resize, switch theme and time zone, restart the server under the page, and run read-only queries, one command each. Use to prove any UI behavior in this repo, including the quick add bar's preview, add, undo, completion, category list, and calendar.
+description: Drive the MoneyPouch Rails web app headless the way a user does. Boot on a chosen port, sign in as the seeded demo user, type, press keys, click, wait for a render, screenshot, record video, time keypress-to-paint, resize, switch theme and time zone, restart the server under the page, and run read-only queries, one command each. Use to prove any UI behavior in this repo, including the composer's preview, add, undo, completion, category list, and calendar.
 ---
 
 # verify-moneypouch
@@ -45,7 +45,7 @@ Prints JSON with `serverAlive`, `chromeAlive`, `holderAlive`, `up` (the `/up` st
 | --- | --- |
 | Type into a field | `$M type '[aria-label="Quick add"]' 'coffee 5.50' --port N` (add `--clear` to replace). Types key by key, so keydown handlers fire. Prints the field value. A second `type` appends at the caret, so type word by word and screenshot between words. `--delay 90` spaces the keys for a video. |
 | Press keys | `$M key Enter --port N`. Also `Escape`, `Tab`, `ArrowDown`, `PageUp`, `Backspace`, a single character, `Meta+z`, `Ctrl+z`, `Shift+Tab`. Several keys in one call go back to back, under 1 ms apart: `$M key Enter Enter Enter` is a triple press, `$M key ArrowLeft ArrowLeft ArrowUp Tab` a sequence. |
-| Wait for a render | `$M wait 'turbo-frame#draft' --text 'Type an amount' --port N` polls every 50 ms until an element matches the selector and contains the text, then prints its text. `--gone` waits until nothing matches. `--timeout 5000` is the default; a timeout exits 1. Wait before every `shot` that follows a server round trip, because `type` and `key` return before the response paints. |
+| Wait for a render | `$M wait 'turbo-frame#voucher' --text 'Type an amount' --port N` polls every 50 ms until an element matches the selector and contains the text, then prints its text. `--gone` waits until nothing matches. `--timeout 5000` is the default; a timeout exits 1. Wait before every `shot` that follows a server round trip, because `type` and `key` return before the response paints. |
 | Click | `$M click 'button[data-theme="dark"]' --port N` |
 | Screenshot | `$M shot /tmp/x/overview.png --port N` (`--full` for the whole page; it fires page resize events while it captures, so take full-page shots last when a lane watches resize events or popovers) |
 | Resize viewport | `$M resize 375 812 --port N`. A small detached holder process per instance keeps the emulated viewport applied between commands, so the page does not see a resize until the next `resize`. Chrome headless cannot shrink its window below 500 px, which is why emulation is used. Prints `scrollWidth`; equal to the width means no horizontal scroll. |
@@ -60,7 +60,7 @@ Prints JSON with `serverAlive`, `chromeAlive`, `holderAlive`, `up` (the `/up` st
 | Video | `$M record start /tmp/x/review.mp4 --port N`, drive, `$M record stop --port N`. Prints the path, length, and frame count. A detached recorder screencasts the page at the viewport size, and `stop` encodes 30 fps H.264 with `ffmpeg` (must be on PATH). Frames arrive only when the page changes, and the encoder holds each one until the next, so wall time is kept. |
 | Keypress-to-paint latency | `$M latency a --end turbo:frame-render --log /tmp/x/lat.jsonl --port N` presses the key and prints ms from its `keydown` timestamp to the first paint after the named event fires on the document (any bubbling event: `turbo:frame-render`, `turbo:morph`, `turbo:render`). `--end paint` measures to the next paint with no event, for client-only UI such as a menu or calendar. It first waits until the event has been quiet for 250 ms, so a late render from an earlier key is not counted. A sample with no event in 5 s logs `null` and exits 1. `$M latency --report /tmp/x/lat.jsonl` prints `{"n","timeouts","p50","p95","max"}`. |
 
-Common handles: quick add input `[aria-label="Quick add"]`, preview frame `turbo-frame#draft`, popup `#quick-add-popup`, toast `[data-controller="toast"]` with Undo `[data-quick-add-target="undo"]`, theme buttons `button[data-theme="light"|"dark"]`, sign-in fields `#username` and `#password`, flash `#alert` and `#notice`. The full quick add bar list is in [features/quick-add-bar.md](features/quick-add-bar.md).
+Common handles: composer input `[aria-label="Quick add"]`, preview frame `turbo-frame#voucher`, popup `#composer-popup`, toast `[data-controller="toast"]` with Undo `[data-composer-target="undo"]`, theme buttons `button[data-theme="light"|"dark"]`, sign-in fields `#username` and `#password`, flash `#alert` and `#notice`. The full composer list is in [features/composer.md](features/composer.md).
 
 `query` evaluates the Ruby expression in `bin/rails runner` after reopening the database with SQLite `readonly: true`. `User.delete_all` and every other write fails with `SQLite3::ReadOnlyException`. The guard is the database connection, not a Ruby sandbox: `File.write` and `system` still run, so treat the expression as trusted input. It talks to the development database, so it needs no running instance.
 
@@ -101,7 +101,7 @@ Drive each checkout with its own `mp.mjs`, since `mp.mjs` finds the app from its
 - `bin/dev` and the plain `bin/rails server` both want `tmp/pids/server.pid`. `boot` uses `tmp/pids/verify-<port>.pid` so it can coexist with a human's `bin/dev` on 3000.
 - Set `MP_CHROME` to a Chrome or Chromium binary when none is found in the default macOS and Linux locations.
 - The Tailwind CSS is built once and not watched. After editing views with new utility classes, run `bin/rails tailwindcss:build` and reload with `goto`.
-- Clicking a theme button submits a form and reloads the page, so the quick add field empties. Set the theme before typing.
+- Clicking a theme button submits a form and reloads the page, so the composer field empties. Set the theme before typing.
 - A hung or failed `boot`: read `tmp/verify/<port>/server.log` and `chrome.log`.
 
 Feature map: [features/README.md](features/README.md).

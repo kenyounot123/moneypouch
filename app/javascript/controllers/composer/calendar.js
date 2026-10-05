@@ -50,7 +50,7 @@ export function monthTitle(day) {
 }
 
 export function dayId(day) {
-  return `quick-add-day-${isoDay(day)}`
+  return `composer-day-${isoDay(day)}`
 }
 
 export function calendarMarkup(cursor, today, max) {
