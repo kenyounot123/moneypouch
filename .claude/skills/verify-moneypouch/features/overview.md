@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- Quick add bar at the top, an input labelled "Quick add", with the preview frame `turbo-frame#draft` under it. See [quick-add-bar.md](quick-add-bar.md).
+- Composer at the top, an input labelled "Quick add", with the preview frame `turbo-frame#voucher` under it. See [composer.md](composer.md).
 - Spent total, category breakdown, daily bars, and Recent: the 5 latest kept transactions and the count of this month's.
 - Sidebar with navigation and the theme switch.
 
@@ -21,4 +21,4 @@ Sign in. `/` is the Overview.
 ## Gotchas
 
 - Recent and its `<count> this month` follow the database. The spent total, breakdown, and daily bars are still static markup.
-- Typing in the quick add field renders the preview through `GET /draft`. Wait on the frame text before a `shot`.
+- Typing in the composer field renders the preview through `GET /voucher`. Wait on the frame text before a `shot`.
