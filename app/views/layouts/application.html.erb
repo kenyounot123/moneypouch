@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-controller="background" data-theme="<%= Current.user&.background.presence || "light" %>">
+<html data-controller="background time-zone" data-theme="<%= Current.user&.background.presence || "light" %>">
   <head>
     <title><%= content_for(:title) || "Moneypouch" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -9,6 +9,7 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
     <%= yield :head %>
 
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>

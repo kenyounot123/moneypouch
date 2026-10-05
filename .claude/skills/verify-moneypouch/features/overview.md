@@ -2,8 +2,8 @@
 
 ## Sub-features
 
-- Quick add bar at the top, an input labelled "Quick add".
-- Spent total, category breakdown, daily bars, recent transactions.
+- Quick add bar at the top, an input labelled "Quick add", with the preview frame `turbo-frame#draft` under it. See [quick-add-bar.md](quick-add-bar.md).
+- Spent total, category breakdown, daily bars, and Recent: the 5 latest kept transactions and the count of this month's.
 - Sidebar with navigation and the theme switch.
 
 ## How to get to it (user POV)
@@ -20,5 +20,5 @@ Sign in. `/` is the Overview.
 
 ## Gotchas
 
-- The Overview figures are static markup today and do not follow the database.
-- The quick add field has no key handlers until the quick add feature lands.
+- Recent and its `<count> this month` follow the database. The spent total, breakdown, and daily bars are still static markup.
+- Typing in the quick add field renders the preview through `GET /draft`. Wait on the frame text before a `shot`.
