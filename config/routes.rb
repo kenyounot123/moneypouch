@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   resources :transactions, only: %i[ index create update destroy ]
-  resource :draft, only: :show
+  resource :voucher, only: :show
   resource :session
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

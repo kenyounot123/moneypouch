@@ -1,43 +1,43 @@
 <% shake = local_assigns.fetch(:shake, false) %>
-<% typed = draft.line.strip.present? %>
-<%= turbo_frame_tag "draft", class: "mx-3 block rounded-b-lg border border-t-0 border-secondary bg-level-1 px-4" do %>
+<% typed = voucher.shorthand.strip.present? %>
+<%= turbo_frame_tag "voucher", class: "mx-3 block rounded-b-lg border border-t-0 border-secondary bg-level-1 px-4" do %>
   <% if typed %>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-3"
-      <%= tag.attributes(data: { quick_add_target: "row", line: draft.line, completion: draft.completion, inferred_category: (draft.category_name if draft.inferred?) }) %>>
+      <%= tag.attributes(data: { composer_target: "row", shorthand: voucher.shorthand, completion: voucher.completion, inferred_category: (voucher.category_name if voucher.inferred?) }) %>>
       <div class="flex w-2 shrink-0 justify-center">
         <div class="size-1.5 rounded-[1px] border border-(--background-color-highlight)"></div>
       </div>
       <div class="flex min-w-0 flex-1 basis-44 flex-col gap-1">
         <p class="flex min-w-0 items-center overflow-hidden font-medium">
-          <% if draft.completion %>
-            <% typed_length = draft.line.lstrip.length %>
-            <span class="min-w-0 truncate"><%= draft.completion[0, typed_length] %><span class="font-normal text-tertiary"><%= draft.completion[typed_length..] %></span></span>
+          <% if voucher.completion %>
+            <% typed_length = voucher.shorthand.lstrip.length %>
+            <span class="min-w-0 truncate"><%= voucher.completion[0, typed_length] %><span class="font-normal text-tertiary"><%= voucher.completion[typed_length..] %></span></span>
             <span class="ml-1 shrink-0 rounded-sm border border-primary bg-level-2 px-1.5 font-mono text-xs leading-[14px] font-normal text-secondary">Tab</span>
-          <% elsif draft.name.present? %>
-            <span class="min-w-0 truncate"><%= draft.name %></span>
+          <% elsif voucher.name.present? %>
+            <span class="min-w-0 truncate"><%= voucher.name %></span>
           <% else %>
-            <%= render "drafts/callout", message: Transaction::Draft::MISSING_NAME, shake: %>
+            <%= render "vouchers/callout", message: Transaction::Shorthand::MISSING_NAME, shake: %>
           <% end %>
         </p>
         <p class="text-sm text-tertiary">
-          <% if draft.category %>
-            <%= draft.category_name %><% if draft.category.new_record? %> <span class="text-xs leading-none">(new)</span><% end %>
+          <% if voucher.category %>
+            <%= voucher.category_name %><% if voucher.category.new_record? %> <span class="text-xs leading-none">(new)</span><% end %>
           <% else %>
             Uncategorized
           <% end %>
-          · <%= relative_date draft.occurred_on %>
+          · <%= relative_date voucher.occurred_on %>
         </p>
       </div>
       <p class="ml-auto shrink-0 text-right font-mono">
-        <% if draft.amount_in_cents.nil? %>
-          <%= render "drafts/callout", message: Transaction::Draft::MISSING_AMOUNT, shake: %>
-        <% elsif draft.money_in? %>
+        <% if voucher.amount_in_cents.nil? %>
+          <%= render "vouchers/callout", message: Transaction::Shorthand::MISSING_AMOUNT, shake: %>
+        <% elsif voucher.money_in? %>
           <span class="flex flex-col items-end gap-0.5 text-success">
-            <span><%= money draft.amount_in_cents %></span>
+            <span><%= money voucher.amount_in_cents %></span>
             <span class="font-sans text-xs">Money in</span>
           </span>
         <% else %>
-          <%= money draft.amount_in_cents %>
+          <%= money voucher.amount_in_cents %>
         <% end %>
       </p>
     </div>
@@ -45,9 +45,9 @@
 
   <div class="flex flex-wrap items-center gap-x-5 gap-y-2 py-3 <%= "border-t border-secondary" if typed %>">
     <% [
-      [ "5.50", "amount", draft.amount_in_cents.present?, typed && draft.amount_in_cents.nil? ],
-      [ "@", "date", draft.dated?, false ],
-      [ "#", "category", draft.category_word.present?, false ]
+      [ "5.50", "amount", voucher.amount_in_cents.present?, typed && voucher.amount_in_cents.nil? ],
+      [ "@", "date", voucher.dated?, false ],
+      [ "#", "category", voucher.category_word.present?, false ]
     ].each do |key, label, used, missing| %>
       <span class="inline-flex items-center gap-1.5 whitespace-nowrap <%= used ? "text-primary" : missing ? "text-danger" : "text-tertiary" %>">
         <span class="rounded-sm border px-1.5 py-0.5 font-mono text-xs <%= used ? "border-transparent bg-highlight text-on-action" : missing ? "border-(--text-color-danger)" : "border-primary bg-level-2" %> <%= "animate-shake" if missing && shake %>"><%= key %></span>

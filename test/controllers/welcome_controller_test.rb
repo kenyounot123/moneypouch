@@ -27,28 +27,28 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "marks the added row, shows the toast, and empties the field" do
-    post transactions_url, params: { line: "tea 3", idempotency_key: "key-1" }, headers: { "HTTP_REFERER" => root_url }
+    post transactions_url, params: { shorthand: "tea 3", idempotency_key: "key-1" }, headers: { "HTTP_REFERER" => root_url }
     follow_redirect!
 
     added = Transaction.order(:id).last
     assert_select "##{ActionView::RecordIdentifier.dom_id(added)} .bg-highlight"
     assert_select "#toast_transaction_#{added.id}", text: /Added\s+tea\s+\$3.00\s+Undo\s+Ctrl Z/
-    assert_select "input[name=line][value='']"
+    assert_select "input[name=shorthand][value='']"
   end
 
   test "names the Mac shortcut for a Mac browser" do
-    post transactions_url, params: { line: "tea 3", idempotency_key: "key-1" }
+    post transactions_url, params: { shorthand: "tea 3", idempotency_key: "key-1" }
     get root_url, headers: { "HTTP_USER_AGENT" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/130.0" }
 
-    assert_select "[data-quick-add-target=undo]", text: /⌘Z/
+    assert_select "[data-composer-target=undo]", text: /⌘Z/
   end
 
-  test "puts an undone line back in the field" do
+  test "puts an undone shorthand back in the field" do
     delete transaction_url(transactions(:coffee)), headers: { "HTTP_REFERER" => root_url }
     follow_redirect!
 
-    assert_select "input[name=line][value=?]", "Blue Bottle 5.50"
-    assert_select "turbo-frame#draft", text: /Blue Bottle/
+    assert_select "input[name=shorthand][value=?]", "Blue Bottle 5.50"
+    assert_select "turbo-frame#voucher", text: /Blue Bottle/
   end
 
   test "gives the bar the user's category names in name order" do
@@ -58,6 +58,6 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
 
     get root_url
 
-    assert_select "[data-quick-add-categories-value=?]", '["Bills","Food","groceries"]'
+    assert_select "[data-composer-categories-value=?]", '["Bills","Food","groceries"]'
   end
 end

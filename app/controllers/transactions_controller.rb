@@ -6,15 +6,15 @@ class TransactionsController < ApplicationController
   end
 
   def create
-    draft = Transaction::Draft.parse(params[:line], user: Current.user, today: Date.current)
+    voucher = Voucher.new(params[:shorthand], user: Current.user, today: Date.current)
 
-    if draft.valid?
+    if voucher.valid?
       transaction = Current.user.transactions.create_or_find_by!(idempotency_key: params[:idempotency_key]) do |row|
-        row.assign_attributes(draft.attributes)
+        row.assign_attributes(voucher.attributes)
       end
       redirect_back_or_to root_path, flash: { added_id: transaction.id }, status: :see_other
     else
-      render turbo_stream: turbo_stream.replace("draft", partial: "drafts/draft", locals: { draft:, shake: true }),
+      render turbo_stream: turbo_stream.replace("voucher", partial: "vouchers/voucher", locals: { voucher:, shake: true }),
         status: :unprocessable_entity
     end
   end
@@ -29,7 +29,7 @@ class TransactionsController < ApplicationController
 
   def destroy
     @transaction.discard
-    redirect_back_or_to root_path, flash: { line: @transaction.line }, status: :see_other
+    redirect_back_or_to root_path, flash: { shorthand: @transaction.shorthand }, status: :see_other
   end
 
   private
