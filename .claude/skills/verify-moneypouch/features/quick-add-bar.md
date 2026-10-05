@@ -1,6 +1,6 @@
 # Quick add bar
 
-Status: planned, not built. The design and its lanes live in `docs/plans/quick-add-bar.md` (PR 19, branch `plan/quick-add-bar`), PRs Q1 to Q5. Until Q1 lands, the bar on `/` is the static markup described in [add-transaction.md](add-transaction.md). Each Q PR replaces the "planned" notes for its part with what it actually built, including any handle it renamed.
+Status: planned, not built. The work is split into five parts, Q1 to Q5. Until they land, the bar on `/` is the static markup described in [add-transaction.md](add-transaction.md). The change that builds a part replaces its "planned" notes with what it actually built, including any handle it renamed.
 
 ## Sub-features
 
@@ -48,7 +48,7 @@ Perf blocks, at least 20 samples each, one key per `latency` call:
 - Q4 list and Q5 calendar: `--end paint`, because no server is involved. Budget p95 ≤ 16 ms.
 - Report with `$M latency --report lat.jsonl`.
 
-Review video: `$M record start docs/plans/media/QN-review.mp4`, drive with `type --delay 90`, then `$M record stop`.
+Review video: `$M record start /tmp/QN-review/review.mp4`, drive with `type --delay 90`, then `$M record stop`.
 
 ## Gotchas
 

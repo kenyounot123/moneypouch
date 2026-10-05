@@ -1,6 +1,6 @@
 ---
 name: verify-moneypouch
-description: Drive the MoneyPouch Rails web app headless the way a user does. Boot on a chosen port, sign in as the seeded demo user, type, press keys, click, wait for a render, screenshot, record video, time keypress-to-paint, resize, switch theme and time zone, restart the server under the page, and run read-only queries, one command each. Use to prove any UI behavior in this repo, including every live and perf lane of docs/plans/quick-add-bar.md.
+description: Drive the MoneyPouch Rails web app headless the way a user does. Boot on a chosen port, sign in as the seeded demo user, type, press keys, click, wait for a render, screenshot, record video, time keypress-to-paint, resize, switch theme and time zone, restart the server under the page, and run read-only queries, one command each. Use to prove any UI behavior in this repo, including the quick add bar's preview, add, undo, completion, category list, and calendar.
 ---
 
 # verify-moneypouch
