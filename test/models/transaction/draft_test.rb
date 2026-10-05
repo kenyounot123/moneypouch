@@ -70,6 +70,11 @@ class Transaction::Draft::GrammarTest < ActiveSupport::TestCase
       read("Trader Joe's 64.12 #"))
   end
 
+  test "reads every date word the calendar writes" do
+    assert_equal [ SUNDAY, Date.new(2026, 9, 26), Date.new(2026, 8, 27), Date.new(2025, 12, 31) ],
+      [ "Lyft 9 today", "Lyft 9 yesterday", "Lyft 9 aug 27", "Lyft 9 dec 31 2025" ].map { |line| read(line)[:occurred_on] }
+  end
+
   test "reads yesterday" do
     assert_equal({ name: "coffee", amount_in_cents: -550, category_word: nil, occurred_on: Date.new(2026, 9, 26), dated: true, errors: [] },
       read("coffee 5.50 Yesterday"))

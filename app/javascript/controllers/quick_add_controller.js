@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { addDays, addMonths, calendarMarkup, dateWord, dayId, earlier, isoDay, parseDay } from "controllers/quick_add/calendar"
 
 const KEYMAP = {
   none: {
@@ -12,16 +13,31 @@ const KEYMAP = {
     Enter: "pickOption",
     Escape: "dismiss",
   },
+  calendar: {
+    ArrowLeft: "previousDay",
+    ArrowRight: "nextDay",
+    ArrowUp: "previousWeek",
+    ArrowDown: "nextWeek",
+    PageUp: "previousMonth",
+    PageDown: "nextMonth",
+    Tab: "pickCursor",
+    Enter: "pickCursor",
+    t: "pickToday",
+    y: "pickYesterday",
+    Escape: "removeAt",
+    Printable: "leaveCalendar",
+  },
 }
 
 const OPTION = "flex cursor-pointer items-center rounded-sm px-2.5 py-1.5"
 const POPUP_SIZES = {
   category: ["w-56", "max-h-[250px]", "overflow-y-auto"],
+  calendar: ["w-[264px]"],
 }
 
 export default class extends Controller {
   static targets = ["field", "row", "popup", "undo", "failure"]
-  static values = { draftUrl: String, categories: Array }
+  static values = { draftUrl: String, categories: Array, today: String }
 
   connect() {
     this.popup = null
@@ -49,14 +65,19 @@ export default class extends Controller {
   }
 
   keydown(event) {
-    const action = KEYMAP[this.popup?.kind ?? "none"][keyName(event)]
+    const keys = KEYMAP[this.popup?.kind ?? "none"]
+    const name = keyName(event)
+    const action = keys[name] ?? (name.length === 1 ? keys.Printable : undefined)
     if (action && this[action](event) !== false) event.preventDefault()
   }
 
   press(event) {
     event.preventDefault()
-    const option = event.target.closest("[role=option]")
-    if (option) this.pick(this.popup.items[option.dataset.index])
+    const target = event.target.closest("[data-index], [data-day], [data-months]")
+    if (!target) return
+    if (target.dataset.index) this.pick(this.popup.items[target.dataset.index])
+    if (target.dataset.day && !target.disabled) this.pickDay(parseDay(target.dataset.day))
+    if (target.dataset.months) this.moveCursor(addMonths(this.popup.cursor, Number(target.dataset.months)))
   }
 
   // Chrome sends mouse events to a resting pointer when the popup opens or redraws under it, and only a real move selects.
@@ -64,10 +85,13 @@ export default class extends Controller {
     const moved = event.screenX !== this.pointerX || event.screenY !== this.pointerY
     this.pointerX = event.screenX
     this.pointerY = event.screenY
-    const option = moved && this.popup && this.popupTarget.contains(event.target) && event.target.closest("[data-index]")
-    if (!option || Number(option.dataset.index) === this.popup.index) return
-    this.popup.index = Number(option.dataset.index)
-    this.refresh()
+    const target = moved && this.popup && this.popupTarget.contains(event.target) && event.target.closest("[data-index], [data-day]:not(:disabled)")
+    if (!target) return
+    if (target.dataset.index && Number(target.dataset.index) !== this.popup.index) {
+      this.popup.index = Number(target.dataset.index)
+      this.refresh()
+    }
+    if (target.dataset.day && target.dataset.day !== isoDay(this.popup.cursor)) this.moveCursor(parseDay(target.dataset.day))
   }
 
   finish({ detail: { success, fetchResponse } }) {
@@ -115,12 +139,77 @@ export default class extends Controller {
     this.refresh()
   }
 
+  previousDay() {
+    this.moveCursor(addDays(this.popup.cursor, -1))
+  }
+
+  nextDay() {
+    this.moveCursor(addDays(this.popup.cursor, 1))
+  }
+
+  previousWeek() {
+    this.moveCursor(addDays(this.popup.cursor, -7))
+  }
+
+  nextWeek() {
+    this.moveCursor(addDays(this.popup.cursor, 7))
+  }
+
+  previousMonth() {
+    this.moveCursor(addMonths(this.popup.cursor, -1))
+  }
+
+  nextMonth() {
+    this.moveCursor(addMonths(this.popup.cursor, 1))
+  }
+
+  moveCursor(day) {
+    this.popup.cursor = earlier(day, this.max)
+    this.refresh()
+  }
+
+  pickCursor() {
+    this.pickDay(this.popup.cursor)
+  }
+
+  pickToday() {
+    this.pickDay(this.today)
+  }
+
+  pickYesterday() {
+    this.pickDay(addDays(this.today, -1))
+  }
+
+  pickDay(day) {
+    this.replaceWord(this.popup.word, dateWord(day, this.today))
+  }
+
+  removeAt() {
+    this.cutAt()
+    this.refresh()
+  }
+
+  leaveCalendar() {
+    this.cutAt()
+    this.popup = null
+    return false
+  }
+
+  cutAt() {
+    const field = this.fieldTarget
+    const { start } = this.popup.word
+    field.value = field.value.slice(0, start) + field.value.slice(start + 1)
+    field.setSelectionRange(start, start)
+  }
+
   nextPopup() {
     const word = this.caretWord()
     if (!word) return null
     if (wordKey(word) !== this.dismissed) this.dismissed = null
     if (this.dismissed) return null
-    if (word.text.startsWith("#")) return this.categoryPopup(word, this.popup?.kind === "category" ? this.popup : null)
+    const previous = this.popup
+    if (word.text.startsWith("#")) return this.categoryPopup(word, previous?.kind === "category" ? previous : null)
+    if (word.text === "@") return this.calendarPopup(word, previous?.kind === "calendar" ? previous : null)
     return null
   }
 
@@ -136,6 +225,10 @@ export default class extends Controller {
 
     const index = previous?.word.text === word.text ? Math.min(previous.index, items.length - 1) : 0
     return { kind: "category", word, items, index, inferred }
+  }
+
+  calendarPopup(word, previous) {
+    return { kind: "calendar", word, cursor: previous?.cursor ?? this.today }
   }
 
   render() {
@@ -154,12 +247,19 @@ export default class extends Controller {
       return
     }
 
-    popup.setAttribute("role", "listbox")
-    popup.classList.add(...POPUP_SIZES.category)
-    popup.replaceChildren(...this.popup.items.map((item, index) => this.option(item, index)))
-    field.setAttribute("aria-activedescendant", `quick-add-option-${this.popup.index}`)
+    popup.classList.remove(...Object.values(POPUP_SIZES).flat())
+    popup.classList.add(...POPUP_SIZES[this.popup.kind])
+    const activeId = this.popup.kind === "category" ? this.renderCategory() : this.renderCalendar()
+    field.setAttribute("aria-activedescendant", activeId)
     this.place(this.popup.word)
-    document.getElementById(`quick-add-option-${this.popup.index}`)?.scrollIntoView({ block: "nearest" })
+    document.getElementById(activeId)?.scrollIntoView({ block: "nearest" })
+  }
+
+  renderCategory() {
+    const popup = this.popupTarget
+    popup.setAttribute("role", "listbox")
+    popup.replaceChildren(...this.popup.items.map((item, index) => this.option(item, index)))
+    return `quick-add-option-${this.popup.index}`
   }
 
   option(item, index) {
@@ -181,6 +281,12 @@ export default class extends Controller {
     }
     option.append(label)
     return option
+  }
+
+  renderCalendar() {
+    this.popupTarget.removeAttribute("role")
+    this.popupTarget.innerHTML = calendarMarkup(this.popup.cursor, this.today, this.max)
+    return dayId(this.popup.cursor)
   }
 
   place(word) {
@@ -226,7 +332,8 @@ export default class extends Controller {
   // While inference is unknown (undefined) or picked, a bare # keeps the row inferring, so the row stays the
   // source of the category that leads the list. null means the row said this name has none.
   previewWord() {
-    const { word, items, index, inferred } = this.popup
+    const { kind, word, items, index, inferred, cursor } = this.popup
+    if (kind === "calendar") return dateWord(cursor, this.today)
     const { name } = items[index]
     return word.text === "#" && (inferred === undefined || name === inferred) ? "#" : `#${name}`
   }
@@ -234,6 +341,14 @@ export default class extends Controller {
   get caretAtEnd() {
     const { selectionStart, selectionEnd, value } = this.fieldTarget
     return selectionStart === value.length && selectionEnd === value.length
+  }
+
+  get today() {
+    return parseDay(this.todayValue)
+  }
+
+  get max() {
+    return this.today
   }
 
   get frame() {
@@ -248,8 +363,8 @@ function keyName(event) {
 
 function popupKey(popup) {
   if (!popup) return "none"
-  const { kind, word, index, items } = popup
-  return [kind, wordKey(word), index, items.map((item) => item.name).join("\n")].join("|")
+  const { kind, word, index, cursor, items } = popup
+  return [kind, wordKey(word), index, cursor && isoDay(cursor), items?.map((item) => item.name).join("\n")].join("|")
 }
 
 function wordKey(word) {
