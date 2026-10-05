@@ -51,4 +51,13 @@ class DraftsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#draft > div", count: 1
     assert_select "turbo-frame#draft", text: /5.50\s+amount\s+@\s+date\s+#\s+category/
   end
+
+  test "offers a used name only when asked" do
+    get draft_url(line: "blu", complete: "1")
+    assert_select "[data-line='blu'][data-completion='Blue Bottle'][data-inferred-category=Food]", text: /Blue Bottle\s+Tab\s+Food/
+    assert_select "[data-completion] .text-tertiary", text: "e Bottle"
+
+    get draft_url(line: "Blu")
+    assert_select "[data-completion]", count: 0
+  end
 end

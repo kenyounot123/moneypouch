@@ -1,10 +1,18 @@
 import { Controller } from "@hotwired/stimulus"
 
+const KEYMAP = {
+  none: {
+    Tab: "complete",
+    "Mod+z": "undo",
+  },
+}
+
 export default class extends Controller {
-  static targets = ["field", "undo", "failure"]
+  static targets = ["field", "row", "undo", "failure"]
   static values = { draftUrl: String }
 
   connect() {
+    this.popup = null
     this.sync()
   }
 
@@ -20,10 +28,8 @@ export default class extends Controller {
   }
 
   keydown(event) {
-    if (event.key === "z" && (event.metaKey || event.ctrlKey) && !this.fieldTarget.value && this.hasUndoTarget) {
-      event.preventDefault()
-      this.undoTarget.click()
-    }
+    const action = KEYMAP[this.popup?.kind ?? "none"][keyName(event)]
+    if (action && this[action](event) !== false) event.preventDefault()
   }
 
   finish({ detail: { success, fetchResponse } }) {
@@ -36,11 +42,35 @@ export default class extends Controller {
     this.frame.querySelector("[data-failure]")?.remove()
   }
 
+  complete() {
+    const completion = this.hasRowTarget && this.rowTarget.dataset.line === this.fieldTarget.value && this.rowTarget.dataset.completion
+    if (!completion || !this.caretAtEnd) return false
+    this.fieldTarget.value = `${completion} `
+    this.refresh()
+  }
+
+  undo() {
+    if (this.fieldTarget.value || !this.hasUndoTarget) return false
+    this.undoTarget.click()
+  }
+
   previewUrl() {
-    return `${this.draftUrlValue}?${new URLSearchParams({ line: this.fieldTarget.value })}`
+    const params = new URLSearchParams({ line: this.fieldTarget.value })
+    if (this.caretAtEnd) params.set("complete", "1")
+    return `${this.draftUrlValue}?${params}`
+  }
+
+  get caretAtEnd() {
+    const { selectionStart, selectionEnd, value } = this.fieldTarget
+    return selectionStart === value.length && selectionEnd === value.length
   }
 
   get frame() {
     return this.element.querySelector("turbo-frame#draft")
   }
+}
+
+function keyName(event) {
+  const modifier = event.metaKey || event.ctrlKey ? "Mod+" : event.shiftKey && event.key.length > 1 ? "Shift+" : ""
+  return modifier + event.key
 }

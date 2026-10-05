@@ -2,14 +2,19 @@
 <% typed = draft.line.strip.present? %>
 <%= turbo_frame_tag "draft", class: "mx-3 block rounded-b-lg border border-t-0 border-secondary bg-level-1 px-4" do %>
   <% if typed %>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-3" <%= tag.attributes(data: { inferred_category: (draft.category_name if draft.inferred?) }) %>>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-3"
+      <%= tag.attributes(data: { quick_add_target: "row", line: draft.line, completion: draft.completion, inferred_category: (draft.category_name if draft.inferred?) }) %>>
       <div class="flex w-2 shrink-0 justify-center">
         <div class="size-1.5 rounded-[1px] border border-(--background-color-highlight)"></div>
       </div>
       <div class="flex min-w-0 flex-1 basis-44 flex-col gap-1">
-        <p class="truncate font-medium">
-          <% if draft.name.present? %>
-            <%= draft.name %>
+        <p class="flex min-w-0 items-center overflow-hidden font-medium">
+          <% if draft.completion %>
+            <% typed_length = draft.line.lstrip.length %>
+            <span class="min-w-0 truncate"><%= draft.completion[0, typed_length] %><span class="font-normal text-tertiary"><%= draft.completion[typed_length..] %></span></span>
+            <span class="ml-1 shrink-0 rounded-sm border border-primary bg-level-2 px-1.5 font-mono text-xs leading-[14px] font-normal text-secondary">Tab</span>
+          <% elsif draft.name.present? %>
+            <span class="min-w-0 truncate"><%= draft.name %></span>
           <% else %>
             <%= render "drafts/callout", message: Transaction::Draft::MISSING_NAME, shake: %>
           <% end %>

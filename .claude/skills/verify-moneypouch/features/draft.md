@@ -3,13 +3,14 @@
 ## Sub-features
 
 - `Transaction::Draft::Grammar.read(line, today:)` reads a typed line into a `Transaction::Draft::Reading` with `name`, `amount_in_cents`, `category_word`, `occurred_on`, `dated`, and `errors`. It is pure. `dated` is true only when the line names a date, so `coffee 5` is not dated and `coffee 5 today` is.
-- `Transaction::Draft.parse(line, user:, today:, editing: nil)` adds the category and never writes.
+- `Transaction::Draft.parse(line, user:, today:, complete: false, editing: nil)` adds the category and never writes.
+  - With `complete: true`, a line of 2 or more non-space characters with no digit, `#`, `@`, `$`, or `+` looks up the user's kept names that start with it (ASCII case-insensitive, LIKE wildcards escaped), ranked by use count then latest `occurred_on`, and takes the first longer than the line. `#completion` is the full completed name in its stored spelling, or nil. The category then comes from the completed name. The lookup is `Transaction.name_starting_with`.
   - A `#word` matches the user's category, ignoring ASCII case. No match gives an unsaved `Category`.
   - With no `#word`, the category comes from the user's latest kept transaction with the same name, skipping the `editing:` row. This runs even when the amount is missing, so the preview shows the category while the person is still typing. A line with no name skips the lookup.
 - Amounts: `5`, `5.50`, `$5.50`, `.50`, `-5`, `1,650` read as money out. A leading `+` reads as money in. A marked amount (`$`, a sign, cents, or a thousands comma) wins over bare numbers, else the last bare number wins.
 - Dates: `sep 26`, `sep 1st`, `sep 26 2025`, `9/26`, `9/26/26`, `2026-09-26`, `today`, `yesterday`, and full weekday names. No date means `today`.
 - Errors: `Type an amount, like 5.50` and `Type a name, like coffee`.
-- `#attributes`, `#valid?`, `#money_in?`, `#dated?`, `#category_word`, `#category_name`, `#inferred?`.
+- `#attributes`, `#valid?`, `#money_in?`, `#dated?`, `#completion`, `#category_word`, `#category_name`, `#inferred?`.
 
 ## How to get to it (user POV)
 
@@ -26,6 +27,7 @@ A user reaches it through the quick add bar on `/`. Every keystroke renders `GET
 - Inference: run `bin/rails "dev:transactions[100]"` first, then parse a name that exists, such as `"Blue Bottle Mission 4.75"`. `[d.category_name, d.inferred?, d.category.persisted?]` prints `["Food", true, true]`.
 - New category: `"lunch 12 #brandnew"` gives `d.category.persisted?` `false`, and `Category.count` is unchanged.
 - Errors: `"coffee"` gives `["Type an amount, like 5.50"]`. `"5"` gives `["Type a name, like coffee"]`.
+- Completion: `mp.mjs query 'Transaction::Draft.parse("Tra", user: User.find_by!(username: "demo"), today: Date.current, complete: true).then { [_1.completion, _1.category_name] }'` prints `["Trader Joe's", "Groceries"]` when the history holds `Trader Joe's`.
 - No writes: `query` opens SQLite read-only, so a parse that wrote would raise `SQLite3::ReadOnlyException`. Also compare `Transaction.count` and `Category.count` before and after.
 
 ## Gotchas

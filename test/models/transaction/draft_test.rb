@@ -294,8 +294,65 @@ class Transaction::DraftTest < ActiveSupport::TestCase
     assert_equal [ "Food" ], user.categories.map(&:name)
   end
 
+  test "completes a typed prefix with the most used kept name in its stored spelling and takes its category" do
+    groceries = users(:one).categories.create!(name: "Groceries")
+    add "Trader Joe's", "2026-09-01", groceries
+    add "Trader Joe's", "2026-09-02", groceries
+    add "Trader Vic's", "2026-09-20"
+
+    draft = complete("tra")
+    assert_equal [ "Trader Joe's", "Groceries", [ "Type an amount, like 5.50" ] ], [ draft.completion, draft.category_name, draft.errors ]
+  end
+
+  test "breaks a tie in use count with the latest occurred_on" do
+    add "Trader Joe's", "2026-09-01"
+    add "Trader Vic's", "2026-09-20"
+
+    assert_equal "Trader Vic's", complete("Tra").completion
+  end
+
+  test "offers only names longer than the typed line" do
+    add "Uber", "2026-09-01"
+    add "Uber", "2026-09-02"
+    add "Uber Eats", "2026-09-03"
+
+    assert_equal "Uber Eats", complete("Uber").completion
+    assert_nil complete("Uber Eats").completion
+  end
+
+  test "never offers a discarded name or another user's name" do
+    add("Lyft", "2026-09-01").discard
+    users(:two).transactions.create!(name: "Lyme Farm", amount_in_cents: -100, occurred_on: "2026-09-01")
+
+    assert_nil complete("Ly").completion
+  end
+
+  test "completes only a line of two or more letters without amount, date, or category marks" do
+    add "B2 Cafe", "2026-09-01"
+
+    assert_equal [ nil, nil, nil, nil, nil, "Blue Bottle", nil ],
+      [ "B", "B2", "Blue #", "Blue @", "Blue $", "  Bl", "Blue Bottle 5" ].map { |line| complete(line).completion }
+    assert_nil parse("Bl").completion
+  end
+
+  test "treats LIKE wildcards in the line as text" do
+    add "50% off", "2026-09-01"
+    add "5_star", "2026-09-01"
+
+    assert_nil complete("%o").completion
+    assert_nil complete("__").completion
+  end
+
   private
     def parse(line, user: users(:one), editing: nil)
       Transaction::Draft.parse(line, user:, today: SUNDAY, editing:)
+    end
+
+    def complete(line)
+      Transaction::Draft.parse(line, user: users(:one), today: SUNDAY, complete: true)
+    end
+
+    def add(name, occurred_on, category = nil)
+      users(:one).transactions.create!(name:, amount_in_cents: -100, occurred_on:, category:)
     end
 end

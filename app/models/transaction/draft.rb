@@ -120,29 +120,38 @@ class Transaction::Draft
     end
   end
 
-  def self.parse(line, user:, today:, editing: nil)
+  def self.parse(line, user:, today:, complete: false, editing: nil)
     line = line.to_s
     reading = Grammar.read(line, today:)
-    new(line:, reading:, category: resolve_category(reading, user, editing))
+    typed = line.lstrip
+    completed = user.transactions.name_starting_with(typed) if complete && completable?(typed)
+    category = resolve_category(reading.category_word, completed || reading.name, user, editing)
+    new(line:, reading:, category:, completion: completed)
   end
 
-  def self.resolve_category(reading, user, editing)
-    if reading.category_word
-      user.categories.named(reading.category_word).first || Category.new(user:, name: reading.category_word)
-    elsif reading.name.present?
-      user.transactions.excluding(editing).last_category_for(reading.name)
+  def self.completable?(typed)
+    typed.gsub(/\s/, "").length >= 2 && !typed.match?(/[\d#@$+]/)
+  end
+  private_class_method :completable?
+
+  def self.resolve_category(category_word, name, user, editing)
+    if category_word
+      user.categories.named(category_word).first || Category.new(user:, name: category_word)
+    elsif name.present?
+      user.transactions.excluding(editing).last_category_for(name)
     end
   end
   private_class_method :resolve_category
 
-  attr_reader :line, :category
+  attr_reader :line, :category, :completion
 
   delegate :name, :amount_in_cents, :category_word, :occurred_on, :errors, to: :@reading
 
-  def initialize(line:, reading:, category:)
+  def initialize(line:, reading:, category:, completion: nil)
     @line = line
     @reading = reading
     @category = category
+    @completion = completion
   end
 
   def category_name

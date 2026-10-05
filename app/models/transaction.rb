@@ -14,6 +14,14 @@ class Transaction < ApplicationRecord
       .first&.category
   end
 
+  def self.name_starting_with(prefix)
+    where("lower(transactions.name) LIKE ? ESCAPE '\\'", "#{sanitize_sql_like(prefix.downcase(:ascii))}%")
+      .where("length(transactions.name) > ?", prefix.length)
+      .group(:name)
+      .order(Arel.sql("count(*) DESC, max(transactions.occurred_on) DESC"))
+      .pick(:name)
+  end
+
   def added_on
     (created_at || Time.current).in_time_zone.to_date
   end
