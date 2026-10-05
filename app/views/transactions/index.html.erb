@@ -13,11 +13,11 @@
     <ul id="transactions" class="flex flex-col gap-1">
       <% @transactions.each do |transaction| %>
         <%= render transaction do %>
-          <%= button_to "Destroy", transaction, method: :delete, class: "rounded-md px-3.5 py-2.5 text-white bg-red-600 hover:bg-red-500 font-medium cursor-pointer", data: { turbo_confirm: "Are you sure?" } %>
+          <%= button_to "Delete", transaction, method: :delete, class: "rounded-md px-3.5 py-2.5 text-white bg-red-600 hover:bg-red-500 font-medium cursor-pointer", data: { turbo_confirm: "Delete this transaction?" } %>
         <% end %>
       <% end %>
     </ul>
   <% else %>
-    <p class="text-center my-10">No transactions found.</p>
+    <p class="text-center my-10">No transactions yet.</p>
   <% end %>
 </div>

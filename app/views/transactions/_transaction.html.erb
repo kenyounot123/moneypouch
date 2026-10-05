@@ -8,6 +8,6 @@
     <p class="truncate font-medium"><%= transaction.name %></p>
     <p class="text-sm text-tertiary"><%= transaction.category&.name || "Uncategorized" %> · <%= short_date transaction.occurred_on %></p>
   </div>
-  <p class="w-[90px] shrink-0 text-right font-mono <%= "text-success" if transaction.amount_in_cents.positive? %>"><%= money transaction.amount_in_cents %></p>
+  <p class="w-[90px] shrink-0 text-right font-mono"><%= money transaction.amount_in_cents %></p>
   <%= yield %>
 </li>
