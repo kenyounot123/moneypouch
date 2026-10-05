@@ -15,7 +15,7 @@
             <% end %>
           </div>
           <p class="text-sm text-tertiary">Day 27 of 30</p>
-          <p class="text-sm font-medium text-success">↓ $265 (8.6%) vs. Aug 1–27</p>
+          <p class="text-sm font-medium text-secondary">↓ $265 (8.6%) vs. Aug 1–27</p>
         </div>
       </div>
 
@@ -79,7 +79,7 @@
             <%= render transaction, marked: transaction == @added %>
           <% end %>
           <% if @recent.empty? %>
-            <li class="py-3 pl-5 text-sm text-tertiary">Nothing yet. Type a line above.</li>
+            <li class="py-3 pl-5 text-sm text-tertiary">Nothing yet. Add your first expense above.</li>
           <% end %>
         </ul>
       </section>

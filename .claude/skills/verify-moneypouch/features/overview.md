@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- Composer at the top, an input labelled "Quick add", with the preview frame `turbo-frame#voucher` under it. See [composer.md](composer.md).
+- Composer at the top, an input labelled "Add", with the preview frame `turbo-frame#voucher` under it. See [composer.md](composer.md).
 - Spent total, category breakdown, daily bars, and Recent: the 5 latest kept transactions and the count of this month's.
 - Sidebar with navigation and the theme switch.
 
@@ -12,7 +12,7 @@ Sign in. `/` is the Overview.
 
 ## Driving it with mp.mjs
 
-- `mp.mjs type '[aria-label="Quick add"]' hello --port N` prints `"hello"`, the field value.
+- `mp.mjs type '[aria-label="Add"]' hello --port N` prints `"hello"`, the field value.
 - `mp.mjs key Enter --port N` presses Enter in the focused field.
 - `mp.mjs shot <path>.png --port N`, then read the image.
 - `mp.mjs resize 375 812 --port N` prints `scrollWidth=375` when the page has no horizontal scroll.

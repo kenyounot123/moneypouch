@@ -7,7 +7,7 @@
     </svg>
     <%= form.hidden_field :idempotency_key, value: SecureRandom.uuid %>
     <%= form.text_field :shorthand, value: voucher.shorthand, placeholder: "coffee 5.50 yesterday", autocomplete: "off", spellcheck: false,
-      role: "combobox", aria: { label: "Quick add", autocomplete: "list", expanded: false, controls: "composer-popup" },
+      role: "combobox", aria: { label: "Add", autocomplete: "list", expanded: false, controls: "composer-popup" },
       class: "min-w-0 flex-1 bg-transparent text-md outline-none placeholder:text-tertiary",
       data: { composer_target: "field", action: "input->composer#forgetFailure input->composer#refresh keyup->composer#refresh click->composer#refresh focus->composer#refresh blur->composer#refresh keydown->composer#keydown" } %>
     <button class="shrink-0 cursor-pointer rounded-md bg-action px-4 py-2.5 font-pixel text-[15px] leading-[18px] font-semibold whitespace-nowrap tracking-pixel text-on-action hover:brightness-95">Add ↵</button>
@@ -15,7 +15,7 @@
   <%= render "vouchers/voucher", voucher: %>
   <template data-composer-target="failure">
     <div class="border-b border-secondary py-3" data-failure>
-      <%= render "vouchers/callout", message: "Not saved. Press Enter to try again.", shake: false %>
+      <%= render "vouchers/callout", message: "Press Enter to try again.", shake: false %>
     </div>
   </template>
   <div id="composer-popup" hidden class="absolute top-full z-10 mt-1 rounded-md border border-primary bg-level-2 p-1 shadow-control"

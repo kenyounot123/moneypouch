@@ -22,7 +22,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
 
     get root_url
 
-    assert_select "ul li", text: "Nothing yet. Type a line above.", count: 1
+    assert_select "ul li", text: "Nothing yet. Add your first expense above.", count: 1
     assert_select "p", text: "0 this month"
   end
 

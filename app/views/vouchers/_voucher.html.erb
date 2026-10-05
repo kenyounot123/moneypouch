@@ -21,7 +21,7 @@
         </p>
         <p class="text-sm text-tertiary">
           <% if voucher.category %>
-            <%= voucher.category_name %><% if voucher.category.new_record? %> <span class="text-xs leading-none">(new)</span><% end %>
+            <% if voucher.category.new_record? %>New category <span class="font-medium text-secondary"><%= voucher.category_name %></span><% else %><%= voucher.category_name %><% end %>
           <% else %>
             Uncategorized
           <% end %>
@@ -32,9 +32,9 @@
         <% if voucher.amount_in_cents.nil? %>
           <%= render "vouchers/callout", message: Transaction::Shorthand::MISSING_AMOUNT, shake: %>
         <% elsif voucher.money_in? %>
-          <span class="flex flex-col items-end gap-0.5 text-success">
+          <span class="flex flex-col items-end gap-0.5">
             <span><%= money voucher.amount_in_cents %></span>
-            <span class="font-sans text-xs">Money in</span>
+            <span class="font-sans text-xs text-tertiary">Money in</span>
           </span>
         <% else %>
           <%= money voucher.amount_in_cents %>

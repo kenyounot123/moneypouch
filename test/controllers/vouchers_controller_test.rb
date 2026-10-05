@@ -21,7 +21,7 @@ class VouchersControllerTest < ActionDispatch::IntegrationTest
   test "marks a category the user has not saved" do
     get voucher_url(shorthand: "lunch 12 #brandnew")
 
-    assert_select "turbo-frame#voucher", text: /brandnew \(new\)/
+    assert_select "turbo-frame#voucher", text: /New category\s+brandnew/
     assert_select "[data-inferred-category]", count: 0
   end
 
