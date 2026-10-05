@@ -4,6 +4,8 @@ class Transaction < ApplicationRecord
 
   scope :kept, -> { where(discarded_at: nil) }
   scope :discarded, -> { where.not(discarded_at: nil) }
+  scope :latest, -> { order(occurred_on: :desc, id: :desc) }
+  scope :occurred_in, ->(dates) { where(occurred_on: dates) }
 
   def self.last_category_for(name)
     eager_load(:category)

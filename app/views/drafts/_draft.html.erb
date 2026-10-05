@@ -1,3 +1,4 @@
+<% shake = local_assigns.fetch(:shake, false) %>
 <% typed = draft.line.strip.present? %>
 <%= turbo_frame_tag "draft", class: "mx-3 block rounded-b-lg border border-t-0 border-secondary bg-level-1 px-4" do %>
   <% if typed %>
@@ -10,7 +11,7 @@
           <% if draft.name.present? %>
             <%= draft.name %>
           <% else %>
-            <%= render "drafts/callout", message: Transaction::Draft::MISSING_NAME %>
+            <%= render "drafts/callout", message: Transaction::Draft::MISSING_NAME, shake: %>
           <% end %>
         </p>
         <p class="text-sm text-tertiary">
@@ -24,7 +25,7 @@
       </div>
       <p class="ml-auto shrink-0 text-right font-mono">
         <% if draft.amount_in_cents.nil? %>
-          <%= render "drafts/callout", message: Transaction::Draft::MISSING_AMOUNT %>
+          <%= render "drafts/callout", message: Transaction::Draft::MISSING_AMOUNT, shake: %>
         <% elsif draft.money_in? %>
           <span class="flex flex-col items-end gap-0.5 text-success">
             <span><%= money draft.amount_in_cents %></span>
@@ -44,7 +45,7 @@
       [ "#", "category", draft.category_word.present?, false ]
     ].each do |key, label, used, missing| %>
       <span class="inline-flex items-center gap-1.5 whitespace-nowrap <%= used ? "text-primary" : missing ? "text-danger" : "text-tertiary" %>">
-        <span class="rounded-sm border px-1.5 py-0.5 font-mono text-xs <%= used ? "border-transparent bg-highlight text-on-action" : missing ? "border-(--text-color-danger)" : "border-primary bg-level-2" %>"><%= key %></span>
+        <span class="rounded-sm border px-1.5 py-0.5 font-mono text-xs <%= used ? "border-transparent bg-highlight text-on-action" : missing ? "border-(--text-color-danger)" : "border-primary bg-level-2" %> <%= "animate-shake" if missing && shake %>"><%= key %></span>
         <span class="text-sm"><%= label %><%= " ✓" if used %></span>
       </span>
     <% end %>

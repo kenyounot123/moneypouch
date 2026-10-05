@@ -24,4 +24,12 @@ module TransactionsHelper
     else short_date(date)
     end
   end
+
+  def undo_shortcut
+    if request.user_agent.to_s.include?("Macintosh")
+      "⌘Z"
+    else
+      "Ctrl Z"
+    end
+  end
 end

@@ -1,2 +1,13 @@
-<div id="<%= dom_id transaction %>" class="w-full sm:w-auto my-5 space-y-5">
-</div>
+<li id="<%= dom_id transaction %>" class="flex items-center gap-3 border-b border-secondary py-3 last:border-b-0">
+  <div class="flex w-2 shrink-0 justify-center">
+    <% if local_assigns[:marked] %>
+      <div class="size-1.5 rounded-[1px] bg-highlight"></div>
+    <% end %>
+  </div>
+  <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+    <p class="truncate font-medium"><%= transaction.name %></p>
+    <p class="text-sm text-tertiary"><%= transaction.category&.name || "Uncategorized" %> · <%= short_date transaction.occurred_on %></p>
+  </div>
+  <p class="w-[90px] shrink-0 text-right font-mono <%= "text-success" if transaction.amount_in_cents.positive? %>"><%= money transaction.amount_in_cents %></p>
+  <%= yield %>
+</li>
