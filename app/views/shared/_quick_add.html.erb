@@ -1,0 +1,12 @@
+<div data-controller="quick-add" data-quick-add-draft-url-value="<%= draft_path %>">
+  <div class="flex h-15 shrink-0 items-center gap-3 rounded-lg border border-primary bg-level-2 pr-2 pl-5 shadow-xs focus-within:border-(--ring-color-focus)">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" class="shrink-0 stroke-(--background-color-data)" aria-hidden="true">
+      <path d="M9 3v12M3 9h12" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
+    <input type="text" aria-label="Quick add" placeholder="coffee 5.50 yesterday" autocomplete="off" spellcheck="false" value="<%= draft.line %>"
+      class="min-w-0 flex-1 bg-transparent text-md outline-none placeholder:text-tertiary"
+      data-quick-add-target="field" data-action="input->quick-add#refresh keyup->quick-add#refresh click->quick-add#refresh">
+    <button type="button" class="shrink-0 cursor-pointer rounded-md bg-action px-4 py-2.5 font-pixel text-[15px] leading-[18px] font-semibold whitespace-nowrap tracking-pixel text-on-action hover:brightness-95">Add ↵</button>
+  </div>
+  <%= render "drafts/draft", draft: %>
+</div>

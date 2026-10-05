@@ -1,8 +1,8 @@
 class Transaction::Draft
-  MISSING_AMOUNT = "Add an amount"
-  MISSING_NAME = "Add a name"
+  MISSING_AMOUNT = "Type an amount, like 5.50"
+  MISSING_NAME = "Type a name, like coffee"
 
-  Reading = Data.define(:name, :amount_in_cents, :category_word, :occurred_on, :errors)
+  Reading = Data.define(:name, :amount_in_cents, :category_word, :occurred_on, :dated, :errors)
 
   module Grammar
     MONTHS = Date::MONTHNAMES.compact.each.with_index(1)
@@ -21,13 +21,13 @@ class Transaction::Draft
     class << self
       def read(line, today:)
         words = line.squish.split(" ")
-        occurred_on = month_name_date(words, today) || numeric_date(words, today) || relative_date(words, today) || today
+        dated_on = month_name_date(words, today) || numeric_date(words, today) || relative_date(words, today)
         category_word = take(words) { |word| word[CATEGORY, 1].presence }
         amount_in_cents = take_amount(words)
         name = words.join(" ")
         errors = [ (MISSING_AMOUNT unless amount_in_cents), (MISSING_NAME if name.empty?) ].compact.freeze
 
-        Reading.new(name:, amount_in_cents:, category_word:, occurred_on:, errors:)
+        Reading.new(name:, amount_in_cents:, category_word:, occurred_on: dated_on || today, dated: dated_on.present?, errors:)
       end
 
       private
@@ -127,11 +127,9 @@ class Transaction::Draft
   end
 
   def self.resolve_category(reading, user, editing)
-    if reading.errors.any?
-      nil
-    elsif reading.category_word
+    if reading.category_word
       user.categories.named(reading.category_word).first || Category.new(user:, name: reading.category_word)
-    else
+    elsif reading.name.present?
       user.transactions.excluding(editing).last_category_for(reading.name)
     end
   end
@@ -139,7 +137,7 @@ class Transaction::Draft
 
   attr_reader :line, :category
 
-  delegate :name, :amount_in_cents, :occurred_on, :errors, to: :@reading
+  delegate :name, :amount_in_cents, :category_word, :occurred_on, :errors, to: :@reading
 
   def initialize(line:, reading:, category:)
     @line = line
@@ -149,6 +147,10 @@ class Transaction::Draft
 
   def category_name
     category&.name
+  end
+
+  def dated?
+    @reading.dated
   end
 
   def inferred?

@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- Quick add bar at the top, an input labelled "Quick add".
+- Quick add bar at the top, an input labelled "Quick add", with the preview frame `turbo-frame#draft` under it. See [quick-add-bar.md](quick-add-bar.md).
 - Spent total, category breakdown, daily bars, recent transactions.
 - Sidebar with navigation and the theme switch.
 
@@ -21,4 +21,4 @@ Sign in. `/` is the Overview.
 ## Gotchas
 
 - The Overview figures are static markup today and do not follow the database.
-- The quick add field has no key handlers until the quick add feature lands.
+- Typing in the quick add field renders the preview through `GET /draft`. Wait on the frame text before a `shot`.

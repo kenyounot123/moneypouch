@@ -2,18 +2,18 @@
 
 ## Sub-features
 
-- `Transaction::Draft::Grammar.read(line, today:)` reads a typed line into a `Transaction::Draft::Reading` with `name`, `amount_in_cents`, `category_word`, `occurred_on`, and `errors`. It is pure.
+- `Transaction::Draft::Grammar.read(line, today:)` reads a typed line into a `Transaction::Draft::Reading` with `name`, `amount_in_cents`, `category_word`, `occurred_on`, `dated`, and `errors`. It is pure. `dated` is true only when the line names a date, so `coffee 5` is not dated and `coffee 5 today` is.
 - `Transaction::Draft.parse(line, user:, today:, editing: nil)` adds the category and never writes.
   - A `#word` matches the user's category, ignoring ASCII case. No match gives an unsaved `Category`.
-  - With no `#word`, the category comes from the user's latest kept transaction with the same name, skipping the `editing:` row.
+  - With no `#word`, the category comes from the user's latest kept transaction with the same name, skipping the `editing:` row. This runs even when the amount is missing, so the preview shows the category while the person is still typing. A line with no name skips the lookup.
 - Amounts: `5`, `5.50`, `$5.50`, `.50`, `-5`, `1,650` read as money out. A leading `+` reads as money in. A marked amount (`$`, a sign, cents, or a thousands comma) wins over bare numbers, else the last bare number wins.
 - Dates: `sep 26`, `sep 1st`, `sep 26 2025`, `9/26`, `9/26/26`, `2026-09-26`, `today`, `yesterday`, and full weekday names. No date means `today`.
-- Errors: `Add an amount` and `Add a name`.
-- `#attributes`, `#valid?`, `#money_in?`, `#category_name`, `#inferred?`.
+- Errors: `Type an amount, like 5.50` and `Type a name, like coffee`.
+- `#attributes`, `#valid?`, `#money_in?`, `#dated?`, `#category_word`, `#category_name`, `#inferred?`.
 
 ## How to get to it (user POV)
 
-No page calls `Transaction::Draft` yet. A user will reach it through the quick add bar on `/`, see [add-transaction.md](add-transaction.md). Until then the surface is the Ruby API, driven through `query`.
+A user reaches it through the quick add bar on `/`. Every keystroke renders `GET /draft?line=...`, see [quick-add-bar.md](quick-add-bar.md). The Ruby API is also driven directly through `query`.
 
 ## Driving it with mp.mjs
 
@@ -25,12 +25,12 @@ No page calls `Transaction::Draft` yet. A user will reach it through the quick a
 - Grammar only: `mp.mjs query 'Transaction::Draft::Grammar.read("Forever 21 $40 sep 26 #shopping", today: Date.new(2026, 9, 27)).to_h'` prints `name: "Forever 21", amount_in_cents: -4000, category_word: "shopping"`.
 - Inference: run `bin/rails "dev:transactions[100]"` first, then parse a name that exists, such as `"Blue Bottle Mission 4.75"`. `[d.category_name, d.inferred?, d.category.persisted?]` prints `["Food", true, true]`.
 - New category: `"lunch 12 #brandnew"` gives `d.category.persisted?` `false`, and `Category.count` is unchanged.
-- Errors: `"coffee"` gives `["Add an amount"]`. `"5"` gives `["Add a name"]`.
+- Errors: `"coffee"` gives `["Type an amount, like 5.50"]`. `"5"` gives `["Type a name, like coffee"]`.
 - No writes: `query` opens SQLite read-only, so a parse that wrote would raise `SQLite3::ReadOnlyException`. Also compare `Transaction.count` and `Category.count` before and after.
 
 ## Gotchas
 
-- `today:` is required. `Date.current` uses the app time zone, so a lane run near midnight can shift `today` and `yesterday`.
+- `today:` is required. In a request `Date.current` is the browser's zone from the `time_zone` cookie (UTC when the cookie is missing or unknown). In `query` it is the app zone, UTC, so a lane run near midnight can shift `today` and `yesterday`.
 - The `demo` user has no transactions in a fresh database, so inference returns `nil` until `dev:transactions` runs. Its names look like `Blue Bottle` or `Blue Bottle Mission`, not `coffee`.
 - A weekday word inside a name reads as a date: `Ruby Tuesday 25` reads `name: "Ruby"`.
 - An impossible date such as `feb 30` stays in the name, and a typed year outside 20 years back to 1 year ahead stays in the name.

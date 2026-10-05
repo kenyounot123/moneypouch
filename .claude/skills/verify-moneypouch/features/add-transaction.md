@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- Quick add bar on the Overview: the `Quick add` input, three read-back pills, and the `Add ↵` button.
+- Quick add bar on the Overview: the `Quick add` input, the `Add ↵` button, and the preview frame `turbo-frame#draft` under them.
 - `/transactions` lists the user's kept transactions, each with a Destroy button.
 - `bin/rails "dev:transactions[N]"` adds N realistic rows for `demo` across the last 12 months.
 
@@ -25,7 +25,6 @@ Sign in. The quick add bar sits at the top of `/`. Type a line such as `coffee 5
 
 - The quick add bar plan rewires this bar, see [quick-add-bar.md](quick-add-bar.md).
 - Today the add is not wired. Enter and `Add ↵` send no request, the field keeps its text, and the count stays the same. A drive that shows this is reporting the current state, not a regression.
-- The pills `$5.50`, `Food`, and `Sep 26` are static markup and do not follow the typed line. They are hidden below 640 px wide.
 - `TransactionsController#create` only permits `amount_in_cents` and `currency`, so a direct `POST /transactions` fails the NOT NULL `name` and `occurred_on` columns. No page posts to it.
 - `/transactions` renders an empty `_transaction` partial, so each row shows only its Destroy button. Count rows with `mp.mjs js 'document.querySelectorAll("#transactions > div").length' --port N`. Destroy hard-deletes the row from the shared development database.
 - `User#transactions` returns kept rows only. Count discarded rows with `User#discarded_transactions`.
