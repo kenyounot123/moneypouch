@@ -73,6 +73,7 @@ The sign-in form is rate limited to 10 attempts per 3 minutes per client. A wron
 - A key reaching the page is visible in the page, not in `log/development.log`, because key events are client side. Install a listener with `js` and read it back, or assert the visible result. Server requests an action triggers do show in `tmp/verify/<port>/server.log` and `log/development.log`.
 - For a review video, `record start` before the first action and `record stop` after the last. Use `type --delay 90` so typing reads at human speed. Look at a frame or two (`ffmpeg -ss 2 -i x.mp4 -frames:v 1 f.png`) before posting it.
 - For a perf budget, collect at least 20 samples with `latency --log`, report the `--report` line, and note the data size (`$M query 'Transaction.count'`). Timing is read from the page clock, so the cost of starting each `mp.mjs` process does not enter the number.
+- The viewport holder accepts every `alert`, `confirm`, and `prompt` dialog at once and appends it to `tmp/verify/<port>/dialogs.log`, so a `data-turbo-confirm` button proceeds as if the user pressed OK. Read that log to prove a dialog appeared.
 - The browser console is not exposed. Read errors from `server.log`, or `js` with `window.onerror` capture installed before the action.
 
 ## Cleanup

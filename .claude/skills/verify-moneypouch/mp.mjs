@@ -276,7 +276,14 @@ async function hold(flags) {
       if (session) await session.evaluate("1")
     } catch { session = null; applied = null; appliedZone = null }
     try {
-      session ??= await cdpSession(port)
+      if (!session) {
+        session = await cdpSession(port)
+        const opened = session
+        opened.on("Page.javascriptDialogOpening", ({ type, message }) => {
+          fs.appendFileSync(path.join(dirFor(port), "dialogs.log"), `${new Date().toISOString()} ${type} accepted: ${message}\n`)
+          opened.send("Page.handleJavaScriptDialog", { accept: true }).catch(() => {})
+        })
+      }
       const want = JSON.stringify(s.viewport)
       if (applied !== want) {
         await session.send("Emulation.setDeviceMetricsOverride", { width: s.viewport.width, height: s.viewport.height, deviceScaleFactor: 1, mobile: s.viewport.width < 500 })
