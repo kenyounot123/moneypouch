@@ -538,7 +538,12 @@ async function wait(b, selector, flags) {
 const READONLY_RUNNER = `
   config = ActiveRecord::Base.connection_db_config.configuration_hash.merge(readonly: true)
   ActiveRecord::Base.establish_connection(config)
-  puts eval(ENV.fetch("MP_QUERY")).inspect
+  begin
+    puts eval(ENV.fetch("MP_QUERY")).inspect
+  rescue Exception => error
+    warn "#{error.class}: #{error.message.lines.first}"
+    exit 1
+  end
 `
 
 const USAGE = `usage: mp.mjs <command> [--port N]
