@@ -65,6 +65,11 @@ class Transaction::Draft::GrammarTest < ActiveSupport::TestCase
       read("#Food lunch 12"))
   end
 
+  test "takes a bare hash out of the name and leaves the category to inference" do
+    assert_equal({ name: "Trader Joe's", amount_in_cents: -6412, category_word: nil, occurred_on: SUNDAY, dated: false, errors: [] },
+      read("Trader Joe's 64.12 #"))
+  end
+
   test "reads yesterday" do
     assert_equal({ name: "coffee", amount_in_cents: -550, category_word: nil, occurred_on: Date.new(2026, 9, 26), dated: true, errors: [] },
       read("coffee 5.50 Yesterday"))
@@ -247,6 +252,12 @@ class Transaction::DraftTest < ActiveSupport::TestCase
 
     assert_equal "Cafe", parse("blue bottle 6").category_name
     assert_equal "Food", parse("blue bottle 6", editing: newer).category_name
+  end
+
+  test "infers the category for a line ending in a bare hash" do
+    draft = parse("Blue Bottle 6 #")
+
+    assert_equal [ "Blue Bottle", categories(:food), true ], [ draft.name, draft.category, draft.inferred? ]
   end
 
   test "infers only from the same user's kept transactions" do

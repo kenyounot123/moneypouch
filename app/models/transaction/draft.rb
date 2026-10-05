@@ -23,6 +23,7 @@ class Transaction::Draft
         words = line.squish.split(" ")
         dated_on = month_name_date(words, today) || numeric_date(words, today) || relative_date(words, today)
         category_word = take(words) { |word| word[CATEGORY, 1].presence }
+        words.delete("#")
         amount_in_cents = take_amount(words)
         name = words.join(" ")
         errors = [ (MISSING_AMOUNT unless amount_in_cents), (MISSING_NAME if name.empty?) ].compact.freeze

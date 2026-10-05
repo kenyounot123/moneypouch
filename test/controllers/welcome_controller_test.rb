@@ -50,4 +50,14 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "input[name=line][value=?]", "Blue Bottle 5.50"
     assert_select "turbo-frame#draft", text: /Blue Bottle/
   end
+
+  test "gives the bar the user's category names in name order" do
+    users(:one).categories.create!(name: "groceries")
+    users(:one).categories.create!(name: "Bills")
+    users(:two).categories.create!(name: "Secret")
+
+    get root_url
+
+    assert_select "[data-quick-add-categories-value=?]", '["Bills","Food","groceries"]'
+  end
 end

@@ -10,6 +10,7 @@
 - Amounts: `5`, `5.50`, `$5.50`, `.50`, `-5`, `1,650` read as money out. A leading `+` reads as money in. A marked amount (`$`, a sign, cents, or a thousands comma) wins over bare numbers, else the last bare number wins.
 - Dates: `sep 26`, `sep 1st`, `sep 26 2025`, `9/26`, `9/26/26`, `2026-09-26`, `today`, `yesterday`, and full weekday names. No date means `today`.
 - Errors: `Type an amount, like 5.50` and `Type a name, like coffee`.
+- A bare `#` is taken out of the name and leaves the category to inference: `Trader Joe's 64.12 #` reads name `Trader Joe's`. A `#` followed only by punctuation, like `#!`, stays in the name.
 - `#attributes`, `#valid?`, `#money_in?`, `#dated?`, `#completion`, `#category_word`, `#category_name`, `#inferred?`.
 
 ## How to get to it (user POV)

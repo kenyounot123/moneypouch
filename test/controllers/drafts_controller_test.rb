@@ -60,4 +60,10 @@ class DraftsControllerTest < ActionDispatch::IntegrationTest
     get draft_url(line: "Blu")
     assert_select "[data-completion]", count: 0
   end
+
+  test "infers the category for a line ending in a bare hash" do
+    get draft_url(line: "Blue Bottle 6.40 #")
+
+    assert_select "[data-inferred-category=Food]", text: /Blue Bottle\s+Food/
+  end
 end
