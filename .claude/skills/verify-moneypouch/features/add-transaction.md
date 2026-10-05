@@ -23,6 +23,7 @@ Sign in. The quick add bar sits at the top of `/`. Type a line such as `coffee 5
 
 ## Gotchas
 
+- The quick add bar plan rewires this bar, see [quick-add-bar.md](quick-add-bar.md).
 - Today the add is not wired. Enter and `Add ↵` send no request, the field keeps its text, and the count stays the same. A drive that shows this is reporting the current state, not a regression.
 - The pills `$5.50`, `Food`, and `Sep 26` are static markup and do not follow the typed line. They are hidden below 640 px wide.
 - `TransactionsController#create` only permits `amount_in_cents` and `currency`, so a direct `POST /transactions` fails the NOT NULL `name` and `occurred_on` columns. No page posts to it.

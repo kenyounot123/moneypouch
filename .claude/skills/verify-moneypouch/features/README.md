@@ -5,3 +5,4 @@
 - [theme.md](theme.md). Light and dark switch in the sidebar.
 - [add-transaction.md](add-transaction.md). The quick add bar, the transactions list, and demo data.
 - [draft.md](draft.md). How a typed line becomes a name, amount, date, and category.
+- [quick-add-bar.md](quick-add-bar.md). Planned in Q1 to Q5: preview, add and undo, Tab completion, `#` list, `@` calendar, with a recipe for every plan lane.
