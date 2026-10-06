@@ -5,6 +5,9 @@
 - Sign in with a valid username and password, landing on the Overview.
 - Wrong credentials redirect back to `/session/new` with the alert "Try another username or password."
 - Sign out destroys the session and lands on `/session/new`.
+- A fresh server with no users sends `/session/new` to `/account/new`, see [onboarding.md](onboarding.md).
+- The sign-in page links to Create account and ends with the footnote "Your data never leaves your computer".
+- Sign out is a button in the Account section of `/settings`.
 
 ## How to get to it (user POV)
 

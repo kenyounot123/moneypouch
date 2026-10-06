@@ -559,7 +559,7 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   click <selector>                   mouse click on the element's center
   shot <file.png> [--full]           screenshot the viewport, or the whole page with --full
   resize <w> <h>                     set the emulated viewport; the per-instance holder keeps it between commands
-  theme light|dark                   click the sidebar theme button on the current page
+  theme light|dark                   open /settings if the button is not on the page, then click the theme button
   signin <user> <password>           sign in through the form
   signout                            DELETE /session and land on the sign-in page
   js <expr>                          evaluate JS in the page, print the JSON result
@@ -646,7 +646,11 @@ async function main() {
       console.log(`${w}x${h} scrollWidth=${await b.evaluate("document.documentElement.scrollWidth")}`)
     } else if (cmd === "theme") {
       if (!["light", "dark"].includes(args[0])) die("theme takes light or dark")
-      await b.click(`button[data-theme="${args[0]}"]`)
+      const button = `button[data-theme="${args[0]}"]`
+      if (!(await b.evaluate(`!!document.querySelector('${button}')`))) {
+        await b.goto(`${origin}/settings`)
+      }
+      await b.click(button)
       const applied = `document.documentElement.dataset.theme === "${args[0]}" && document.cookie.includes("theme=${args[0]}")`
       for (let i = 0; i < 50 && !(await b.evaluate(applied).catch(() => false)); i++) await sleep(100)
       if (!(await b.evaluate(applied))) die(`theme did not become ${args[0]} (data-theme and theme cookie) within 5s`)

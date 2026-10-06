@@ -49,7 +49,7 @@ Prints JSON with `serverAlive`, `chromeAlive`, `holderAlive`, `up` (the `/up` st
 | Click | `$M click 'button[data-theme="dark"]' --port N` |
 | Screenshot | `$M shot /tmp/x/overview.png --port N` (`--full` for the whole page; it fires page resize events while it captures, so take full-page shots last when a lane watches resize events or popovers) |
 | Resize viewport | `$M resize 375 812 --port N`. A small detached holder process per instance keeps the emulated viewport applied between commands, so the page does not see a resize until the next `resize`. Chrome headless cannot shrink its window below 500 px, which is why emulation is used. Prints `scrollWidth`; equal to the width means no horizontal scroll. |
-| Switch theme | `$M theme dark --port N`. Real mouse click on the sidebar button, so the page must show the sidebar (`goto /` first). Waits for `html[data-theme]` and the `theme` cookie, and fails if the button is missing. |
+| Switch theme | `$M theme dark --port N`. Real mouse click on the Settings page button, going to `/settings` first when the button is not on the page. Waits for `html[data-theme]` and the `theme` cookie, and fails if the button is missing. |
 | Navigate | `$M goto /session/new --port N` |
 | Sign in or out | `$M signin demo wrong --port N`, `$M signout --port N` |
 | Page text | `$M text '#alert' --port N` |
