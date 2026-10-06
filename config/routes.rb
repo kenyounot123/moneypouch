@@ -2,6 +2,9 @@ Rails.application.routes.draw do
   resources :transactions, only: %i[ index create update destroy ]
   resource :voucher, only: :show
   resource :session
+  resource :settings, only: :show
+  resource :account, only: %i[ new create ]
+  resource :first_transaction, controller: "first_transaction", only: :show
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

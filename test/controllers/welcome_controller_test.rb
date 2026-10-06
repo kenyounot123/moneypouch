@@ -26,6 +26,26 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "0 this month"
   end
 
+  test "links the total count and first month under Recent" do
+    get root_url
+
+    assert_select "a[href='#{transactions_path}']", text: "2 transactions since Oct 2026"
+  end
+
+  test "has no count link when the user has no kept rows" do
+    users(:one).transactions.each(&:discard)
+
+    get root_url
+
+    assert_select "a[href='#{transactions_path}']", count: 0
+  end
+
+  test "marks Overview as the current sidebar page" do
+    get root_url
+
+    assert_select "aside a[aria-current=page]", text: "Overview", count: 1
+  end
+
   test "marks the added row, shows the toast, and empties the field" do
     post transactions_url, params: { shorthand: "tea 3", idempotency_key: "key-1" }, headers: { "HTTP_REFERER" => root_url }
     follow_redirect!

@@ -2,7 +2,7 @@ class LightThemeController < ApplicationController
   def update
     Current.user.update(background: "light")
     set_light_theme_cookie
-    redirect_to root_path
+    redirect_back_or_to root_path
   end
 
   private

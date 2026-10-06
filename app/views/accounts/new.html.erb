@@ -1,0 +1,31 @@
+<div class="flex min-h-dvh flex-col items-center justify-center gap-7 bg-level-1 px-4 py-10">
+  <%= image_tag "pouch.png", alt: "", width: 72, height: 72, class: "size-18 [image-rendering:pixelated]" %>
+
+  <div class="flex flex-col items-center gap-2 text-center">
+    <h1 class="font-pixel text-[28px] leading-[34px] font-semibold tracking-pixel">Welcome to MoneyPouch</h1>
+    <p class="text-secondary">Create an account to get started.</p>
+
+    <% if @user.errors.any? %>
+      <p class="text-sm text-danger" id="alert"><%= @user.errors.full_messages.to_sentence %></p>
+    <% end %>
+  </div>
+
+  <%= form_with model: @user, url: account_path, class: "flex w-[360px] max-w-full flex-col gap-4 rounded-lg border border-secondary bg-level-2 p-7 shadow-control" do |form| %>
+    <div class="flex flex-col gap-1.5">
+      <%= form.label :username, "Username", class: "text-sm font-medium text-secondary" %>
+      <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", class: "h-11 rounded-md border border-primary bg-level-2 px-3.5 text-md focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22 focus:outline-none" %>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <%= form.label :password, "Password", class: "text-sm font-medium text-secondary" %>
+      <%= form.password_field :password, required: true, autocomplete: "new-password", maxlength: 72, class: "h-11 rounded-md border border-primary bg-level-2 px-3.5 text-md focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22 focus:outline-none" %>
+    </div>
+
+    <%= form.submit "Create account ↵", class: "mt-1 w-full cursor-pointer rounded-md bg-action px-4 py-3 font-pixel text-[15px] leading-[18px] font-semibold tracking-pixel text-on-action hover:brightness-95" %>
+  <% end %>
+
+  <div class="flex flex-col items-center gap-2">
+    <p class="text-sm text-tertiary">Have an account? <%= link_to "Sign in", new_session_path, class: "font-medium text-secondary hover:text-primary" %></p>
+    <p class="text-sm text-tertiary">Your data never leaves your computer</p>
+  </div>
+</div>

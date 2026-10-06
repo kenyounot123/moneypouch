@@ -1,0 +1,16 @@
+<div class="flex min-h-dvh flex-col items-center justify-center gap-9 bg-level-0 px-4 py-10">
+  <div class="flex flex-col items-center gap-2 text-center">
+    <h1 class="font-pixel text-[28px] leading-[34px] font-semibold tracking-pixel">What did you last spend on?</h1>
+    <p class="text-secondary">Type it the way you'd text a friend.</p>
+  </div>
+
+  <div class="w-[640px] max-w-full">
+    <%= render "shared/composer", voucher: @voucher, added: nil, category_names: @category_names %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <p class="text-sm text-tertiary">Only the name and amount are required</p>
+    <div class="h-3 w-px bg-(--border-color-primary)"></div>
+    <%= link_to "Skip for now", root_path, class: "text-sm font-medium text-secondary hover:text-primary" %>
+  </div>
+</div>

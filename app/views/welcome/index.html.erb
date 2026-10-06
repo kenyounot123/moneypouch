@@ -82,6 +82,10 @@
             <li class="py-3 pl-5 text-sm text-tertiary">No transactions yet. Type one above.</li>
           <% end %>
         </ul>
+
+        <% if @total_count.positive? %>
+          <%= link_to transactions_total(@total_count, @since), transactions_path, class: "pt-3 pl-5 text-sm text-tertiary hover:text-secondary" %>
+        <% end %>
       </section>
     </div>
   </main>
