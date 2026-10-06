@@ -1,0 +1,167 @@
+{
+  "errlist": [
+    {
+      "code": "gen.api",
+      "msg": "Requested date range exceeds recommended range of 45 days. In the future, this may be capped."
+    }
+  ],
+  "accounts": [
+    {
+      "id": "Demo Savings",
+      "name": "SimpleFIN Savings",
+      "currency": "USD",
+      "balance": "114685.51",
+      "available-balance": "114685.51",
+      "balance-date": 1791331200,
+      "transactions": [
+        {
+          "id": "1790911710",
+          "posted": 1790911710,
+          "amount": "1960.00",
+          "description": "Pay day!",
+          "payee": "You",
+          "memo": "PAY DAY - FROM YER JOB",
+          "transacted_at": 1790911710,
+          "mcc": null
+        },
+        {
+          "id": "1790926110",
+          "posted": 1790926110,
+          "amount": "-05.50",
+          "description": "Fishing bait",
+          "payee": "John's Fishin Shack",
+          "memo": "JOHNS FISHIN SHACK BAIT",
+          "transacted_at": 1790926110,
+          "mcc": "5812"
+        },
+        {
+          "id": "1790954910",
+          "posted": 1790954910,
+          "amount": "-135.50",
+          "description": "Grocery store",
+          "payee": "Grocery store",
+          "memo": "LOCAL GROCER STORE #1133",
+          "transacted_at": 1790954910,
+          "mcc": "5411"
+        },
+        {
+          "id": "1791012510",
+          "posted": 1791012510,
+          "amount": "-10.00",
+          "description": "Fishing bait",
+          "payee": "John's Fishin Shack",
+          "memo": "JOHNS FISHIN SHACK BAIT",
+          "transacted_at": 1791012510,
+          "mcc": "5812"
+        },
+        {
+          "id": "1791041310",
+          "posted": 1791041310,
+          "amount": "-130.00",
+          "description": "Grocery store",
+          "payee": "Grocery store",
+          "memo": "LOCAL GROCER STORE #1133",
+          "transacted_at": 1791041310,
+          "mcc": "5411"
+        }
+      ],
+      "holdings": [
+        {
+          "id": "25bc4910-4cb4-437b-9924-ee98003651c5",
+          "created": 345427200,
+          "cost_basis": "55.00",
+          "currency": "USD",
+          "description": "Shares of Apple",
+          "market_value": "105884.8",
+          "purchase_price": "0.10",
+          "shares": "550.0",
+          "symbol": "AAPL"
+        }
+      ],
+      "conn_id": "CON-SIMPLEFIN-DEMO"
+    },
+    {
+      "id": "Demo Checking",
+      "name": "SimpleFIN Checking",
+      "currency": "USD",
+      "balance": "25035.51",
+      "available-balance": "25035.51",
+      "balance-date": 1791331200,
+      "transactions": [
+        {
+          "id": "1790911710",
+          "posted": 1790911710,
+          "amount": "2564.48",
+          "description": "Pay day!",
+          "payee": "You",
+          "memo": "PAY DAY - FROM YER JOB",
+          "transacted_at": 1790911710,
+          "mcc": null
+        },
+        {
+          "id": "1790926110",
+          "posted": 1790926110,
+          "amount": "-06.65",
+          "description": "Fishing bait",
+          "payee": "John's Fishin Shack",
+          "memo": "JOHNS FISHIN SHACK BAIT",
+          "transacted_at": 1790926110,
+          "mcc": "5812"
+        },
+        {
+          "id": "1790954910",
+          "posted": 1790954910,
+          "amount": "-176.67",
+          "description": "Grocery store",
+          "payee": "Grocery store",
+          "memo": "LOCAL GROCER STORE #1133",
+          "transacted_at": 1790954910,
+          "mcc": "5411"
+        },
+        {
+          "id": "1791012510",
+          "posted": 1791012510,
+          "amount": "-13.31",
+          "description": "Fishing bait",
+          "payee": "John's Fishin Shack",
+          "memo": "JOHNS FISHIN SHACK BAIT",
+          "transacted_at": 1791012510,
+          "mcc": "5812"
+        },
+        {
+          "id": "1791041310",
+          "posted": 1791041310,
+          "amount": "-170.01",
+          "description": "Grocery store",
+          "payee": "Grocery store",
+          "memo": "LOCAL GROCER STORE #1133",
+          "transacted_at": 1791041310,
+          "mcc": "5411"
+        }
+      ],
+      "holdings": [],
+      "conn_id": "CON-SIMPLEFIN-DEMO"
+    },
+    {
+      "id": "Demo Empty Account",
+      "name": "SimpleFIN Empty Account",
+      "currency": "USD",
+      "balance": "0.00",
+      "available-balance": "0.00",
+      "balance-date": 1791331200,
+      "transactions": [],
+      "holdings": [],
+      "conn_id": "CON-SIMPLEFIN-DEMO"
+    }
+  ],
+  "connections": [
+    {
+      "conn_id": "CON-SIMPLEFIN-DEMO",
+      "name": "SimpleFIN Demo",
+      "org_id": "simplefin.demoorg",
+      "org_name": "SimpleFIN Bridge",
+      "org_url": "https://beta-bridge.simplefin.org",
+      "sfin_url": "https://beta-bridge.simplefin.org/simplefin"
+    }
+  ]
+}
