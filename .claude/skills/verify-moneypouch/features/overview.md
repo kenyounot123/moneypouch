@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- Composer at the top, an input labelled "Add", with the preview frame `turbo-frame#voucher` under it. See [composer.md](composer.md).
+- Composer, an input labelled "Add", with the preview frame `turbo-frame#voucher`. Below `lg` it is at the top with the preview under it. At `lg` and up it floats at the bottom, 640px wide, with the preview above it. See [composer.md](composer.md).
 - Spent total, category breakdown, daily bars, and Recent: the 5 latest kept transactions and the count of this month's.
 - Sidebar with navigation. Its bottom is a Settings link to `/settings`, see [theme.md](theme.md). The current page's link carries `aria-current=page`.
 - Under Recent, a link to `/transactions` reading `N transactions since Mon YYYY`, absent when the user has none.

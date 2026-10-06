@@ -1,6 +1,6 @@
 <% shake = local_assigns.fetch(:shake, false) %>
 <% typed = voucher.shorthand.strip.present? %>
-<%= turbo_frame_tag "voucher", class: "mx-3 block rounded-b-lg border border-t-0 border-secondary bg-level-1 px-4" do %>
+<%= turbo_frame_tag "voucher", class: "mx-3 block rounded-b-lg border border-t-0 border-secondary lg:rounded-t-lg lg:rounded-b-none lg:border-t lg:border-b-0 bg-level-1 px-4" do %>
   <% if typed %>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-3"
       <%= tag.attributes(data: { composer_target: "row", shorthand: voucher.shorthand, completion: voucher.completion, inferred_category: (voucher.category_name if voucher.inferred?) }) %>>
