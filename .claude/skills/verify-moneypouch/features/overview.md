@@ -28,7 +28,7 @@ Sign in. `/` is the Overview.
 ## Gotchas
 
 - Spending counts only outflows (`amount_in_cents < 0`) of kept rows. A paycheck or refund does not lower it.
-- The period starts from `Date.current` in the browser's zone (the `time_zone` cookie). Use `mp.mjs zone` and `goto` to move the day, and `query` with the same `Date` to check a number.
+- The period starts from `Date.current` in the browser's zone (the `time_zone` cookie). `time_zone_controller.js` writes the cookie after the page loads, so the server reads a new zone one request late. After `mp.mjs zone`, run `goto` twice before you read `Day N of M`. Check a number with `query` and the same `Date`.
 - A future-dated row, such as rent typed for the 31st, counts toward the total and draws its bar, but not toward the comparison, which covers only elapsed days.
 - `bin/rails "dev:transactions[N]"` dates rows from the server's `Date.current` (UTC), so in a zone behind UTC the newest rows can land on tomorrow.
 - Driving the live refresh needs two pages on one server, because the development cable adapter is in-process. Boot a second instance, then send its page to the first server with `mp.mjs js 'location.href = "http://localhost:<first port>/"' --port <second>`. Cookies ignore the port, so it stays signed in. `turbo-cable-stream-source[connected]` shows the subscription is live. `insert_all`, as in `dev:transactions`, skips callbacks and broadcasts nothing.
