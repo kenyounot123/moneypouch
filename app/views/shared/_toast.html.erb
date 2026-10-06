@@ -1,9 +1,9 @@
-<div id="<%= dom_id transaction, :toast %>" data-controller="toast" class="fixed bottom-6 left-1/2 z-20 lg:absolute lg:bottom-full lg:mb-3 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 transition-opacity duration-200">
+<div id="<%= dom_id transaction, :toast %>" data-controller="toast" popover="manual" class="fixed inset-auto bottom-6 left-1/2 m-0 md:left-[calc(50%+var(--container-sidebar)/2)] lg:bottom-25 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 overflow-visible border-0 bg-transparent p-0 transition-opacity duration-200">
   <div class="flex items-center gap-4 rounded-lg border border-primary bg-level-2 py-2.5 pr-2.5 pl-4 shadow-control">
     <span class="min-w-0 truncate text-sm">Added <span class="font-medium"><%= transaction.name %></span> <span class="font-mono"><%= money transaction.amount_in_cents %></span></span>
-    <%= button_to transaction_path(transaction), method: :delete, form: { class: "shrink-0" }, data: { composer_target: "undo" },
+    <%= button_to transaction_path(transaction), method: :delete, form: { class: "shrink-0" }, data: { palette_target: "undo" },
       class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" do %>
-      Undo <span class="rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary"><%= undo_shortcut %></span>
+      Undo <span class="rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary"><%= shortcut("Z") %></span>
     <% end %>
   </div>
 </div>

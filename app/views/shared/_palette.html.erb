@@ -1,0 +1,15 @@
+<div class="contents" data-controller="palette" data-action="keydown@window->palette#shortcut">
+  <button type="button" aria-haspopup="dialog" aria-keyshortcuts="Meta+K Control+K" data-action="palette#open"
+    class="flex h-13 w-full items-center gap-2.5 rounded-lg border border-primary bg-level-2 pr-3 pl-[18px] shadow-xs lg:shadow-lg cursor-pointer hover:border-(--ring-color-focus) lg:sticky lg:bottom-6 lg:z-20 lg:order-last lg:mx-auto lg:mt-auto lg:w-[420px]">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" class="shrink-0 stroke-(--background-color-data)" aria-hidden="true">
+      <path d="M9 3v12M3 9h12" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
+    <span class="text-secondary">Add a transaction</span>
+    <span class="ml-auto rounded-sm pointer-coarse:hidden border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary"><%= shortcut("K") %></span>
+  </button>
+  <dialog id="palette" aria-label="Add a transaction" data-palette-target="dialog" data-action="click->palette#dismiss turbo:before-morph-attribute->palette#keepOpen"
+    class="mx-auto mt-4 mb-auto md:left-(--container-sidebar) lg:mt-[15vh] w-[calc(100%-2rem)] max-w-[640px] max-h-none overflow-visible border-0 bg-transparent p-0 text-primary rounded-lg shadow-xl backdrop:bg-scrim">
+    <%= render "shared/composer", voucher:, category_names: %>
+  </dialog>
+  <%= render "shared/toast", transaction: added if added %>
+</div>
