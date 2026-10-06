@@ -115,6 +115,12 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{transactions_path}'][data-turbo-frame=_top]"
   end
 
+  test "subscribes to the user's transaction refreshes" do
+    get root_url
+
+    assert_select "turbo-cable-stream-source[signed-stream-name=?]", Turbo::StreamsChannel.signed_stream_name([ users(:one), :transactions ])
+  end
+
   test "marks Overview as the current sidebar page" do
     get root_url
 
