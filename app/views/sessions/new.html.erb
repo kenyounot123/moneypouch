@@ -28,5 +28,8 @@
     <%= form.submit "Open pouch ↵", class: "mt-1 w-full cursor-pointer rounded-md bg-action px-4 py-3 font-pixel text-[15px] leading-[18px] font-semibold tracking-pixel text-on-action hover:brightness-95" %>
   <% end %>
 
-  <p class="text-sm text-tertiary">Single-user app · your data never leaves this server</p>
+  <div class="flex flex-col items-center gap-2">
+    <p class="text-sm text-tertiary">New here? <%= link_to "Create account", new_account_path, class: "font-medium text-secondary hover:text-primary" %></p>
+    <p class="text-sm text-tertiary">Your data never leaves your computer</p>
+  </div>
 </div>

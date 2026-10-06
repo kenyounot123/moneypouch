@@ -8,6 +8,17 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "new sends a fresh server to create account" do
+    Transaction.delete_all
+    Category.delete_all
+    Session.delete_all
+    User.delete_all
+
+    get new_session_path
+
+    assert_redirected_to new_account_path
+  end
+
   test "create with valid credentials" do
     post session_path, params: { username: @user.username, password: "password" }
 
