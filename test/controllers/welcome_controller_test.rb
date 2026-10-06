@@ -40,6 +40,51 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{transactions_path}']", count: 0
   end
 
+  test "shows the month's spending by category and day" do
+    travel_to Time.utc(2026, 10, 15) do
+      users(:one).transactions.create!(name: "Rent", amount_in_cents: -165_000, occurred_on: "2026-10-01")
+      users(:one).transactions.create!(name: "Last month", amount_in_cents: -1_000, occurred_on: "2026-09-02")
+
+      get root_url
+    end
+
+    assert_select "p", text: "Spent in October"
+    assert_select "p", text: "$1,655.50"
+    assert_select "p", text: "Day 15 of 31"
+    assert_select "p", text: "↑ $1,646 (16,455%) vs. Sep 1–15"
+    assert_select "p", text: "Oct 1–31"
+    assert_select "p", text: "Food"
+    assert_select "p", text: "Uncategorized"
+    assert_select "p", text: "Oct 1 Rent · $1,650"
+  end
+
+  test "shows the year by month" do
+    travel_to Time.utc(2026, 10, 15) do
+      get root_url(period: "year")
+    end
+
+    assert_select "p", text: "Spent in 2026"
+    assert_select "p", text: "Monthly"
+    assert_select "[title='October · $5.50']"
+  end
+
+  test "falls back to the month for an unknown period" do
+    travel_to Time.utc(2026, 10, 15) do
+      get root_url(period: "decade")
+    end
+
+    assert_select "p", text: "Spent in October"
+  end
+
+  test "says nothing was spent when the week has no spending" do
+    travel_to Time.utc(2026, 10, 15) do
+      get root_url(period: "week")
+    end
+
+    assert_select "p", text: "Spent this week"
+    assert_select "p", text: "Nothing spent this week."
+  end
+
   test "marks Overview as the current sidebar page" do
     get root_url
 
