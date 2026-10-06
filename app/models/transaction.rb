@@ -2,6 +2,8 @@ class Transaction < ApplicationRecord
   belongs_to :user
   belongs_to :category, optional: true
 
+  broadcasts_refreshes_to ->(transaction) { [ transaction.user, :transactions ] }
+
   scope :kept, -> { where(discarded_at: nil) }
   scope :discarded, -> { where.not(discarded_at: nil) }
   scope :latest, -> { order(occurred_on: :desc, id: :desc) }
