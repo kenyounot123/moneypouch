@@ -55,6 +55,7 @@
   --background-color-level-1: light-dark(var(--slate-50), var(--slate-950));
   --background-color-level-2: light-dark(var(--white), var(--slate-900));
   --background-color-level-3: light-dark(var(--slate-100), var(--slate-800));
+  --background-color-scrim: light-dark(color-mix(in oklch, var(--slate-900) 18%, transparent), color-mix(in oklch, var(--slate-975) 60%, transparent));
   --background-color-action: var(--gold-300);
   --background-color-highlight: var(--gold-300);
   --background-color-data: light-dark(var(--slate-500), var(--slate-400));

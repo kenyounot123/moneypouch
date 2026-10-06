@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- Composer, an input labelled "Add", with the preview frame `turbo-frame#voucher`. Below `lg` it is at the top with the preview under it. At `lg` and up it floats at the bottom, 640px wide, with the preview above it. See [composer.md](composer.md).
+- The `Add a transaction` trigger with its `⌘K` chip, at the top below `lg` and sticky at the bottom, 420px wide, from `lg`. It and ⌘K or Ctrl+K open the composer in `dialog#palette` over a scrim. See [composer.md](composer.md), Q6.
 - Spent total, category breakdown, and chart for one period, read by `Spending` over `Period` (`app/models/spending.rb`, `app/models/period.rb`). `/?period=week|month|year` picks it, and anything else means month. The heading reads `Spent this week`, `Spent in October`, or `Spent in 2026`. Under it, the day strip, `Day N of M`, and the comparison with the same elapsed days one period back, such as `↓ $265 (8.6%) vs. Sep 1–27`. The comparison is absent when that span has no spending.
 - Where it went lists each category with spending, largest first, rows without a category as `Uncategorized`, and the period's dates on the right, such as `Oct 1–31`. With no spending it reads `Nothing spent this week.`
 - The chart is `Daily` for a week or month and `Monthly` for a year. Today's column is gold, the busiest column dark, and each bar's `title` reads like `Oct 3 · $27.00`. The caption names the largest transaction in the busiest column, such as `Oct 1 Rent · $2,100`.
@@ -19,7 +19,7 @@ Sign in. `/` is the Overview.
 
 ## Driving it with mp.mjs
 
-- `mp.mjs type '[aria-label="Add"]' hello --port N` prints `"hello"`, the field value.
+- `mp.mjs key Meta+k --port N` opens the palette. Then `mp.mjs type '[aria-label="Add"]' hello --port N` prints `"hello"`, the field value.
 - `mp.mjs key Enter --port N` presses Enter in the focused field.
 - `mp.mjs shot <path>.png --port N`, then read the image.
 - `mp.mjs resize 375 812 --port N` prints `scrollWidth=375` when the page has no horizontal scroll.

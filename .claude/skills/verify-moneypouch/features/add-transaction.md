@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- Composer on the Overview: the `Add` input, the `Add ↵` button, and the preview frame `turbo-frame#voucher` (under them below `lg`, above them at `lg` and up).
+- Composer on the Overview, inside the ⌘K palette: the `Add` input, the `Add ↵` button, and the preview frame `turbo-frame#voucher` attached under them.
 - Enter or `Add ↵` posts the shorthand to `POST /transactions`, see [composer.md](composer.md) for the toast and undo.
 - `/transactions` lists the user's kept transactions as `ul#transactions > li`, newest `occurred_on` first, each with a Delete button that discards the row.
 - `bin/rails "dev:transactions[N]"` adds N realistic rows for `demo` across the last 12 months.
@@ -15,7 +15,7 @@ Sign in. The composer sits at the top of `/`. Type shorthand such as `coffee 5.5
 
 - Count before: `mp.mjs query 'User.find_by!(username: "demo").transactions.count'`.
 - Note the server log length: `L=$(wc -l < tmp/verify/N/server.log)`.
-- `mp.mjs type '[aria-label="Add"]' 'coffee 5.50 yesterday' --port N` prints the field value.
+- `mp.mjs key Meta+k --port N`, then `mp.mjs type '[aria-label="Add"]' 'coffee 5.50 yesterday' --port N` prints the field value.
 - `mp.mjs key Enter --port N`, or `mp.mjs click 'form[action="/transactions"] button' --port N` for the button.
 - Requests the add sent: `tail -n +$((L+1)) tmp/verify/N/server.log | grep -E 'Started|Completed'`.
 - Count after with the same `query`. Screenshot with `shot`.

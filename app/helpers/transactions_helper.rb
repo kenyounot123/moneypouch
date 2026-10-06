@@ -25,11 +25,11 @@ module TransactionsHelper
     end
   end
 
-  def undo_shortcut
+  def shortcut(key)
     if request.user_agent.to_s.include?("Macintosh")
-      "⌘Z"
+      "⌘#{key}"
     else
-      "Ctrl Z"
+      "Ctrl #{key}"
     end
   end
 end

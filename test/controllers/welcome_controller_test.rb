@@ -141,7 +141,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     post transactions_url, params: { shorthand: "tea 3", idempotency_key: "key-1" }
     get root_url, headers: { "HTTP_USER_AGENT" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/130.0" }
 
-    assert_select "[data-composer-target=undo]", text: /⌘Z/
+    assert_select "[data-palette-target=undo]", text: /⌘Z/
   end
 
   test "puts an undone shorthand back in the field" do

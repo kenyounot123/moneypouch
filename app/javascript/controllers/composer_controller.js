@@ -4,7 +4,6 @@ import { addDays, addMonths, calendarMarkup, dateWord, dayId, earlier, isoDay, p
 const KEYMAP = {
   none: {
     Tab: "complete",
-    "Mod+z": "undo",
   },
   category: {
     ArrowDown: "nextOption",
@@ -36,7 +35,7 @@ const POPUP_SIZES = {
 }
 
 export default class extends Controller {
-  static targets = ["field", "row", "popup", "undo", "failure"]
+  static targets = ["field", "row", "popup", "failure"]
   static values = { voucherUrl: String, categories: Array, today: String }
 
   connect() {
@@ -104,16 +103,18 @@ export default class extends Controller {
     this.frame.querySelector("[data-failure]")?.remove()
   }
 
+  clear() {
+    this.fieldTarget.value = ""
+    this.dismissed = null
+    this.forgetFailure()
+    this.refresh()
+  }
+
   complete() {
     const completion = this.hasRowTarget && this.rowTarget.dataset.shorthand === this.fieldTarget.value && this.rowTarget.dataset.completion
     if (!completion || !this.caretAtEnd) return false
     this.fieldTarget.value = `${completion} `
     this.refresh()
-  }
-
-  undo() {
-    if (this.fieldTarget.value || !this.hasUndoTarget) return false
-    this.undoTarget.click()
   }
 
   nextOption() {
