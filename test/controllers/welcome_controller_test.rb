@@ -85,6 +85,36 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "Nothing spent this week."
   end
 
+  test "links each period and marks the current one" do
+    get root_url(period: "week")
+
+    assert_select "turbo-frame#spending[data-turbo-action=advance] nav[aria-label=Period] a", count: 3
+    assert_select "nav[aria-label=Period] a[href='#{root_path(period: "year")}']", text: "Year"
+    assert_select "nav[aria-label=Period] a[aria-current=true]", text: "Week", count: 1
+  end
+
+  test "counts Recent over the period" do
+    travel_to Time.utc(2026, 10, 15) do
+      users(:one).transactions.create!(name: "Spring", amount_in_cents: -100, occurred_on: "2026-04-02")
+
+      get root_url(period: "year")
+    end
+
+    assert_select "p", text: "3 in 2026"
+  end
+
+  test "keeps the period after an add" do
+    post transactions_url, params: { shorthand: "tea 3", idempotency_key: "key-1" }, headers: { "HTTP_REFERER" => root_url(period: "week") }
+
+    assert_redirected_to root_url(period: "week")
+  end
+
+  test "opens the transactions list outside the frame" do
+    get root_url
+
+    assert_select "a[href='#{transactions_path}'][data-turbo-frame=_top]"
+  end
+
   test "marks Overview as the current sidebar page" do
     get root_url
 
