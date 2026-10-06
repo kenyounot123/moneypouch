@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- Composer on the Overview: the `Add` input, the `Add ↵` button, and the preview frame `turbo-frame#voucher` under them.
+- Composer on the Overview: the `Add` input, the `Add ↵` button, and the preview frame `turbo-frame#voucher` (under them below `lg`, above them at `lg` and up).
 - Enter or `Add ↵` posts the shorthand to `POST /transactions`, see [composer.md](composer.md) for the toast and undo.
 - `/transactions` lists the user's kept transactions as `ul#transactions > li`, newest `occurred_on` first, each with a Delete button that discards the row.
 - `bin/rails "dev:transactions[N]"` adds N realistic rows for `demo` across the last 12 months.
