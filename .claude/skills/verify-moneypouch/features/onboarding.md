@@ -24,4 +24,4 @@ A fresh server: open `/`, which goes to `/session/new`, which goes to `/account/
 
 - The dev database is shared and has the `demo` user, so the no-users redirect only shows on an empty database.
 - Accounts made while driving persist in the dev database. Delete them when done.
-- The first transaction page has no sidebar and sits on the page background, so the voucher tray looks the same as on the Overview.
+- The first transaction page renders the composer inline, with no palette, so `type` works there without `key Meta+k`. The panel looks the same as inside the Overview's palette, minus the `esc` chip.
