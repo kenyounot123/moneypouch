@@ -127,6 +127,30 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "aside a[aria-current=page]", text: "Overview", count: 1
   end
 
+  test "renders the sidebar collapsed when the cookie says so" do
+    cookies[:sidebar] = "collapsed"
+
+    get root_url
+
+    assert_select "html[data-sidebar=collapsed]"
+    assert_select "button[aria-label='Toggle sidebar'][aria-expanded=false][aria-controls=sidebar]"
+  end
+
+  test "renders the sidebar expanded without the cookie" do
+    get root_url
+
+    assert_select "html[data-sidebar=expanded]"
+    assert_select "button[aria-label='Toggle sidebar'][aria-expanded=true]"
+  end
+
+  test "renders the sidebar expanded for an unknown cookie value" do
+    cookies[:sidebar] = "wide"
+
+    get root_url
+
+    assert_select "html[data-sidebar=expanded]"
+  end
+
   test "marks the added row, shows the toast, and empties the field" do
     post transactions_url, params: { shorthand: "tea 3", idempotency_key: "key-1" }, headers: { "HTTP_REFERER" => root_url }
     follow_redirect!

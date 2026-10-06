@@ -133,6 +133,10 @@
     scrollbar-gutter: stable;
   }
 
+  :root[data-sidebar="collapsed"] {
+    --container-sidebar: 64px;
+  }
+
   :root[data-theme="light"] {
     color-scheme: light;
   }
