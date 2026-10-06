@@ -103,6 +103,13 @@ export default class extends Controller {
     this.frame.querySelector("[data-failure]")?.remove()
   }
 
+  clear() {
+    this.fieldTarget.value = ""
+    this.dismissed = null
+    this.forgetFailure()
+    this.refresh()
+  }
+
   complete() {
     const completion = this.hasRowTarget && this.rowTarget.dataset.shorthand === this.fieldTarget.value && this.rowTarget.dataset.completion
     if (!completion || !this.caretAtEnd) return false

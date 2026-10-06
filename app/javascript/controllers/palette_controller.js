@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["dialog", "undo"]
+  static outlets = ["composer"]
 
   open() {
     this.dialogTarget.showModal()
@@ -26,6 +27,10 @@ export default class extends Controller {
 
   dismiss(event) {
     if (event.target === this.dialogTarget) this.dialogTarget.close()
+  }
+
+  clear() {
+    this.composerOutlet.clear()
   }
 
   keepOpen(event) {
