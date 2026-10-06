@@ -8,7 +8,7 @@
     <span class="ml-auto rounded-sm pointer-coarse:hidden border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary"><%= shortcut("K") %></span>
   </button>
   <dialog id="palette" aria-label="Add a transaction" data-palette-target="dialog" data-action="click->palette#dismiss close->palette#clear turbo:before-morph-attribute->palette#keepOpen"
-    class="mx-auto mt-4 mb-auto md:left-(--container-sidebar) lg:mt-[15vh] w-[calc(100%-2rem)] max-w-[640px] max-h-none overflow-visible border-0 bg-transparent p-0 text-primary rounded-lg shadow-xl backdrop:bg-scrim">
+    class="mx-auto mt-4 mb-auto md:left-(--container-sidebar) lg:mt-[15vh] w-[calc(100%-2rem)] md:w-[calc(100%-var(--container-sidebar)-2rem)] max-w-[640px] max-h-none overflow-visible border-0 bg-transparent p-0 text-primary rounded-lg shadow-xl backdrop:bg-scrim">
     <%= render "shared/composer", voucher:, category_names: %>
   </dialog>
   <%= render "shared/toast", transaction: added if added %>
