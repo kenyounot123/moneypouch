@@ -21,6 +21,14 @@ module WelcomeHelper
     end
   end
 
+  def recent_count(count, period)
+    if period.kind == "year"
+      "#{count} in #{period.today.year}"
+    else
+      "#{count} this #{period.kind}"
+    end
+  end
+
   def spent(cents)
     number_to_currency(cents.to_d / 100)
   end
@@ -68,7 +76,13 @@ module WelcomeHelper
   end
 
   def share_of(cents, total)
-    "#{(cents * 100.0 / total).round}%"
+    percent = (cents * 100.0 / total).round
+
+    if percent.zero?
+      "<1%"
+    else
+      "#{percent}%"
+    end
   end
 
   def column_title(period, column, cents)
