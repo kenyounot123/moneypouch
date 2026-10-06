@@ -1,5 +1,5 @@
 module WelcomeHelper
   def transactions_total(count, since)
-    "#{pluralize(count, "transaction")} since #{since.strftime("%b %Y")}"
+    "#{number_with_delimiter(count)} #{"transaction".pluralize(count)} since #{since.strftime("%b %Y")}"
   end
 end
