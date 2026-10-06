@@ -186,7 +186,7 @@ async function cdpSession(port) {
     await send("Input.dispatchKeyEvent", { type: "keyUp", ...base })
   }
   const typeChar = (ch) => PRINTABLE.has(ch) ? key(ch) : send("Input.insertText", { text: ch })
-  const focus = (selector) => evaluate(`(() => { const e = document.querySelector(${JSON.stringify(selector)}); if (!e) return false; e.focus(); return true })()`)
+  const focus = (selector) => evaluate(`(() => { const e = document.querySelector(${JSON.stringify(selector)}); if (!e) return false; e.focus(); return document.activeElement === e })()`)
   const click = async (selector) => {
     const box = await evaluate(`(() => { const e = document.querySelector(${JSON.stringify(selector)}); if (!e) return null; e.scrollIntoView({ block: "center" }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)
     if (!box) die(`no element matches ${selector} on ${await evaluate("location.href")}`)
@@ -606,7 +606,7 @@ async function main() {
       await b.goto(new URL(args[0], origin).href)
       console.log(await b.evaluate("location.href"))
     } else if (cmd === "type") {
-      if (!(await b.focus(args[0]))) die(`no element matches ${args[0]}`)
+      if (!(await b.focus(args[0]))) die(`${args[0]} cannot take focus: no such element, or it is inside a closed dialog`)
       if (flags.clear) {
         await b.evaluate("document.activeElement.select()")
         await b.key("Backspace")
