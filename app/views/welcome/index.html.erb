@@ -6,16 +6,18 @@
 
     <div class="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
       <div class="flex min-w-0 flex-col gap-2.5">
-        <p class="text-secondary">Spent in September</p>
-        <p class="font-sans text-5xl font-semibold tracking-display sm:text-display">$2,836.42</p>
+        <p class="text-secondary"><%= spent_heading(@period) %></p>
+        <p class="font-sans text-5xl font-semibold tracking-display sm:text-display"><%= spent @spending.total %></p>
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
           <div class="flex w-[300px] max-w-full shrink-0 gap-0.5">
-            <% 30.times do |day| %>
-              <div class="h-2.5 flex-1 rounded-[2px] <%= day < 27 ? "bg-highlight" : "bg-data-track" %>"></div>
+            <% @period.columns.each do |column| %>
+              <div class="h-2.5 flex-1 rounded-[2px] <%= column <= @period.today ? "bg-highlight" : "bg-data-track" %>"></div>
             <% end %>
           </div>
-          <p class="text-sm text-tertiary">Day 27 of 30</p>
-          <p class="text-sm font-medium text-secondary">↓ $265 (8.6%) vs. Aug 1–27</p>
+          <p class="text-sm text-tertiary">Day <%= @period.day %> of <%= @period.days %></p>
+          <% if (change = spending_change(@spending)) %>
+            <p class="text-sm font-medium text-secondary"><%= change %></p>
+          <% end %>
         </div>
       </div>
 
@@ -30,39 +32,41 @@
       <section class="flex min-w-0 flex-[1.3] flex-col gap-[18px]">
         <div class="flex items-baseline justify-between border-b border-secondary pb-3">
           <h2 class="font-pixel text-lg font-semibold tracking-pixel">Where it went</h2>
-          <p class="text-sm text-tertiary">7 categories</p>
+          <p class="text-sm text-tertiary"><%= span @period.range %></p>
         </div>
 
-        <% [
-          ["Housing", 100, "$1,650.00", "58%"],
-          ["Food", 29.5, "$486.20", "17%"],
-          ["Transport", 12.8, "$212.40", "7%"],
-          ["Shopping", 12, "$197.83", "7%"],
-          ["Fun", 8.5, "$139.50", "5%"],
-          ["Subscriptions", 5.2, "$86.47", "3%"],
-          ["Health", 3.9, "$64.02", "2%"]
-        ].each_with_index do |(name, fill, amount, share), index| %>
+        <% categories = @spending.categories %>
+        <% categories.each_with_index do |(category, cents), index| %>
           <div class="flex items-center gap-4">
-            <p class="w-28 shrink-0"><%= name %></p>
+            <p class="w-28 shrink-0 truncate"><%= category&.name || "Uncategorized" %></p>
             <div class="h-2.5 flex-1 rounded-bar bg-data-track">
-              <div class="h-full rounded-bar <%= index.zero? ? "bg-data-strong" : "bg-data" %>" style="width: round(<%= fill %>%, 1px)"></div>
+              <div class="h-full rounded-bar <%= index.zero? ? "bg-data-strong" : "bg-data" %>" style="width: round(<%= (cents * 100.0 / categories.first.last).round(1) %>%, 1px)"></div>
             </div>
-            <p class="w-22 shrink-0 text-right font-mono"><%= amount %></p>
-            <p class="w-10 shrink-0 text-right text-sm text-tertiary"><%= share %></p>
+            <p class="w-22 shrink-0 text-right font-mono"><%= spent cents %></p>
+            <p class="w-10 shrink-0 text-right text-sm text-tertiary"><%= share_of cents, @spending.total %></p>
           </div>
+        <% end %>
+        <% if categories.empty? %>
+          <p class="text-sm text-tertiary"><%= nothing_spent @period %></p>
         <% end %>
 
         <div class="flex flex-col gap-3 pt-[22px]">
-          <div class="flex justify-between">
-            <p class="text-sm font-medium text-secondary">Daily</p>
-            <p class="text-sm text-tertiary">Sep 1 rent · $1,650</p>
-          </div>
-          <div class="flex h-16 shrink-0 items-end gap-1">
-            <% [64, 14, 22, 8, 30, 12, 40, 18, 10, 26, 34, 6, 20, 44, 16, 12, 28, 9, 24, 38, 14, 30, 18, 22, 12, 26, 10].each_with_index do |height, day| %>
-              <div class="flex-1 rounded-bar <%= { 0 => "bg-data-strong", 25 => "bg-highlight" }.fetch(day, "bg-data-soft") %>" style="height: <%= height %>px"></div>
+          <div class="flex justify-between gap-4">
+            <p class="text-sm font-medium text-secondary"><%= @period.unit == :month ? "Monthly" : "Daily" %></p>
+            <% if (peak = @spending.peak) %>
+              <p class="truncate text-sm text-tertiary"><%= spending_peak peak %></p>
             <% end %>
-            <% 3.times do %>
-              <div class="h-1 flex-1 rounded-[2px] bg-data-track"></div>
+          </div>
+          <% columns = @spending.columns %>
+          <% tallest = columns.values.compact.max.to_i %>
+          <div class="flex h-16 shrink-0 items-end gap-1">
+            <% columns.each do |column, cents| %>
+              <% if cents.to_i.positive? %>
+                <div class="flex-1 rounded-bar <%= { @period.column_for(@period.today) => "bg-highlight", columns.key(tallest) => "bg-data-strong" }.fetch(column, "bg-data-soft") %>"
+                  style="height: <%= column_height cents, tallest %>px" title="<%= column_title @period, column, cents %>"></div>
+              <% else %>
+                <div class="h-1 flex-1 rounded-[2px] <%= column == @period.column_for(@period.today) ? "bg-highlight" : "bg-data-track" %>"></div>
+              <% end %>
             <% end %>
           </div>
         </div>
