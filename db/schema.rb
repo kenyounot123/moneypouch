@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_012710) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_200000) do
   create_table "categories", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "name", null: false
@@ -52,8 +52,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_012710) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "background"
-    t.string "simplefin_setup_token"
-    t.string "simplefin_access_url"
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
