@@ -1,0 +1,34 @@
+<div class="flex min-h-dvh">
+  <%= render "shared/sidebar" %>
+
+  <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
+    <h1 class="font-pixel text-[28px] leading-[34px] font-semibold tracking-pixel">Settings</h1>
+
+    <div class="flex max-w-[560px] flex-col gap-10">
+      <section class="flex flex-col gap-4">
+        <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+          <h2 class="font-pixel text-lg font-semibold tracking-pixel">Appearance</h2>
+        </div>
+
+        <div class="flex items-center justify-between gap-6">
+          <p>Theme</p>
+          <div class="flex w-[200px] gap-1 rounded-md bg-level-3 p-1">
+            <%= button_to "Light", light_theme_path, method: :patch, form: { class: "flex-1" }, data: { action: "click->background#toggle", theme: "light" }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary in-data-[theme=light]:bg-level-2 in-data-[theme=light]:font-medium in-data-[theme=light]:text-primary in-data-[theme=light]:shadow-control" %>
+            <%= button_to "Dark", dark_theme_path, method: :patch, form: { class: "flex-1" }, data: { action: "click->background#toggle", theme: "dark" }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary in-data-[theme=dark]:bg-level-2 in-data-[theme=dark]:font-medium in-data-[theme=dark]:text-primary in-data-[theme=dark]:shadow-control" %>
+          </div>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-4">
+        <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+          <h2 class="font-pixel text-lg font-semibold tracking-pixel">Account</h2>
+        </div>
+
+        <div class="flex items-center justify-between gap-6">
+          <p class="text-secondary">Signed in as <span class="font-medium text-primary"><%= Current.user.username %></span></p>
+          <%= button_to "Sign out", session_path, method: :delete, class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium text-secondary hover:bg-level-3 hover:text-primary" %>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>

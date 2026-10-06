@@ -6,7 +6,7 @@
     </div>
 
     <nav class="flex flex-col gap-0.5">
-      <%= link_to root_path, aria: { current: "page" }, class: "flex items-center gap-2.5 rounded-md bg-level-3 px-3 py-[9px] font-medium text-primary" do %>
+      <%= link_to root_path, aria: { current: current_page?(root_path) ? "page" : nil }, class: ["flex items-center gap-2.5 rounded-md px-3 py-[9px]", current_page?(root_path) ? "bg-level-3 font-medium text-primary" : "text-secondary hover:bg-level-3 hover:text-primary"] do %>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" class="shrink-0" aria-hidden="true">
           <rect x="2" y="2" width="5" height="5" rx="1" />
           <rect x="9" y="2" width="5" height="5" rx="1" />
@@ -40,12 +40,11 @@
     </nav>
   </div>
 
-  <div class="flex flex-col gap-3.5">
-    <p class="pl-1 text-xs text-tertiary">812 transactions since Feb 2025</p>
-
-    <div class="flex gap-1 rounded-md bg-level-3 p-1">
-      <%= button_to "Light", light_theme_path, method: :patch, form: { class: "flex-1" }, data: { action: "click->background#toggle", theme: "light" }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary in-data-[theme=light]:bg-level-2 in-data-[theme=light]:font-medium in-data-[theme=light]:text-primary in-data-[theme=light]:shadow-control" %>
-      <%= button_to "Dark", dark_theme_path, method: :patch, form: { class: "flex-1" }, data: { action: "click->background#toggle", theme: "dark" }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary in-data-[theme=dark]:bg-level-2 in-data-[theme=dark]:font-medium in-data-[theme=dark]:text-primary in-data-[theme=dark]:shadow-control" %>
-    </div>
-  </div>
+  <%= link_to settings_path, aria: { current: current_page?(settings_path) ? "page" : nil }, class: ["flex items-center gap-2.5 rounded-md px-3 py-[9px]", current_page?(settings_path) ? "bg-level-3 font-medium text-primary" : "text-secondary hover:bg-level-3 hover:text-primary"] do %>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" class="shrink-0" aria-hidden="true">
+      <circle cx="8" cy="8" r="2" />
+      <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M12.6 3.4l-1.3 1.3M4.7 11.3l-1.3 1.3" stroke-linecap="round" />
+    </svg>
+    Settings
+  <% end %>
 </aside>
