@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_05_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_012710) do
   create_table "categories", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "name", null: false
@@ -42,6 +42,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_000003) do
     t.string "idempotency_key"
     t.index "user_id, lower(name), occurred_on", name: "index_transactions_on_user_id_and_lower_name_kept", where: "discarded_at IS NULL"
     t.index ["user_id", "idempotency_key"], name: "index_transactions_on_user_id_and_idempotency_key", unique: true, where: "idempotency_key IS NOT NULL"
+    t.index ["user_id", "occurred_on", "category_id", "amount_in_cents"], name: "index_transactions_on_user_id_and_occurred_on_kept", where: "discarded_at IS NULL"
     t.index ["user_id", "occurred_on"], name: "index_transactions_on_user_id_and_occurred_on"
   end
 
