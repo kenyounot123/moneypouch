@@ -5,6 +5,8 @@ class WelcomeController < ApplicationController
     @added = transactions.find_by(id: flash[:added_id])
     @recent = transactions.latest.includes(:category).limit(5)
     @month_count = transactions.occurred_in(Date.current.all_month).count
+    @total_count = transactions.count
+    @since = transactions.minimum(:occurred_on)
     @category_names = Current.user.categories.alphabetically.pluck(:name)
   end
 end
