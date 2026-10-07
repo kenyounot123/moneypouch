@@ -10,7 +10,41 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_200100) do
+  create_table "bank_accounts", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "simplefin_access_id", null: false
+    t.string "external_id", null: false
+    t.string "name", null: false
+    t.string "institution"
+    t.string "currency", null: false
+    t.integer "balance_in_cents"
+    t.string "status", default: "pending", null: false
+    t.date "starts_on"
+    t.string "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["simplefin_access_id", "external_id"], name: "index_bank_accounts_on_simplefin_access_id_and_external_id", unique: true
+    t.index ["user_id"], name: "index_bank_accounts_on_user_id"
+  end
+
+  create_table "bank_transactions", force: :cascade do |t|
+    t.integer "bank_account_id", null: false
+    t.integer "simplefin_sync_id", null: false
+    t.integer "transaction_id", null: false
+    t.string "external_id", null: false
+    t.integer "amount_in_cents", null: false
+    t.date "occurred_on", null: false
+    t.string "description", null: false
+    t.string "payee"
+    t.boolean "matched", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bank_account_id", "external_id"], name: "index_bank_transactions_on_bank_account_id_and_external_id", unique: true
+    t.index ["simplefin_sync_id"], name: "index_bank_transactions_on_simplefin_sync_id"
+    t.index ["transaction_id"], name: "index_bank_transactions_on_transaction_id", unique: true
+  end
+
   create_table "categories", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "name", null: false
@@ -26,6 +60,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_200000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "simplefin_accesses", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.text "access_url"
+    t.string "status", default: "pending", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_simplefin_accesses_on_user_id", unique: true
+  end
+
+  create_table "simplefin_syncs", force: :cascade do |t|
+    t.integer "access_id", null: false
+    t.datetime "finished_at"
+    t.string "failure"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["access_id", "finished_at"], name: "index_simplefin_syncs_on_access_id_and_finished_at"
+    t.index ["access_id"], name: "index_simplefin_syncs_one_running", unique: true, where: "finished_at IS NULL"
   end
 
   create_table "transactions", force: :cascade do |t|
@@ -52,11 +105,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_200000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "background"
+    t.string "time_zone", default: "UTC", null: false
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+  add_foreign_key "bank_accounts", "simplefin_accesses"
+  add_foreign_key "bank_accounts", "users"
+  add_foreign_key "bank_transactions", "bank_accounts"
+  add_foreign_key "bank_transactions", "simplefin_syncs"
+  add_foreign_key "bank_transactions", "transactions"
   add_foreign_key "categories", "users"
   add_foreign_key "sessions", "users"
+  add_foreign_key "simplefin_accesses", "users"
+  add_foreign_key "simplefin_syncs", "simplefin_accesses", column: "access_id"
   add_foreign_key "transactions", "categories"
   add_foreign_key "transactions", "users"
 end
