@@ -1,0 +1,7 @@
+<%= render layout: "shared/toast", locals: { id: dom_id(sync, :toast), data: { toast_seen_cookie_value: "simplefin_sync_seen=#{sync.id}" } } do %>
+  <span class="min-w-0 truncate text-sm"><%= simplefin_sync_summary sync %></span>
+  <% if sync.imported_count.positive? %>
+    <%= link_to "Show new", transactions_path(sync: sync.id), data: { turbo_frame: "_top" },
+      class: "shrink-0 rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" %>
+  <% end %>
+<% end %>
