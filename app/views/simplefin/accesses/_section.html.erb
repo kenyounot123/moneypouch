@@ -1,0 +1,7 @@
+<% if access.nil? || access.disconnected? %>
+  <%= render "simplefin/accesses/empty" %>
+<% elsif access.pending? %>
+  <%= render "simplefin/accesses/pick", access: %>
+<% else %>
+  <%= render "simplefin/accesses/synced", access: %>
+<% end %>

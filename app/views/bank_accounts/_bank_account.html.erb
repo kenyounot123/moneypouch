@@ -1,0 +1,30 @@
+<% show_error = bank_account.error_message && !dimmed %>
+<li id="<%= dom_id bank_account %>" class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-secondary py-3">
+  <div class="flex min-w-0 grow basis-[200px] flex-col gap-0.5">
+    <% if bank_account.pending? %>
+      <div class="flex items-center gap-2">
+        <p class="truncate text-md font-medium text-secondary"><%= bank_account.name %></p>
+        <span class="shrink-0 rounded-[4px] bg-highlight/25 px-1.5 py-px text-xs font-medium text-primary">New</span>
+      </div>
+      <p class="text-sm text-tertiary">Added on SimpleFIN</p>
+    <% else %>
+      <p class="truncate text-md font-medium <%= dimmed ? "text-tertiary" : "text-primary" %>"><%= bank_account.name %></p>
+      <p class="truncate text-sm text-tertiary"><%= bank_account.institution %></p>
+      <% if show_error %>
+        <p class="text-sm text-danger"><%= bank_account.error_message %></p>
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if bank_account.pending? %>
+    <div class="ml-auto flex shrink-0 items-center gap-1">
+      <%= button_to "Skip", bank_account_path(bank_account), method: :patch, params: { bank_account: { status: "skipped" } },
+        class: "cursor-pointer rounded-sm px-2.5 py-1.5 text-sm font-medium text-secondary hover:bg-level-3 hover:text-primary" %>
+      <%= button_to "Sync it", bank_account_path(bank_account), method: :patch, params: { bank_account: { status: "synced" } }, class: SimplefinHelper::OUTLINE_BUTTON %>
+    </div>
+  <% elsif show_error %>
+    <%= link_to_simplefin "Fix on SimpleFIN" %>
+  <% else %>
+    <p class="ml-auto shrink-0 text-right text-sm whitespace-nowrap text-tertiary"><%= pluralize bank_account.bank_transactions.count, "transaction" %></p>
+  <% end %>
+</li>

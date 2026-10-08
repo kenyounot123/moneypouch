@@ -1,0 +1,50 @@
+<section class="flex flex-col gap-1">
+  <%= render layout: "simplefin/accesses/header" do %>
+    <% synced_at = access.last_synced_at %>
+    <% if access.revoked? %>
+      <% if synced_at %>
+        <p class="text-sm text-tertiary">Last synced <%= short_date synced_at.to_date %></p>
+      <% end %>
+    <% else %>
+      <div class="flex items-baseline gap-3">
+        <% if synced_at %>
+          <p class="text-sm text-tertiary"><%= synced_ago synced_at %></p>
+        <% end %>
+        <% if access.syncing? %>
+          <button type="button" disabled class="<%= SimplefinHelper::HEADER_BUTTON %>">Syncing…</button>
+        <% elsif access.syncable? %>
+          <%= button_to "Sync now", simplefin_sync_path, class: SimplefinHelper::HEADER_BUTTON %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <ul class="flex flex-col">
+    <% if access.revoked? %>
+      <li class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-secondary py-3">
+        <div class="flex min-w-0 grow basis-[200px] flex-col gap-0.5">
+          <p class="text-md font-medium text-danger">SimpleFIN stopped sharing your banks</p>
+          <p class="text-sm text-tertiary">Access was turned off there. Paste a new token to resume.</p>
+        </div>
+        <%= link_to "Reconnect", new_simplefin_access_path, class: SimplefinHelper::OUTLINE_BUTTON %>
+      </li>
+    <% elsif access.lapsed? %>
+      <li class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-secondary py-3">
+        <div class="flex min-w-0 grow basis-[200px] flex-col gap-0.5">
+          <p class="text-md font-medium text-danger">Your SimpleFIN subscription ended</p>
+          <p class="text-sm text-tertiary">Renew it there and syncing picks up again.</p>
+        </div>
+        <%= link_to_simplefin "Renew on SimpleFIN" %>
+      </li>
+    <% end %>
+
+    <% access.visible_accounts.each do |bank_account| %>
+      <%= render "bank_accounts/bank_account", bank_account:, dimmed: access.revoked? %>
+    <% end %>
+  </ul>
+
+  <div class="flex items-center justify-between gap-6 pt-3">
+    <p class="text-sm text-tertiary"><%= access.revoked? ? "Synced transactions stay if you disconnect." : "New banks you add on SimpleFIN show up here." %></p>
+    <%= button_to "Disconnect", simplefin_access_path, method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+  </div>
+</section>

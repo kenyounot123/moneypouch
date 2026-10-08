@@ -1,0 +1,28 @@
+<section class="flex flex-col gap-4">
+  <%= render layout: "simplefin/accesses/header" do %>
+    <%= link_to "Cancel", settings_path, class: SimplefinHelper::HEADER_BUTTON %>
+  <% end %>
+
+  <div class="flex flex-col rounded-lg border border-secondary bg-level-2 shadow-control">
+    <div class="flex items-start gap-3.5 border-b border-secondary p-5">
+      <span class="flex size-5.5 shrink-0 items-center justify-center rounded-sm bg-level-3 font-mono text-xs text-secondary">1</span>
+      <div class="flex min-w-0 flex-1 flex-col gap-1 pt-0.5">
+        <p class="text-md font-medium">Get a setup token from SimpleFIN</p>
+        <p class="text-sm text-tertiary">Add your bank there, then copy the token.</p>
+      </div>
+      <%= link_to_simplefin "Open SimpleFIN", SimplefinHelper::SIMPLEFIN_CREATE_URL %>
+    </div>
+
+    <%= form_with url: simplefin_access_path, scope: :simplefin_access, class: "flex items-start gap-3.5 p-5", data: { controller: "paste-submit" } do |form| %>
+      <span class="flex size-5.5 shrink-0 items-center justify-center rounded-sm bg-level-3 font-mono text-xs text-secondary">2</span>
+      <div class="flex min-w-0 flex-1 flex-col gap-2.5 pt-0.5">
+        <%= form.label :setup_token, "Paste it here", class: "text-md font-medium" %>
+        <%= form.text_field :setup_token, value: setup_token, placeholder: "Setup token", autofocus: true, autocomplete: "off", spellcheck: false,
+          aria: { describedby: "simplefin_access_setup_token_help", invalid: error.present? }, data: { action: "input->paste-submit#submit" },
+          class: [ "h-11 min-w-0 rounded-md border bg-level-2 px-3.5 font-mono text-base placeholder:font-ui placeholder:text-md placeholder:text-tertiary focus:outline-none",
+            error ? "border-(--text-color-danger) ring-3 ring-(--text-color-danger)/18" : "border-primary focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22" ] %>
+        <p id="simplefin_access_setup_token_help" class="text-sm <%= error ? "text-danger" : "text-tertiary" %>"><%= error || "Connects as soon as you paste." %></p>
+      </div>
+    <% end %>
+  </div>
+</section>

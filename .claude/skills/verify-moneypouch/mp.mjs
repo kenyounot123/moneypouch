@@ -553,6 +553,7 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   goto <path>                        navigate, e.g. /session/new
   type <selector> <text> [--clear] [--delay ms]
                                      focus the element and type text key by key, --delay ms between keys
+  paste <selector> <text>            copy text through the browser clipboard, then press Meta+V in the element
   key <Key> [<Key>...]               Enter, Escape, Tab, ArrowDown, Backspace, a, Meta+z, Shift+Tab; several keys go back to back
   wait <selector> [--text s] [--gone] [--timeout ms]
                                      poll until an element matches (and contains s), or until none does; prints its text
@@ -594,7 +595,7 @@ async function main() {
     if (!args[0]) die("query needs a Ruby expression")
     return console.log(rails(["runner", READONLY_RUNNER], { MP_QUERY: args[0] }).trim())
   }
-  if (!["goto", "type", "key", "click", "shot", "resize", "theme", "signin", "signout", "js", "text", "wait", "latency"].includes(cmd)) {
+  if (!["goto", "type", "paste", "key", "click", "shot", "resize", "theme", "signin", "signout", "js", "text", "wait", "latency"].includes(cmd)) {
     console.error(USAGE)
     process.exit(cmd ? 1 : 0)
   }
@@ -616,6 +617,19 @@ async function main() {
         if (flags.delay) await sleep(Number(flags.delay))
       }
       console.log(JSON.stringify(await b.evaluate("document.activeElement.value")))
+    } else if (cmd === "paste") {
+      const shortcut = (letter) => ({ key: letter, code: `Key${letter.toUpperCase()}`, windowsVirtualKeyCode: letter.toUpperCase().charCodeAt(0), modifiers: MODS.Meta })
+      const press = async (letter, command) => {
+        await b.send("Input.dispatchKeyEvent", { type: "rawKeyDown", ...shortcut(letter), commands: [command] })
+        await b.send("Input.dispatchKeyEvent", { type: "keyUp", ...shortcut(letter) })
+      }
+      await b.evaluate(`(() => { const t = document.createElement("textarea"); t.id = "mp-clipboard"; t.style.cssText = "position:fixed;top:0;opacity:0"; t.value = ${JSON.stringify(args[1] ?? "")}; document.body.append(t); t.select() })()`)
+      await press("c", "copy")
+      await b.evaluate(`document.getElementById("mp-clipboard").remove()`)
+      if (!(await b.focus(args[0]))) die(`${args[0]} cannot take focus: no such element, or it is inside a closed dialog`)
+      await press("v", "paste")
+      await sleep(200)
+      console.log(JSON.stringify(await b.evaluate("document.activeElement?.value ?? null")))
     } else if (cmd === "key") {
       if (!args.length) die("key needs at least one key")
       for (const k of args) await b.key(k)

@@ -1,0 +1,53 @@
+<section class="flex flex-col gap-4">
+  <%= render layout: "simplefin/accesses/header" do %>
+    <%= button_to "Cancel", simplefin_access_path, method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+  <% end %>
+
+  <%= form_with url: simplefin_access_path, method: :patch, scope: :simplefin_access, class: "flex flex-col rounded-lg border border-secondary bg-level-2 shadow-control" do |form| %>
+    <p class="flex items-center gap-2 px-5 pt-4 pb-3 text-sm text-secondary">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="shrink-0 stroke-(--text-color-success)" aria-hidden="true">
+        <path d="M2.5 7.5l3 3 6-7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      Connected. Pick the accounts you spend from.
+    </p>
+
+    <div class="flex flex-col px-5">
+      <% access.bank_accounts.order(:id).each do |bank_account| %>
+        <label class="group flex cursor-pointer items-center gap-3 border-t border-secondary py-3">
+          <span class="relative flex size-4 shrink-0">
+            <%= check_box_tag "simplefin_access[account_ids][]", bank_account.id, !bank_account.skipped?, id: dom_id(bank_account, :pick),
+              class: "peer size-4 cursor-pointer appearance-none rounded-[4px] border border-primary bg-level-2 checked:border-transparent checked:bg-(--text-color-primary) focus-visible:ring-3 focus-visible:ring-focus/22 focus-visible:outline-none" %>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" class="pointer-events-none absolute inset-0 m-auto hidden stroke-(--background-color-level-2) peer-checked:block" aria-hidden="true">
+              <path d="M2 5.2l2 2 4-4.4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span class="truncate text-md font-medium text-tertiary group-has-checked:text-primary"><%= bank_account.name %></span>
+            <span class="truncate text-sm text-tertiary"><%= bank_account.institution %></span>
+          </span>
+          <span class="w-[110px] shrink-0 text-right font-mono text-md text-tertiary group-has-checked:text-primary"><%= balance bank_account.balance_in_cents %></span>
+        </label>
+      <% end %>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-secondary bg-level-1 px-5 py-4">
+      <div class="flex grow basis-[200px] flex-col gap-1">
+        <p class="text-md">Start from</p>
+        <p class="text-sm text-tertiary">Days before this stay as you typed them.</p>
+      </div>
+      <div role="radiogroup" aria-label="Start from" class="ml-auto flex w-[220px] shrink-0 gap-1 rounded-md bg-level-3 p-1">
+        <% { "today" => "Today", "90_days" => "90 days ago" }.each do |history, label| %>
+          <label class="flex-1 cursor-pointer rounded-sm px-3 py-1.5 text-center text-sm whitespace-nowrap text-secondary has-checked:bg-level-2 has-checked:font-medium has-checked:text-primary has-checked:shadow-control has-focus-visible:ring-3 has-focus-visible:ring-focus/22">
+            <%= form.radio_button :history, history, checked: history == "today", class: "sr-only" %>
+            <%= label %>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-4 border-t border-secondary px-5 py-4">
+      <p class="text-sm text-tertiary">Syncs on its own after this.</p>
+      <%= form.button "Start syncing ↵", class: "shrink-0 cursor-pointer rounded-md bg-action px-4 py-2.5 font-pixel text-[15px] leading-[18px] font-semibold whitespace-nowrap tracking-pixel text-on-action hover:brightness-95" %>
+    </div>
+  <% end %>
+</section>
