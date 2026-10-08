@@ -2,7 +2,7 @@ module SimplefinHelper
   SIMPLEFIN_URL = "https://bridge.simplefin.org"
   SIMPLEFIN_CREATE_URL = "https://bridge.simplefin.org/simplefin/create"
 
-  OUTLINE_BUTTON = "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-primary bg-level-2 px-3 py-1.5 " \
+  OUTLINE_BUTTON = "ml-auto flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-primary bg-level-2 px-3 py-1.5 " \
     "text-sm font-medium whitespace-nowrap text-primary shadow-control hover:bg-level-1"
 
   HEADER_BUTTON = "cursor-pointer text-sm font-medium text-secondary hover:text-primary disabled:cursor-default disabled:text-tertiary"

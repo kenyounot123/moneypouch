@@ -30,12 +30,12 @@
       <% end %>
     </div>
 
-    <div class="flex items-center justify-between gap-6 border-t border-secondary bg-level-1 px-5 py-4">
-      <div class="flex flex-col gap-1">
+    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-secondary bg-level-1 px-5 py-4">
+      <div class="flex grow basis-[200px] flex-col gap-1">
         <p class="text-md">Start from</p>
         <p class="text-sm text-tertiary">Days before this stay as you typed them.</p>
       </div>
-      <div role="radiogroup" aria-label="Start from" class="flex w-[220px] shrink-0 gap-1 rounded-md bg-level-3 p-1">
+      <div role="radiogroup" aria-label="Start from" class="ml-auto flex w-[220px] shrink-0 gap-1 rounded-md bg-level-3 p-1">
         <% { "today" => "Today", "90_days" => "90 days ago" }.each do |history, label| %>
           <label class="flex-1 cursor-pointer rounded-sm px-3 py-1.5 text-center text-sm whitespace-nowrap text-secondary has-checked:bg-level-2 has-checked:font-medium has-checked:text-primary has-checked:shadow-control has-focus-visible:ring-3 has-focus-visible:ring-focus/22">
             <%= form.radio_button :history, history, checked: history == "today", class: "sr-only" %>
