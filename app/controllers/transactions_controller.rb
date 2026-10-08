@@ -5,7 +5,12 @@ class TransactionsController < ApplicationController
     @transactions = Current.user.transactions.listed
 
     if params[:sync]
-      access = Current.user.simplefin_access or raise ActiveRecord::RecordNotFound
+      access = Current.user.simplefin_access
+
+      if access.nil?
+        raise ActiveRecord::RecordNotFound
+      end
+
       @transactions = @transactions.merge(access.syncs.find(params.expect(:sync)).imported_transactions)
     end
   end
