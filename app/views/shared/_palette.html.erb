@@ -11,5 +11,13 @@
     class="mx-auto mt-4 mb-auto md:left-(--container-sidebar) lg:mt-[15vh] w-[calc(100%-2rem)] md:w-[calc(100%-var(--container-sidebar)-2rem)] max-w-[640px] max-h-none overflow-visible border-0 bg-transparent p-0 text-primary rounded-lg shadow-xl backdrop:bg-scrim">
     <%= render "shared/composer", voucher:, category_names: %>
   </dialog>
-  <%= render "shared/toast", transaction: added if added %>
+  <% if added %>
+    <%= render layout: "shared/toast", locals: { id: dom_id(added, :toast) } do %>
+      <span class="min-w-0 truncate text-sm">Added <span class="font-medium"><%= added.name %></span> <span class="font-mono"><%= money added.amount_in_cents %></span></span>
+      <%= button_to transaction_path(added), method: :delete, form: { class: "shrink-0" }, data: { palette_target: "undo" },
+        class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" do %>
+        Undo <span class="rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary"><%= shortcut("Z") %></span>
+      <% end %>
+    <% end %>
+  <% end %>
 </div>

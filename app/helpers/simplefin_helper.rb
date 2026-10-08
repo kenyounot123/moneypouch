@@ -48,4 +48,19 @@ module SimplefinHelper
       "Synced #{short_date time.to_date}"
     end
   end
+
+  def simplefin_sync_summary(sync)
+    [
+      ("#{sync.imported_count} new from your bank" if sync.imported_count.positive?),
+      ("#{sync.matched_count} matched what you typed" if sync.matched_count.positive?)
+    ].compact.join(", ")
+  end
+
+  def simplefin_sync_toast
+    sync = Current.user.simplefin_access&.syncs&.with_bank_transactions&.last
+
+    if sync && sync.id > cookies[:simplefin_sync_seen].to_i
+      render "simplefin/syncs/toast", sync:
+    end
+  end
 end

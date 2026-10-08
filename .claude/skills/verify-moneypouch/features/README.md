@@ -8,3 +8,4 @@
 - [add-transaction.md](add-transaction.md). The composer, the transactions list, and demo data.
 - [voucher.md](voucher.md). How typed shorthand becomes a name, amount, date, and category.
 - [composer.md](composer.md). The ⌘K palette, preview, add and undo, Tab completion, `#` list, `@` calendar, with their handles, lane recipes, and perf budgets.
+- [bank-sync.md](bank-sync.md). Connect SimpleFIN in Settings, pick accounts, sync, Disconnect, the bank icon and marker on rows, and the sync toast.

@@ -1,6 +1,6 @@
 <li id="<%= dom_id transaction %>" class="flex items-center gap-3 border-b border-secondary py-3 last:border-b-0">
   <div class="flex w-2 shrink-0 justify-center">
-    <% if local_assigns[:marked] %>
+    <% if local_assigns[:marked] || transaction.unsorted? %>
       <div class="size-1.5 rounded-[1px] bg-highlight"></div>
     <% end %>
   </div>
@@ -9,5 +9,11 @@
     <p class="text-sm text-tertiary"><%= transaction.category&.name || "Uncategorized" %> · <%= short_date transaction.occurred_on %></p>
   </div>
   <p class="w-[90px] shrink-0 text-right font-mono"><%= money transaction.amount_in_cents %></p>
+  <div class="flex w-4 shrink-0 justify-center text-tertiary">
+    <% if transaction.from_bank? %>
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 5.5L7 2.5l5 3M2.5 5.5v5.5M11.5 5.5v5.5M1.5 11.5h11M5 7v3M9 7v3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="sr-only">From your bank</span>
+    <% end %>
+  </div>
   <%= yield %>
 </li>

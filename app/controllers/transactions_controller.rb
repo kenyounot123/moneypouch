@@ -2,7 +2,17 @@ class TransactionsController < ApplicationController
   before_action :set_transaction, only: %i[ update destroy ]
 
   def index
-    @transactions = Current.user.transactions.latest.includes(:category)
+    @transactions = Current.user.transactions.listed
+
+    if params[:sync]
+      access = Current.user.simplefin_access
+
+      if access.nil?
+        raise ActiveRecord::RecordNotFound
+      end
+
+      @transactions = @transactions.merge(access.syncs.find(params.expect(:sync)).imported_transactions)
+    end
   end
 
   def create
