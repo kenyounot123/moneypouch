@@ -5,6 +5,12 @@ Rails.application.routes.draw do
   resource :settings, only: :show
   resource :account, only: %i[ new create ]
   resource :first_transaction, controller: "first_transaction", only: :show
+
+  namespace :simplefin do
+    resource :access, only: %i[ new create edit update destroy ]
+    resource :sync, only: :create
+  end
+  resources :bank_accounts, only: :update
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

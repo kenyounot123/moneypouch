@@ -1,0 +1,12 @@
+<section class="flex flex-col gap-4">
+  <%= render layout: "simplefin/accesses/header" do %><% end %>
+
+  <div class="flex items-center justify-between gap-6">
+    <div class="flex flex-col gap-1">
+      <p class="text-md">Pull in transactions you didn't type.</p>
+      <p class="text-sm text-tertiary">Through SimpleFIN, $15 a year, paid to them.</p>
+    </div>
+    <%= link_to "Connect a bank", new_simplefin_access_path,
+      class: "shrink-0 rounded-md bg-action px-3.5 py-2 font-pixel text-[15px] leading-[18px] font-semibold whitespace-nowrap tracking-pixel text-on-action hover:brightness-95" %>
+  </div>
+</section>
