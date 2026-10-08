@@ -27,7 +27,11 @@ class Simplefin::AccessesController < ApplicationController
 
   private
     def set_access
-      @access = Current.user.simplefin_access or raise ActiveRecord::RecordNotFound
+      @access = Current.user.simplefin_access
+
+      if @access.nil?
+        raise ActiveRecord::RecordNotFound
+      end
     end
 
     def setup_token

@@ -1,6 +1,10 @@
 class Simplefin::SyncsController < ApplicationController
   def create
-    access = Current.user.simplefin_access or raise ActiveRecord::RecordNotFound
+    access = Current.user.simplefin_access
+
+    if access.nil?
+      raise ActiveRecord::RecordNotFound
+    end
 
     if access.syncable?
       access.sync_later
