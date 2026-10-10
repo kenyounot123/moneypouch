@@ -21,14 +21,6 @@ module WelcomeHelper
     end
   end
 
-  def recent_count(count, period)
-    if period.kind == "year"
-      "#{count} in #{period.today.year}"
-    else
-      "#{count} this #{period.kind}"
-    end
-  end
-
   def spent(cents)
     number_to_currency(cents.to_d / 100)
   end

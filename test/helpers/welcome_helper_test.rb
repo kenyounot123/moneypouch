@@ -59,12 +59,6 @@ class WelcomeHelperTest < ActionView::TestCase
     assert_equal "<1%", share_of(425, 164_673)
   end
 
-  test "counts Recent for the period" do
-    assert_equal "4 this week", recent_count(4, Period.new("week", today: Date.current))
-    assert_equal "0 this month", recent_count(0, Period.new("month", today: Date.current))
-    assert_equal "120 in 2026", recent_count(120, Period.new("year", today: Date.current))
-  end
-
   private
     def spending(elapsed:, previous:)
       Struct.new(:elapsed_total, :previous_total, :period)

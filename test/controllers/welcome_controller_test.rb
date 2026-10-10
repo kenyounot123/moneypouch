@@ -5,7 +5,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(users(:one))
   end
 
-  test "lists the latest kept rows in Recent with this month's count" do
+  test "lists the latest kept rows in Recent" do
     travel_to Time.utc(2026, 10, 15) do
       users(:one).transactions.create!(name: "Old lunch", amount_in_cents: -1200, occurred_on: "2026-09-30")
       transactions(:paycheck).discard
@@ -14,7 +14,6 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_equal [ "Blue Bottle", "Old lunch" ], css_select("ul li p.font-medium").map(&:text)
-    assert_select "p", text: "1 this month"
   end
 
   test "says Recent is empty when the user has no kept rows" do
@@ -23,7 +22,6 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_select "ul li", text: "No transactions yet. Type one above.", count: 1
-    assert_select "p", text: "0 this month"
   end
 
   test "links the total count and first month under Recent" do
@@ -91,16 +89,6 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#spending[data-turbo-action=advance] nav[aria-label=Period] a", count: 3
     assert_select "nav[aria-label=Period] a[href='#{root_path(period: "year")}']", text: "Year"
     assert_select "nav[aria-label=Period] a[aria-current=true]", text: "Week", count: 1
-  end
-
-  test "counts Recent over the period" do
-    travel_to Time.utc(2026, 10, 15) do
-      users(:one).transactions.create!(name: "Spring", amount_in_cents: -100, occurred_on: "2026-04-02")
-
-      get root_url(period: "year")
-    end
-
-    assert_select "p", text: "3 in 2026"
   end
 
   test "keeps the period after an add" do
