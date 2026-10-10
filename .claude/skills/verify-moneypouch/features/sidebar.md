@@ -2,15 +2,15 @@
 
 ## Sub-features
 
-- Collapse to an icon rail and expand again with the panel button in the brand row. The state is `html[data-sidebar]`, `expanded` or `collapsed`, and persists in a `sidebar` cookie (`collapsed` when collapsed, anything else or no cookie means expanded). It is per device, with no database column.
-- Expanded the sidebar is 240px wide. Collapsed it is 64px: the pouch and wordmark hide, the toggle sits alone in the brand row, and nav links and Settings are 40x36 icon squares.
+- Collapse to an icon rail and expand again with the panel button in its own row above the brand. The state is `html[data-sidebar]`, `expanded` or `collapsed`, and persists in a `sidebar` cookie (`collapsed` when collapsed, anything else or no cookie means expanded). It is per device, with no database column.
+- Expanded the sidebar is 240px wide. Collapsed it is 64px: the wordmark hides, the toggle and the pouch stack centered, and nav links and Settings are 40x36 icon squares.
 - Collapsed, each link's label becomes a tooltip to the right of the icon on hover and keyboard focus. The accessible name is the label in both states.
 - `--container-sidebar` drops from 240px to 64px when collapsed, so the ⌘K palette and the toast re-center in the content area.
 - The server renders `data-sidebar` and the toggle's `aria-expanded` from the cookie, so the first paint has no flash.
 
 ## How to get to it (user POV)
 
-Sidebar, top right of the brand row, desktop width (`md`, 768px) and up. Below `md` the sidebar is hidden.
+Sidebar, top right corner above the pouch, desktop width (`md`, 768px) and up. Below `md` the sidebar is hidden.
 
 ## Driving it with mp.mjs
 
