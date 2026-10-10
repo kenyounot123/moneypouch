@@ -1,9 +1,9 @@
-<aside id="sidebar" data-controller="sidebar" class="sticky top-0 z-10 hidden h-dvh w-sidebar shrink-0 flex-col justify-between border-r border-secondary bg-level-1 px-5 pt-7 pb-6 md:flex in-data-[sidebar=collapsed]:pr-[11px] in-data-[sidebar=collapsed]:pl-3">
+<aside id="sidebar" data-controller="sidebar" data-action="keydown@window->sidebar#shortcut" class="sticky top-0 z-10 hidden h-dvh w-sidebar shrink-0 flex-col justify-between border-r border-secondary bg-level-1 px-5 pt-7 pb-6 md:flex in-data-[sidebar=collapsed]:pr-[11px] in-data-[sidebar=collapsed]:pl-3">
   <div class="flex flex-col gap-8">
     <div class="flex items-center gap-2 pl-1 in-data-[sidebar=collapsed]:justify-center in-data-[sidebar=collapsed]:pl-0">
       <%= image_tag "pouch.png", alt: "", width: 34, height: 34, class: "size-[34px] shrink-0 [image-rendering:pixelated] in-data-[sidebar=collapsed]:hidden" %>
       <span class="flex-1 font-pixel text-lg font-bold tracking-pixel whitespace-nowrap in-data-[sidebar=collapsed]:hidden">MoneyPouch</span>
-      <button type="button" data-sidebar-target="toggle" data-action="sidebar#toggle" aria-label="Toggle sidebar" aria-controls="sidebar" aria-expanded="<%= sidebar_state == "expanded" %>" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary in-data-[sidebar=collapsed]:h-[34px] in-data-[sidebar=collapsed]:w-10">
+      <button type="button" data-sidebar-target="toggle" data-action="sidebar#toggle" aria-label="Toggle sidebar" aria-keyshortcuts="Meta+B Control+B" title="Toggle sidebar (⌘B)" aria-controls="sidebar" aria-expanded="<%= sidebar_state == "expanded" %>" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary in-data-[sidebar=collapsed]:h-[34px] in-data-[sidebar=collapsed]:w-10">
         <%= sidebar_icon :toggle %>
       </button>
     </div>
