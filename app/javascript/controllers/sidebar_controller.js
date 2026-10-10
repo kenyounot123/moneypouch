@@ -3,6 +3,12 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = [ "toggle" ]
 
+  shortcut(event) {
+    if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "b") return
+    event.preventDefault()
+    this.toggle()
+  }
+
   toggle() {
     const collapsing = document.documentElement.dataset.sidebar !== "collapsed"
     const state = collapsing ? "collapsed" : "expanded"
