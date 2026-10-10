@@ -9,6 +9,5 @@ class WelcomeController < ApplicationController
     @category_names = Current.user.categories.alphabetically.pluck(:name)
     @period = Period.new(params[:period], today: Date.current)
     @spending = Spending.new(transactions, @period)
-    @period_count = transactions.occurred_in(@period.range).count
   end
 end
