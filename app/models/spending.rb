@@ -22,7 +22,8 @@ class Spending
     totals = sums.each_with_object(Hash.new(0)) { |((_, category_id), cents), memo| memo[category_id] += cents }
     named = Category.where(id: totals.keys).index_by(&:id)
 
-    totals.map { |category_id, cents| [ named[category_id], cents ] }
+    totals.select { |_, cents| cents.positive? }
+      .map { |category_id, cents| [ named[category_id], cents ] }
       .sort_by { |category, cents| [ -cents, category&.name.to_s.downcase ] }
   end
 

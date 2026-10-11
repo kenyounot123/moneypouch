@@ -25,6 +25,26 @@ class SpendingTest < ActiveSupport::TestCase
     assert_equal [ 1_750, [ "Transport", "Food" ] ], [ spending.total, spending.categories.map { |category, _| category&.name } ]
   end
 
+  test "money in with a category nets against that category" do
+    spend(-12_000, "2026-10-03", @transport)
+    spend(4_000, "2026-10-04", @transport, name: "Friend paid back")
+    spend(200_000, "2026-10-01", name: "Paycheck")
+
+    spending = Spending.new(@user.transactions, Period.new("month", today: Date.new(2026, 10, 5)))
+
+    assert_equal [ 8_550, [ [ "Transport", 8_000 ], [ "Food", 550 ] ] ],
+      [ spending.total, spending.categories.map { |category, cents| [ category&.name, cents ] } ]
+  end
+
+  test "a category that only got money back stays out of the list but still lowers the total" do
+    spend(-1_200, "2026-10-03")
+    spend(4_000, "2026-10-04", @transport, name: "Refund")
+
+    spending = Spending.new(@user.transactions, Period.new("month", today: Date.new(2026, 10, 5)))
+
+    assert_equal [ -2_250, [ nil, "Food" ] ], [ spending.total, spending.categories.map { |category, _| category&.name } ]
+  end
+
   test "ranks categories by amount and keeps uncategorized rows" do
     spend(-1_200, "2026-10-03", @transport)
     spend(-300, "2026-10-02")
