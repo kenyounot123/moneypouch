@@ -7,6 +7,10 @@ class Simplefin::Review
     @syncs.imported_transactions.exists?
   end
 
+  def count
+    transactions.size
+  end
+
   def needing_category
     transactions.select(&:needs_category?)
   end

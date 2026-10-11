@@ -6,7 +6,7 @@
     </div>
     <ul class="flex flex-col">
       <% transactions.each do |transaction| %>
-        <%= render "transactions/transaction", transaction:, field: local_assigns[:field] %>
+        <%= render "transactions/transaction", transaction:, field: local_assigns[:field], account: true %>
       <% end %>
     </ul>
   </section>

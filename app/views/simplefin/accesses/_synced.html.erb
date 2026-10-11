@@ -13,7 +13,7 @@
         <% if access.syncing? %>
           <button type="button" disabled class="<%= SimplefinHelper::HEADER_BUTTON %>">Syncing…</button>
         <% elsif access.syncable? %>
-          <%= button_to "Sync now", simplefin_sync_path, class: SimplefinHelper::HEADER_BUTTON %>
+          <%= button_to "Sync now", simplefin_sync_path, form: { data: { turbo_frame: "_top" } }, class: SimplefinHelper::HEADER_BUTTON %>
         <% end %>
       </div>
     <% end %>

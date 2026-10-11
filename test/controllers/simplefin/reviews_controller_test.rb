@@ -17,7 +17,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
     assert_select "main section", 3
     assert_select "main section:nth-of-type(1) h2", "Need a category"
     assert_select "main section:nth-of-type(1) li", 6
-    assert_select "main section:nth-of-type(1) li span", text: "Oct 3 · SimpleFIN Checking"
+    assert_select "main section:nth-of-type(1) li:first-child", text: /Category\s+· Oct 3\s+· SimpleFIN Checking/
     assert_select "main section:nth-of-type(2) h2", "Categorized for you"
     assert_select "main section:nth-of-type(2) li", 2
     assert_select "main section:nth-of-type(3) h2", "Transfers"

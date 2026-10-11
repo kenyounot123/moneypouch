@@ -34,13 +34,14 @@ export default class extends Controller {
     const form = document.createElement("form")
     form.action = url
     form.method = "post"
-    form.className = "relative shrink-0"
+    form.className = "relative min-w-24 max-w-[140px] flex-1"
+    form.dataset.turboFrame = "_top"
     form.innerHTML = `
       <input type="hidden" name="_method" value="patch">
       <input type="hidden" name="categorization[transfer]" value="0">
       <input name="categorization[category]" role="combobox" aria-label="Category" aria-autocomplete="list" aria-expanded="true" aria-controls="category-picker-list"
         autocomplete="off" spellcheck="false" placeholder="Category"
-        class="h-7 w-[140px] rounded-sm border border-(--ring-color-focus) bg-level-2 px-2.5 text-sm outline-none shadow-[0_0_0_3px_color-mix(in_oklab,var(--ring-color-focus)_22%,transparent)] placeholder:text-tertiary">
+        class="h-7 w-full rounded-sm border border-(--ring-color-focus) bg-level-2 px-2.5 text-sm outline-none shadow-[0_0_0_3px_color-mix(in_oklab,var(--ring-color-focus)_22%,transparent)] placeholder:text-tertiary">
       <div id="category-picker-list" role="listbox" class="absolute top-full left-0 z-10 mt-1 max-h-[250px] w-56 overflow-y-auto rounded-md border border-primary bg-level-2 p-1 text-sm shadow-control"></div>`
     this.field = form.querySelector("[role=combobox]")
     this.list = form.querySelector("[role=listbox]")
