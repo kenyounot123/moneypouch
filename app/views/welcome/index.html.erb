@@ -48,7 +48,7 @@
                 <div class="h-full rounded-bar <%= index.zero? ? "bg-data-strong" : "bg-data" %>" style="width: max(3px, round(<%= (cents * 100.0 / categories.first.last).round(1) %>%, 1px))"></div>
               </div>
               <p class="w-22 shrink-0 text-right font-mono"><%= spent cents %></p>
-              <p class="w-10 shrink-0 text-right text-sm text-tertiary"><%= share_of cents, @spending.total %></p>
+              <p class="w-10 shrink-0 text-right text-sm text-tertiary"><%= share_of cents, categories.sum(&:last) %></p>
             </div>
           <% end %>
           <% if categories.empty? %>
