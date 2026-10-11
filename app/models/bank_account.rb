@@ -2,6 +2,7 @@ class BankAccount < ApplicationRecord
   belongs_to :user
   belongs_to :simplefin_access, class_name: "Simplefin::Access"
   has_many :bank_transactions, dependent: :destroy
+  has_many :rules, dependent: :destroy
 
   enum :status, %w[ pending synced skipped ].index_by(&:itself)
 
@@ -26,6 +27,18 @@ class BankAccount < ApplicationRecord
     update!(status: :skipped)
   end
 
+  def remember(name_key, categorization)
+    transaction do
+      rule = rules.find_or_initialize_by(name_key:)
+      rule.update!(category: categorization.category, transfer: categorization.transfer?)
+      rule.apply_to_uncategorized
+    end
+  end
+
+  def transactions_named(name_key)
+    Transaction.where(id: bank_transactions.imported.where(name_key:).select(:transaction_id))
+  end
+
   def import(simplefin_transactions, sync:)
     if synced?
       simplefin_transactions.each do |simplefin_transaction|
@@ -37,6 +50,20 @@ class BankAccount < ApplicationRecord
   end
 
   private
+    def import_new(simplefin_transaction)
+      user.transactions.import(simplefin_transaction, currency:, categorization: categorization_for(simplefin_transaction.name))
+    end
+
+    def categorization_for(name)
+      rule = rules.find { |rule| rule.matches?(name) }
+
+      if rule
+        rule.categorization
+      else
+        Transaction::Categorization.new(category: user.transactions.last_category_for(name.to_s))
+      end
+    end
+
     def import_transaction(simplefin_transaction, sync:)
       import_unless_present(simplefin_transaction, sync:)
     rescue ActiveRecord::RecordNotUnique
@@ -50,7 +77,7 @@ class BankAccount < ApplicationRecord
 
           bank_transactions.create!(
             simplefin_sync: sync,
-            transaction_id: (match || user.transactions.import(simplefin_transaction, currency:)).id,
+            transaction_id: (match || import_new(simplefin_transaction)).id,
             matched: match.present?,
             external_id: simplefin_transaction.id,
             amount_in_cents: simplefin_transaction.amount_in_cents,
