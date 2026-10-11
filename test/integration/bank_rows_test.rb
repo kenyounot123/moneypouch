@@ -29,30 +29,37 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     assert_select "ul#transactions div.bg-highlight", 9
   end
 
-  test "the overview shows what the last sync brought in once" do
+  test "the overview holds what syncs brought in until Done" do
     activate(connect_simplefin)
-    sync = Simplefin::Sync.sole
 
     get root_url
 
-    assert_select "#toast_simplefin_sync_#{sync.id}[data-toast-seen-cookie-value=?]", "simplefin_sync_seen=#{sync.id}"
-    assert_select "#toast_simplefin_sync_#{sync.id}", text: /9 new from your bank, 1 matched what you typed\s+Review/
-    assert_select "#toast_simplefin_sync_#{sync.id} a[href=?]", simplefin_review_path
+    assert_select "#bank_review h2", "From your bank"
+    assert_select "#bank_review", text: /9 need a category/
+    assert_select "#bank_review li", 3
+    assert_select "#bank_review li button[data-action='category-picker#open']", text: "Category", count: 3
+    assert_select "#bank_review p", text: "9 new."
+    assert_select "#bank_review a[href=?]", simplefin_review_path, text: "Show all"
+    assert_select "#bank_review form[action=?] button", simplefin_review_path, text: "Done"
 
-    cookies[:simplefin_sync_seen] = sync.id.to_s
+    patch simplefin_review_url
     get root_url
-    assert_select "#toast_simplefin_sync_#{sync.id}", count: 0
+    assert_select "#bank_review", count: 0
   end
 
-  test "the transactions page shows the toast too" do
+  test "the summary counts rows a rule or a pick already handled" do
     activate(connect_simplefin)
+    grocery = Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: -13_550).transaction_id)
+    grocery.categorize(Transaction::Categorization.new(category: categories(:food)))
+    Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: -1_000).transaction_id).categorize(Transaction::Categorization.transfer)
 
-    get transactions_url
+    get root_url
 
-    assert_select "[data-controller=toast]", text: /9 new from your bank, 1 matched what you typed/
+    assert_select "#bank_review", text: /6 need a category/
+    assert_select "#bank_review p", text: "9 new. 2 categorized for you, 1 transfer."
   end
 
-  test "a sync that only matched says so without Show new" do
+  test "a sync that only matched what you typed shows no block" do
     report = simplefin_report
     savings = demo_account(report, "Demo Savings")
     savings["transactions"] = [ savings["transactions"][1] ]
@@ -60,18 +67,6 @@ class BankRowsTest < ActionDispatch::IntegrationTest
 
     get root_url
 
-    assert_select "[data-controller=toast]", text: "1 matched what you typed"
-    assert_select "[data-controller=toast] a", count: 0
-  end
-
-  test "a sync that brought nothing shows no toast" do
-    access = connect_simplefin
-    activate(access)
-    sync_again(access)
-    cookies[:simplefin_sync_seen] = access.syncs.first.id.to_s
-
-    get root_url
-
-    assert_select "[data-controller=toast]", count: 0
+    assert_select "#bank_review", count: 0
   end
 end

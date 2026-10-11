@@ -9,5 +9,6 @@ class WelcomeController < ApplicationController
     @category_names = Current.user.categories.alphabetically.pluck(:name)
     @period = Period.new(params[:period], today: Date.current)
     @spending = Spending.new(transactions, @period)
+    @review = Current.user.simplefin_access&.review
   end
 end

@@ -10,6 +10,6 @@ class Simplefin::SyncsController < ApplicationController
       access.sync_later
     end
 
-    redirect_to settings_path, status: :see_other
+    redirect_to root_path, status: :see_other
   end
 end

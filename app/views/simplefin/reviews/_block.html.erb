@@ -1,0 +1,22 @@
+<section id="bank_review" class="flex flex-col gap-1" data-controller="category-picker" data-category-picker-categories-value="<%= category_names.to_json %>">
+  <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+    <h2 class="font-pixel text-lg font-semibold tracking-pixel">From your bank</h2>
+    <% if (needing = review.needing_category).any? %>
+      <p class="text-sm text-tertiary"><%= needing.size %> need a category</p>
+    <% end %>
+  </div>
+
+  <% if needing.any? %>
+    <ul class="flex flex-col">
+      <% needing.first(3).each do |transaction| %>
+        <%= render "transactions/transaction", transaction:, field: true %>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <div class="flex items-center gap-3 pt-3 pl-5">
+    <p class="min-w-0 flex-1 text-sm text-tertiary"><%= simplefin_review_summary review %></p>
+    <%= link_to "Show all", simplefin_review_path, class: "shrink-0 text-sm font-medium text-secondary hover:text-primary", data: { turbo_frame: "_top" } %>
+    <%= button_to "Done", simplefin_review_path, method: :patch, form: { data: { turbo_frame: "_top" } }, class: "shrink-0 cursor-pointer text-sm font-medium text-secondary hover:text-primary" %>
+  </div>
+</section>

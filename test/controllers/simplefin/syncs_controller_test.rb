@@ -12,7 +12,7 @@ class Simplefin::SyncsControllerTest < ActionDispatch::IntegrationTest
       post simplefin_sync_url
     end
 
-    assert_redirected_to settings_url
+    assert_redirected_to root_url
   end
 
   test "settings says it is syncing while a sync runs" do
