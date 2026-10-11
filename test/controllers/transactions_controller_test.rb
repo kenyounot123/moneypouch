@@ -12,6 +12,15 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "ul#transactions > li", 2
   end
 
+  test "each row's category opens the picker for that transaction" do
+    get transactions_url
+
+    assert_select "ul#transactions[data-category-picker-categories-value=?]", [ "Food" ].to_json
+    assert_select "li##{ActionView::RecordIdentifier.dom_id(transactions(:paycheck))} button[data-category-picker-url-param=?]",
+      transaction_categorization_path(transactions(:paycheck)), text: "Uncategorized"
+    assert_select "li##{ActionView::RecordIdentifier.dom_id(@transaction)} button[data-category-picker-category-param=Food]", text: "Food"
+  end
+
   test "should update transaction" do
     patch transaction_url(@transaction), params: { transaction: { amount_in_cents: "2999" } }
     assert_redirected_to transactions_url
