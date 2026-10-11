@@ -1,0 +1,13 @@
+<% if transactions.any? %>
+  <section class="flex flex-col gap-1">
+    <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+      <h2 class="font-pixel text-lg font-semibold tracking-pixel"><%= title %></h2>
+      <p class="text-sm text-tertiary"><%= transactions.size %></p>
+    </div>
+    <ul class="flex flex-col">
+      <% transactions.each do |transaction| %>
+        <%= render "transactions/transaction", transaction:, field: local_assigns[:field] %>
+      <% end %>
+    </ul>
+  </section>
+<% end %>

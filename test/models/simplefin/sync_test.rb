@@ -16,7 +16,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert_equal [ [ "You", 196_000, "2026-10-01" ], [ "You", 256_448, "2026-10-01" ],
                    [ "Grocery store", -13_550, "2026-10-02" ], [ "John's Fishin Shack", -665, "2026-10-02" ], [ "Grocery store", -17_667, "2026-10-02" ],
                    [ "John's Fishin Shack", -1000, "2026-10-03" ], [ "Grocery store", -13_000, "2026-10-03" ], [ "John's Fishin Shack", -1331, "2026-10-03" ], [ "Grocery store", -17_001, "2026-10-03" ] ],
-      sync.imported_transactions.order(:occurred_on, :id).map { |transaction| [ transaction.name, transaction.amount_in_cents, transaction.occurred_on.iso8601 ] }
+      access.syncs.imported_transactions.order(:occurred_on, :id).map { |transaction| [ transaction.name, transaction.amount_in_cents, transaction.occurred_on.iso8601 ] }
   end
 
   test "the typed match is linked, not duplicated, and keeps what the user typed" do

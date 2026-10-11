@@ -4,16 +4,6 @@ class TransactionsController < ApplicationController
   def index
     @transactions = Current.user.transactions.listed
     @category_names = Current.user.categories.alphabetically.pluck(:name)
-
-    if params[:sync]
-      access = Current.user.simplefin_access
-
-      if access.nil?
-        raise ActiveRecord::RecordNotFound
-      end
-
-      @transactions = @transactions.merge(access.syncs.find(params.expect(:sync)).imported_transactions)
-    end
   end
 
   def create

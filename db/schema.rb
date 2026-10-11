@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_11_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_11_150000) do
   create_table "bank_account_rules", force: :cascade do |t|
     t.integer "bank_account_id", null: false
     t.string "name_key", null: false
@@ -91,6 +91,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_140000) do
     t.string "failure"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "reviewed_at"
     t.index ["access_id", "finished_at"], name: "index_simplefin_syncs_on_access_id_and_finished_at"
     t.index ["access_id"], name: "index_simplefin_syncs_one_running", unique: true, where: "finished_at IS NULL"
   end

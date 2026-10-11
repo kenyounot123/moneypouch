@@ -1,0 +1,2 @@
+<button type="button" class="<%= local_assigns[:class] %>" data-action="category-picker#open" data-category-picker-url-param="<%= transaction_categorization_path(transaction) %>"
+  data-category-picker-category-param="<%= categorization_label(transaction) unless transaction.categorization.none? %>"><%= label %></button>

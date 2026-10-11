@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   namespace :simplefin do
     resource :access, only: %i[ new create edit update destroy ]
     resource :sync, only: :create
+    resource :review, only: %i[ show update ]
   end
   resources :bank_accounts, only: :update
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

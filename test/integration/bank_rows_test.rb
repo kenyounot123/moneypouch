@@ -36,8 +36,8 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_select "#toast_simplefin_sync_#{sync.id}[data-toast-seen-cookie-value=?]", "simplefin_sync_seen=#{sync.id}"
-    assert_select "#toast_simplefin_sync_#{sync.id}", text: /9 new from your bank, 1 matched what you typed\s+Show new/
-    assert_select "#toast_simplefin_sync_#{sync.id} a[href=?]", transactions_path(sync: sync.id)
+    assert_select "#toast_simplefin_sync_#{sync.id}", text: /9 new from your bank, 1 matched what you typed\s+Review/
+    assert_select "#toast_simplefin_sync_#{sync.id} a[href=?]", simplefin_review_path
 
     cookies[:simplefin_sync_seen] = sync.id.to_s
     get root_url
@@ -73,23 +73,5 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_select "[data-controller=toast]", count: 0
-  end
-
-  test "Show new lists only the rows that sync added" do
-    activate(connect_simplefin)
-
-    get transactions_url(sync: Simplefin::Sync.sole.id)
-
-    assert_select "ul#transactions > li", 9
-    assert_select "li#transaction_#{transactions(:coffee).id}", count: 0
-  end
-
-  test "another user's sync is not found" do
-    activate(connect_simplefin)
-    sign_in_as(users(:two))
-
-    get transactions_url(sync: Simplefin::Sync.sole.id)
-
-    assert_response :not_found
   end
 end
