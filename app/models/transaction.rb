@@ -27,7 +27,7 @@ class Transaction < ApplicationRecord
   end
 
   def self.import(simplefin_transaction, currency:)
-    name = simplefin_transaction.payee || simplefin_transaction.description
+    name = simplefin_transaction.name.to_s
 
     create!(
       name:,

@@ -44,6 +44,13 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert_equal [ 0, 0 ], [ access.syncs.last.imported_count, access.syncs.last.matched_count ]
   end
 
+  test "each bank transaction stores the key its cleaned name matches on" do
+    access = connect_simplefin
+    activate(access)
+
+    assert_equal [ "grocery store", "johns fishin shack", "you" ], BankTransaction.distinct.pluck(:name_key).sort
+  end
+
   test "the same bank id in two accounts imports both transactions" do
     access = connect_simplefin
     activate(access)
