@@ -56,7 +56,8 @@ class BankAccount < ApplicationRecord
             amount_in_cents: simplefin_transaction.amount_in_cents,
             occurred_on: simplefin_transaction.occurred_on,
             description: simplefin_transaction.description,
-            payee: simplefin_transaction.payee
+            payee: simplefin_transaction.payee,
+            name_key: simplefin_transaction.name.key
           )
         end
       end
