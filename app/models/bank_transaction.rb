@@ -5,6 +5,10 @@ class BankTransaction < ApplicationRecord
   scope :matched, -> { where(matched: true) }
   scope :imported, -> { where(matched: false) }
 
+  def remember(categorization)
+    bank_account.remember(name_key, categorization)
+  end
+
   def imported?
     !matched?
   end

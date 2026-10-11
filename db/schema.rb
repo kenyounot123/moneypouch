@@ -10,7 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_11_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_11_140000) do
+  create_table "bank_account_rules", force: :cascade do |t|
+    t.integer "bank_account_id", null: false
+    t.string "name_key", null: false
+    t.integer "category_id"
+    t.boolean "transfer", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bank_account_id", "name_key"], name: "index_bank_account_rules_on_bank_account_id_and_name_key", unique: true
+    t.index ["category_id"], name: "index_bank_account_rules_on_category_id"
+    t.check_constraint "(category_id IS NULL) = transfer", name: "rule_is_a_category_or_a_transfer"
+  end
+
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -113,6 +125,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_130000) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+  add_foreign_key "bank_account_rules", "bank_accounts", on_delete: :cascade
+  add_foreign_key "bank_account_rules", "categories", on_delete: :cascade
   add_foreign_key "bank_accounts", "simplefin_accesses"
   add_foreign_key "bank_accounts", "users"
   add_foreign_key "bank_transactions", "bank_accounts"

@@ -14,6 +14,7 @@ class Transaction < ApplicationRecord
   scope :spending, -> { where(transfer: false).and(where(amount_in_cents: ...0).or(where.not(category_id: nil))) }
   scope :listed, -> { latest.includes(:category, :bank_transaction) }
   scope :matchable, -> { where.missing(:bank_transaction) }
+  scope :needing_category, -> { kept.where(category_id: nil, transfer: false) }
 
   def self.broadcasting_once_for(user)
     suppressing_turbo_broadcasts { yield }
@@ -26,15 +27,14 @@ class Transaction < ApplicationRecord
       .min_by { |transaction| [ (transaction.occurred_on - date).abs, transaction.id ] }
   end
 
-  def self.import(simplefin_transaction, currency:)
-    name = simplefin_transaction.name.to_s
-
+  def self.import(simplefin_transaction, currency:, categorization:)
     create!(
-      name:,
+      name: simplefin_transaction.name.to_s,
       amount_in_cents: simplefin_transaction.amount_in_cents,
       currency:,
       occurred_on: simplefin_transaction.occurred_on,
-      category: last_category_for(name)
+      category: categorization.category,
+      transfer: categorization.transfer?
     )
   end
 
@@ -74,7 +74,13 @@ class Transaction < ApplicationRecord
   end
 
   def categorize(categorization)
-    update!(category: categorization.category, transfer: categorization.transfer?)
+    transaction do
+      update!(category: categorization.category, transfer: categorization.transfer?)
+
+      if imported? && !categorization.none?
+        bank_transaction.remember(categorization)
+      end
+    end
   end
 
   def discard
