@@ -11,7 +11,7 @@ class Transaction < ApplicationRecord
   scope :discarded, -> { where.not(discarded_at: nil) }
   scope :latest, -> { order(occurred_on: :desc, id: :desc) }
   scope :occurred_in, ->(dates) { where(occurred_on: dates) }
-  scope :spending, -> { where(amount_in_cents: ...0) }
+  scope :spending, -> { where(amount_in_cents: ...0, transfer: false) }
   scope :listed, -> { latest.includes(:category, :bank_transaction) }
   scope :matchable, -> { where.missing(:bank_transaction) }
 
@@ -66,11 +66,15 @@ class Transaction < ApplicationRecord
   end
 
   def needs_category?
-    imported? && category_id.nil?
+    imported? && category_id.nil? && !transfer?
+  end
+
+  def categorization
+    Categorization.new(category:, transfer:)
   end
 
   def categorize(categorization)
-    update!(category: categorization.category)
+    update!(category: categorization.category, transfer: categorization.transfer?)
   end
 
   def discard

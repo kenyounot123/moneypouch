@@ -16,6 +16,15 @@ class SpendingTest < ActiveSupport::TestCase
     assert_equal 1_750, spending.total
   end
 
+  test "leaves transfers out" do
+    spend(-1_200, "2026-10-03", @transport)
+    spend(-80_000, "2026-10-04").categorize(Transaction::Categorization.transfer)
+
+    spending = Spending.new(@user.transactions, Period.new("month", today: Date.new(2026, 10, 5)))
+
+    assert_equal [ 1_750, [ "Transport", "Food" ] ], [ spending.total, spending.categories.map { |category, _| category&.name } ]
+  end
+
   test "ranks categories by amount and keeps uncategorized rows" do
     spend(-1_200, "2026-10-03", @transport)
     spend(-300, "2026-10-02")

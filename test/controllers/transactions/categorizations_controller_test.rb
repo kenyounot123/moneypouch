@@ -31,6 +31,22 @@ class Transactions::CategorizationsControllerTest < ActionDispatch::IntegrationT
     assert_nil transactions(:coffee).reload.category
   end
 
+  test "marks a transaction as a transfer and drops its category" do
+    patch transaction_categorization_url(transactions(:coffee)), params: { categorization: { category: "", transfer: "1" } }
+
+    coffee = transactions(:coffee).reload
+    assert_equal [ true, nil ], [ coffee.transfer?, coffee.category ]
+  end
+
+  test "picking a category undoes a transfer" do
+    transactions(:coffee).categorize(Transaction::Categorization.transfer)
+
+    patch transaction_categorization_url(transactions(:coffee)), params: { categorization: { category: "Food" } }
+
+    coffee = transactions(:coffee).reload
+    assert_equal [ false, "Food" ], [ coffee.transfer?, coffee.category.name ]
+  end
+
   test "another user's transaction is not found" do
     sign_in_as(users(:two))
 

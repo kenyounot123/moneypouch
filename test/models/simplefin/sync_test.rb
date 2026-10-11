@@ -150,6 +150,9 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert_equal [ "Food", false ], [ grocery.category.name, grocery.needs_category? ]
     assert_equal [ nil, true ], [ fishing.category, fishing.needs_category? ]
     assert_equal [ true, true ], [ grocery.imported?, fishing.imported? ]
+
+    fishing.categorize(Transaction::Categorization.transfer)
+    assert_not fishing.needs_category?
   end
 
   test "a lapsed subscription is marked and recovers on the next good sync" do

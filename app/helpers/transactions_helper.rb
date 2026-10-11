@@ -9,6 +9,14 @@ module TransactionsHelper
     end
   end
 
+  def categorization_label(transaction)
+    if transaction.transfer?
+      "Transfer"
+    else
+      transaction.category&.name || "Uncategorized"
+    end
+  end
+
   def short_date(date)
     if date.year == Date.current.year
       date.strftime("%b %-d")
