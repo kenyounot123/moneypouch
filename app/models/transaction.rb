@@ -57,6 +57,10 @@ class Transaction < ApplicationRecord
     (created_at || Time.current).in_time_zone.to_date
   end
 
+  def bank_account_name
+    bank_transaction&.bank_account_name
+  end
+
   def from_bank?
     bank_transaction.present?
   end

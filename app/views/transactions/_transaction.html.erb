@@ -1,3 +1,4 @@
+<% field = local_assigns[:field] && transaction.needs_category? %>
 <li id="<%= dom_id transaction %>" class="relative flex items-center gap-3 border-b border-secondary py-3 last:border-b-0">
   <div class="flex w-2 shrink-0 justify-center">
     <% if local_assigns[:marked] || transaction.needs_category? %>
@@ -7,12 +8,19 @@
   <div class="flex min-w-0 flex-1 flex-col gap-0.5">
     <p class="truncate font-medium <%= "text-tertiary" if transaction.transfer? %>"><%= transaction.name %></p>
     <div class="flex items-center gap-1 text-sm text-tertiary">
-      <span data-category-picker-target="category"><button type="button" class="cursor-pointer text-secondary underline decoration-dotted underline-offset-3 hover:text-primary"
-        data-action="category-picker#open" data-category-picker-url-param="<%= transaction_categorization_path(transaction) %>"
-        data-category-picker-category-param="<%= categorization_label(transaction) unless transaction.categorization.none? %>"><%= categorization_label(transaction) %></button></span>
-      <span class="whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
+      <% if field %>
+        <span class="truncate"><%= [ short_date(transaction.occurred_on), transaction.bank_account_name ].join(" · ") %></span>
+      <% else %>
+        <span data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: categorization_label(transaction),
+          class: "cursor-pointer text-secondary underline decoration-dotted underline-offset-3 hover:text-primary" %></span>
+        <span class="whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
+      <% end %>
     </div>
   </div>
+  <% if field %>
+    <span class="shrink-0" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: "Category",
+      class: "flex h-7 w-[140px] cursor-text items-center rounded-sm border border-primary bg-level-2 px-2.5 text-sm text-tertiary hover:border-(--ring-color-focus)" %></span>
+  <% end %>
   <p class="w-[90px] shrink-0 text-right font-mono <%= "text-tertiary" if transaction.transfer? %>"><%= money transaction.amount_in_cents %></p>
   <div class="flex w-4 shrink-0 justify-center text-tertiary">
     <% if transaction.transfer? %>

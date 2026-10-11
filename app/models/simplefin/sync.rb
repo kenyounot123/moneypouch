@@ -10,6 +10,11 @@ class Simplefin::Sync < ApplicationRecord
   scope :answered, -> { finished.where(failure: [ nil, "lapsed", "revoked" ]) }
   scope :recent, ->(within) { where(created_at: within.ago..) }
   scope :with_bank_transactions, -> { where.associated(:bank_transactions).distinct }
+  scope :unreviewed, -> { finished.where(reviewed_at: nil) }
+
+  def self.imported_transactions
+    Transaction.kept.where(id: BankTransaction.imported.where(simplefin_sync_id: select(:id)).select(:transaction_id))
+  end
 
   def self.abandon_stale
     running.where(created_at: ...STALE_AFTER.ago).find_each(&:abandon)
@@ -45,10 +50,6 @@ class Simplefin::Sync < ApplicationRecord
 
   def matched_count
     bank_transactions.matched.count
-  end
-
-  def imported_transactions
-    Transaction.where(id: bank_transactions.imported.select(:transaction_id))
   end
 
   private

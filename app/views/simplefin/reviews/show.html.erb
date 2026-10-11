@@ -1,0 +1,26 @@
+<% content_for :title, "From your bank" %>
+<%= turbo_stream_from Current.user, :transactions %>
+
+<div class="flex min-h-dvh">
+  <%= render "shared/sidebar" %>
+
+  <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
+    <h1 class="font-pixel text-[28px] leading-[34px] font-semibold tracking-pixel">From your bank</h1>
+
+    <div class="flex max-w-[640px] flex-col gap-12" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>">
+      <% if @review.pending? %>
+        <%= render "simplefin/reviews/section", title: "Need a category", transactions: @review.needing_category, field: true %>
+        <%= render "simplefin/reviews/section", title: "Categorized for you", transactions: @review.categorized %>
+        <%= render "simplefin/reviews/section", title: "Transfers", transactions: @review.transfers %>
+
+        <div class="flex items-center justify-between gap-6">
+          <p class="text-sm text-tertiary"><%= synced_ago Current.user.simplefin_access.last_synced_at %></p>
+          <%= button_to "Done", simplefin_review_path, method: :patch,
+            class: "cursor-pointer rounded-md bg-action px-4 py-2 font-pixel text-[15px] leading-[18px] font-semibold tracking-pixel text-on-action hover:brightness-95" %>
+        </div>
+      <% else %>
+        <p class="text-secondary">Nothing new from your bank. <%= link_to "Back to Overview", root_path, class: "font-medium text-primary underline underline-offset-3" %></p>
+      <% end %>
+    </div>
+  </main>
+</div>

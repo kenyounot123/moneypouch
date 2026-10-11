@@ -81,6 +81,10 @@ class Simplefin::Access < ApplicationRecord
     syncs.recent(1.day).count < SYNCS_PER_DAY
   end
 
+  def review
+    Simplefin::Review.new(syncs)
+  end
+
   def last_synced_at
     syncs.succeeded.maximum(:finished_at)
   end
