@@ -69,6 +69,10 @@ class Transaction < ApplicationRecord
     imported? && category_id.nil?
   end
 
+  def categorize(categorization)
+    update!(category: categorization.category)
+  end
+
   def discard
     update!(discarded_at: Time.current)
   end

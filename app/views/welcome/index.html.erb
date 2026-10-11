@@ -82,7 +82,7 @@
             <h2 class="font-pixel text-lg font-semibold tracking-pixel">Recent</h2>
           </div>
 
-          <ul class="flex flex-col gap-1">
+          <ul class="flex flex-col gap-1" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>">
             <% @recent.each do |transaction| %>
               <%= render transaction, marked: transaction == @added %>
             <% end %>

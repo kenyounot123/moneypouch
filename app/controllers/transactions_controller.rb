@@ -3,6 +3,7 @@ class TransactionsController < ApplicationController
 
   def index
     @transactions = Current.user.transactions.listed
+    @category_names = Current.user.categories.alphabetically.pluck(:name)
 
     if params[:sync]
       access = Current.user.simplefin_access

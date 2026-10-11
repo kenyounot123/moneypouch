@@ -1,4 +1,4 @@
-<li id="<%= dom_id transaction %>" class="flex items-center gap-3 border-b border-secondary py-3 last:border-b-0">
+<li id="<%= dom_id transaction %>" class="relative flex items-center gap-3 border-b border-secondary py-3 last:border-b-0">
   <div class="flex w-2 shrink-0 justify-center">
     <% if local_assigns[:marked] || transaction.needs_category? %>
       <div class="size-1.5 rounded-[1px] bg-highlight"></div>
@@ -6,7 +6,12 @@
   </div>
   <div class="flex min-w-0 flex-1 flex-col gap-0.5">
     <p class="truncate font-medium"><%= transaction.name %></p>
-    <p class="text-sm text-tertiary"><%= transaction.category&.name || "Uncategorized" %> · <%= short_date transaction.occurred_on %></p>
+    <div class="flex items-center gap-1 text-sm text-tertiary">
+      <span data-category-picker-target="category"><button type="button" class="cursor-pointer text-secondary underline decoration-dotted underline-offset-3 hover:text-primary"
+        data-action="category-picker#open" data-category-picker-url-param="<%= transaction_categorization_path(transaction) %>"
+        data-category-picker-category-param="<%= transaction.category&.name %>"><%= transaction.category&.name || "Uncategorized" %></button></span>
+      <span class="whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
+    </div>
   </div>
   <p class="w-[90px] shrink-0 text-right font-mono"><%= money transaction.amount_in_cents %></p>
   <div class="flex w-4 shrink-0 justify-center text-tertiary">
