@@ -61,8 +61,12 @@ class Transaction < ApplicationRecord
     bank_transaction.present?
   end
 
-  def unsorted?
-    from_bank? && !bank_transaction.matched? && category_id.nil?
+  def imported?
+    from_bank? && bank_transaction.imported?
+  end
+
+  def needs_category?
+    imported? && category_id.nil?
   end
 
   def discard
