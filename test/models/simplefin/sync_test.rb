@@ -28,7 +28,8 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert coffee.bank_transaction.matched?
     assert_equal [ "Blue Bottle", "Food", "1790926110", "Demo Savings" ],
       [ coffee.name, coffee.category.name, coffee.bank_transaction.external_id, coffee.bank_transaction.bank_account.external_id ]
-    assert_not coffee.unsorted?
+    assert_not coffee.imported?
+    assert_not coffee.needs_category?
   end
 
   test "running the same sync again adds nothing" do
@@ -139,8 +140,9 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
 
     grocery = Transaction.find(BankTransaction.find_by!(external_id: "1790954910").transaction_id)
     fishing = Transaction.find(BankTransaction.find_by!(external_id: "1791012510").transaction_id)
-    assert_equal [ "Food", false ], [ grocery.category.name, grocery.unsorted? ]
-    assert_equal [ nil, true ], [ fishing.category, fishing.unsorted? ]
+    assert_equal [ "Food", false ], [ grocery.category.name, grocery.needs_category? ]
+    assert_equal [ nil, true ], [ fishing.category, fishing.needs_category? ]
+    assert_equal [ true, true ], [ grocery.imported?, fishing.imported? ]
   end
 
   test "a lapsed subscription is marked and recovers on the next good sync" do

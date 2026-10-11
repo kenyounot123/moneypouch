@@ -4,4 +4,8 @@ class BankTransaction < ApplicationRecord
 
   scope :matched, -> { where(matched: true) }
   scope :imported, -> { where(matched: false) }
+
+  def imported?
+    !matched?
+  end
 end
