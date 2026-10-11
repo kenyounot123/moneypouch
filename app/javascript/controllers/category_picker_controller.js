@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 const OPTION = "flex cursor-pointer items-center rounded-sm px-2.5 py-1.5"
+const TRANSFER_ICON = `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" class="shrink-0 text-tertiary"><path d="M2 4.5h9M8.5 2l2.5 2.5L8.5 7M12 9.5H3M5.5 7L3 9.5 5.5 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
 
 export default class extends Controller {
   static targets = ["category"]
@@ -36,12 +37,14 @@ export default class extends Controller {
     form.className = "relative shrink-0"
     form.innerHTML = `
       <input type="hidden" name="_method" value="patch">
+      <input type="hidden" name="categorization[transfer]" value="0">
       <input name="categorization[category]" role="combobox" aria-label="Category" aria-autocomplete="list" aria-expanded="true" aria-controls="category-picker-list"
         autocomplete="off" spellcheck="false" placeholder="Category"
         class="h-7 w-[140px] rounded-sm border border-(--ring-color-focus) bg-level-2 px-2.5 text-sm outline-none shadow-[0_0_0_3px_color-mix(in_oklab,var(--ring-color-focus)_22%,transparent)] placeholder:text-tertiary">
       <div id="category-picker-list" role="listbox" class="absolute top-full left-0 z-10 mt-1 max-h-[250px] w-56 overflow-y-auto rounded-md border border-primary bg-level-2 p-1 text-sm shadow-control"></div>`
     this.field = form.querySelector("[role=combobox]")
     this.list = form.querySelector("[role=listbox]")
+    this.transfer = form.querySelector("[name='categorization[transfer]']")
     this.field.addEventListener("input", () => this.render())
     this.field.addEventListener("keydown", (event) => this.keydown(event))
     this.field.addEventListener("blur", () => this.close())
@@ -56,17 +59,29 @@ export default class extends Controller {
     const names = this.categoriesValue.filter((name) => name.toLowerCase().startsWith(typed.toLowerCase()))
     const exact = names.some((name) => name.toLowerCase() === typed.toLowerCase())
     this.items = names.map((name) => ({ name }))
-    if (typed && !exact) this.items.push({ name: typed, isNew: true })
+    if (typed && !exact && typed.toLowerCase() !== "transfer") this.items.push({ name: typed, isNew: true })
+    if ("transfer".startsWith(typed.toLowerCase())) this.items.push({ name: "Transfer", transfer: true })
     this.index = Math.min(index, this.items.length - 1)
     this.list.hidden = this.items.length === 0
-    this.list.replaceChildren(...this.items.map((item, position) => this.option(item, position)))
+    this.list.replaceChildren(...this.items.flatMap((item, position) => this.entry(item, position)))
     this.field.setAttribute("aria-expanded", String(!this.list.hidden))
 
     if (this.index >= 0) {
       this.field.setAttribute("aria-activedescendant", `category-picker-option-${this.index}`)
-      this.list.children[this.index].scrollIntoView({ block: "nearest" })
+      document.getElementById(`category-picker-option-${this.index}`).scrollIntoView({ block: "nearest" })
     } else {
       this.field.removeAttribute("aria-activedescendant")
+    }
+  }
+
+  entry(item, position) {
+    if (item.transfer && position > 0) {
+      const divider = document.createElement("div")
+      divider.setAttribute("role", "presentation")
+      divider.className = "mx-1 my-1 h-px bg-(--border-color-secondary)"
+      return [ divider, this.option(item, position) ]
+    } else {
+      return [ this.option(item, position) ]
     }
   }
 
@@ -85,6 +100,16 @@ export default class extends Controller {
       name.className = "font-medium"
       name.textContent = item.name
       label.append("New category ", name)
+    } else if (item.transfer) {
+      option.classList.add("gap-2")
+      option.insertAdjacentHTML("afterbegin", TRANSFER_ICON)
+      label.className = "flex-1 font-medium"
+      label.textContent = item.name
+      const hint = document.createElement("span")
+      hint.className = "text-xs text-tertiary"
+      hint.textContent = "Not spending"
+      option.append(label, hint)
+      return option
     } else {
       label.textContent = item.name
     }
@@ -138,7 +163,9 @@ export default class extends Controller {
 
   // The editor closes as the request starts, because a morph keeps the focused field and the old label beside the new one.
   save() {
-    if (this.index >= 0) this.field.value = this.items[this.index].name
+    const item = this.items[this.index]
+    if (item) this.field.value = item.name
+    this.transfer.value = item?.transfer ? "1" : "0"
     this.label.querySelector("button").textContent = this.field.value.trim() || "Uncategorized"
     this.form.requestSubmit()
   }

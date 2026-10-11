@@ -5,17 +5,20 @@
     <% end %>
   </div>
   <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-    <p class="truncate font-medium"><%= transaction.name %></p>
+    <p class="truncate font-medium <%= "text-tertiary" if transaction.transfer? %>"><%= transaction.name %></p>
     <div class="flex items-center gap-1 text-sm text-tertiary">
       <span data-category-picker-target="category"><button type="button" class="cursor-pointer text-secondary underline decoration-dotted underline-offset-3 hover:text-primary"
         data-action="category-picker#open" data-category-picker-url-param="<%= transaction_categorization_path(transaction) %>"
-        data-category-picker-category-param="<%= transaction.category&.name %>"><%= transaction.category&.name || "Uncategorized" %></button></span>
+        data-category-picker-category-param="<%= categorization_label(transaction) unless transaction.categorization.none? %>"><%= categorization_label(transaction) %></button></span>
       <span class="whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
     </div>
   </div>
-  <p class="w-[90px] shrink-0 text-right font-mono"><%= money transaction.amount_in_cents %></p>
+  <p class="w-[90px] shrink-0 text-right font-mono <%= "text-tertiary" if transaction.transfer? %>"><%= money transaction.amount_in_cents %></p>
   <div class="flex w-4 shrink-0 justify-center text-tertiary">
-    <% if transaction.from_bank? %>
+    <% if transaction.transfer? %>
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 4.5h9M8.5 2l2.5 2.5L8.5 7M12 9.5H3M5.5 7L3 9.5 5.5 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="sr-only">Transfer, not spending</span>
+    <% elsif transaction.from_bank? %>
       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 5.5L7 2.5l5 3M2.5 5.5v5.5M11.5 5.5v5.5M1.5 11.5h11M5 7v3M9 7v3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="sr-only">From your bank</span>
     <% end %>
