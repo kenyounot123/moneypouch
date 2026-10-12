@@ -16,7 +16,7 @@ const CHROME = process.env.MP_CHROME || [
   ...["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"].map(onPath),
 ].find((p) => p && fs.existsSync(p))
 
-const VALUE_FLAGS = new Set(["port", "delay", "text", "timeout", "end", "log", "report"])
+const VALUE_FLAGS = new Set(["port", "delay", "text", "timeout", "end", "log", "report", "scale"])
 
 const NAMED_KEYS = {
   Enter: { code: "Enter", vk: 13, text: "\r" }, Escape: { code: "Escape", vk: 27 },
@@ -650,9 +650,12 @@ async function main() {
       console.log(await b.evaluate("location.href"))
     } else if (cmd === "shot") {
       const params = { format: "png" }
+      const scale = Number(flags.scale ?? 1)
+      const { cssContentSize: content, cssLayoutViewport: viewport } = await b.send("Page.getLayoutMetrics")
       if (flags.full) {
-        const { cssContentSize: size } = await b.send("Page.getLayoutMetrics")
-        Object.assign(params, { captureBeyondViewport: true, clip: { x: 0, y: 0, width: Math.ceil(size.width), height: Math.ceil(size.height), scale: 1 } })
+        Object.assign(params, { captureBeyondViewport: true, clip: { x: 0, y: 0, width: Math.ceil(content.width), height: Math.ceil(content.height), scale } })
+      } else if (scale !== 1) {
+        params.clip = { x: viewport.pageX, y: viewport.pageY, width: viewport.clientWidth, height: viewport.clientHeight, scale }
       }
       const { data } = await b.send("Page.captureScreenshot", params)
       fs.mkdirSync(path.dirname(path.resolve(args[0])), { recursive: true })
