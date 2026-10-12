@@ -77,7 +77,23 @@ The second command creates the `.env` file. `openssl rand -hex 64` prints 64 ran
 
 The value must be secret and random, so nobody can forge a sign-in. It must also stay the same. If you lose or change `.env`, everyone is signed out and you must reconnect SimpleFIN. Keep `.env` next to `compose.yaml` and back it up with your data.
 
-To upgrade, back up the `moneypouch-data` volume and the `.env` file. Then run `docker compose pull && docker compose up -d`.
+Your data lives in a Docker volume. Compose puts the folder name in front of the volume name, so in a folder called `moneypouch` the volume is `moneypouch_moneypouch-data`. Run these commands from the same folder and you never need to type the name.
+
+To back up, stop the app and save the volume to a file next to `compose.yaml`:
+
+```bash
+docker compose stop
+docker compose run --rm --no-deps -T --entrypoint tar app czf - -C /rails storage > moneypouch-backup.tgz
+docker compose start
+```
+
+Keep `moneypouch-backup.tgz` and `.env` together. To restore, stop the app, then run:
+
+```bash
+docker compose run --rm --no-deps -T --entrypoint tar app xzf - -C /rails < moneypouch-backup.tgz
+```
+
+To upgrade, back up first. Then run `docker compose pull && docker compose up -d`.
 
 ## Contributing
 
