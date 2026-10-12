@@ -25,6 +25,13 @@ module TransactionsHelper
     )
   end
 
+  def pencil_icon
+    tag.svg(
+      tag.path(d: "M7.5 2l2.5 2.5L4.5 10H2V7.5z", fill: "none", stroke: "currentColor", "stroke-width": 1.2, "stroke-linejoin": "round"),
+      width: 12, height: 12, viewBox: "0 0 12 12", class: "shrink-0 text-tertiary", aria: { hidden: true }
+    )
+  end
+
   def categorization_chip(categorization)
     if categorization.transfer?
       tag.span safe_join([ transfer_icon(size: 12), "Transfer" ]),

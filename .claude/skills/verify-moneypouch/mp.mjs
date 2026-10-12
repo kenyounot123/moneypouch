@@ -187,14 +187,18 @@ async function cdpSession(port) {
   }
   const typeChar = (ch) => PRINTABLE.has(ch) ? key(ch) : send("Input.insertText", { text: ch })
   const focus = (selector) => evaluate(`(() => { const e = document.querySelector(${JSON.stringify(selector)}); if (!e) return false; e.focus(); return document.activeElement === e })()`)
-  const click = async (selector) => {
+  const hover = async (selector) => {
     const box = await evaluate(`(() => { const e = document.querySelector(${JSON.stringify(selector)}); if (!e) return null; e.scrollIntoView({ block: "center" }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)
     if (!box) die(`no element matches ${selector} on ${await evaluate("location.href")}`)
     await send("Input.dispatchMouseEvent", { type: "mouseMoved", ...box })
+    return box
+  }
+  const click = async (selector) => {
+    const box = await hover(selector)
     for (const type of ["mousePressed", "mouseReleased"]) await send("Input.dispatchMouseEvent", { type, ...box, button: "left", clickCount: 1 })
   }
   const on = (method, fn) => listeners.push({ method, fn })
-  return { send, evaluate, goto, settle, key, typeChar, focus, click, on, close: () => ws.close() }
+  return { send, evaluate, goto, settle, key, typeChar, focus, hover, click, on, close: () => ws.close() }
 }
 
 async function signIn(b, port, user, password) {
@@ -558,6 +562,7 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   wait <selector> [--text s] [--gone] [--timeout ms]
                                      poll until an element matches (and contains s), or until none does; prints its text
   click <selector>                   mouse click on the element's center
+  hover <selector>                   move the mouse to the element's center and leave it there, for :hover states
   shot <file.png> [--full]           screenshot the viewport, or the whole page with --full
   resize <w> <h>                     set the emulated viewport; the per-instance holder keeps it between commands
   theme light|dark                   open /settings if the button is not on the page, then click the theme button
@@ -595,7 +600,7 @@ async function main() {
     if (!args[0]) die("query needs a Ruby expression")
     return console.log(rails(["runner", READONLY_RUNNER], { MP_QUERY: args[0] }).trim())
   }
-  if (!["goto", "type", "paste", "key", "click", "shot", "resize", "theme", "signin", "signout", "js", "text", "wait", "latency"].includes(cmd)) {
+  if (!["goto", "type", "paste", "key", "hover", "click", "shot", "resize", "theme", "signin", "signout", "js", "text", "wait", "latency"].includes(cmd)) {
     console.error(USAGE)
     process.exit(cmd ? 1 : 0)
   }
@@ -635,6 +640,10 @@ async function main() {
       for (const k of args) await b.key(k)
       await sleep(200)
       console.log(`pressed ${args.join(" ")}`)
+    } else if (cmd === "hover") {
+      await b.hover(args[0])
+      await sleep(100)
+      console.log(`hovering ${args[0]}`)
     } else if (cmd === "click") {
       await b.click(args[0])
       await b.settle()
