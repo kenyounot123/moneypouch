@@ -1,7 +1,6 @@
 services:
   app:
-    build: .
-    image: moneypouch:local
+    image: ghcr.io/kenyounot123/moneypouch:latest
     ports:
       - "8080:80"
     environment:
