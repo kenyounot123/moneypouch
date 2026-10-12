@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Regenerates docs/images from a running verify-moneypouch instance with clean demo data:
+#   bin/rails "dev:transactions[1550]"
+#   .claude/skills/verify-moneypouch/mp.mjs boot --port 3201
+#   script/readme_images 3201
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+port=${1:?usage: script/readme_images PORT}
+mp() { .claude/skills/verify-moneypouch/mp.mjs "$@" --port "$port" > /dev/null; }
+work=$(mktemp -d)
+out=docs/images
+mkdir -p "$out"
+
+mp resize 1100 687
+mp goto /
+mp shot "$work/overview-raw.png" --scale 2
+mp key Meta+k
+mp type '[aria-label="Add"]' 'Blue Bottle 6.25 yesterday'
+mp wait 'turbo-frame#voucher' --text Yesterday
+mp js 'document.querySelector("[aria-label=Add]").style.caretColor = "transparent"'
+mp shot "$work/composer-raw.png" --scale 2
+palette=$(.claude/skills/verify-moneypouch/mp.mjs js \
+  'const r = document.getElementById("palette").getBoundingClientRect(); [r.x, r.y, r.width].join(",")' --port "$port" | tr -d '"')
+mp key Escape
+
+cat > "$work/frame.html" <<'HTML'
+<!doctype html>
+<style>
+  html, body { margin: 0; background: #fff; }
+  .backdrop { display: flex; width: 830px; box-sizing: border-box; padding: 40px 48px 0; background: #EEF0F7; border-radius: 12px; overflow: clip; }
+  .window { position: relative; flex: 1; overflow: clip; background: #fff; border-radius: 10px 10px 0 0; box-shadow: 0 0 0 1px #1E214014, 0 24px 48px -12px #1E21402E; }
+  .window img { display: block; width: 100%; }
+  .crop { padding-top: 32px; }
+  .crop .window { height: 228px; }
+  .crop .window img { position: absolute; width: var(--width); left: var(--left); top: var(--top); }
+</style>
+<div class="backdrop"><div class="window"><img></div></div>
+<script>
+  const [image, palette] = decodeURIComponent(location.search.slice(1)).split(";")
+  document.querySelector("img").src = image
+  if (palette) {
+    const [x, y, width] = palette.split(",").map(Number)
+    const scale = 0.87, windowWidth = 734, dialogTop = 40, imageWidth = 1085 * scale
+    const backdrop = document.querySelector(".backdrop")
+    backdrop.classList.add("crop")
+    backdrop.style.setProperty("--width", `${imageWidth}px`)
+    backdrop.style.setProperty("--left", `${Math.max(windowWidth - imageWidth, windowWidth / 2 - (x + width / 2) * scale)}px`)
+    backdrop.style.setProperty("--top", `${dialogTop - y * scale}px`)
+  }
+</script>
+HTML
+
+frame() {
+  local name=$1 query=$2 height
+  mp goto "file://$work/frame.html?$query"
+  mp resize 830 1000
+  mp wait img
+  height=$(.claude/skills/verify-moneypouch/mp.mjs js \
+    'new Promise(done => document.querySelector("img").decode().then(() => done(document.querySelector(".backdrop").offsetHeight)))' --port "$port")
+  mp resize 830 "$height"
+  mp shot "$work/$name-framed.png" --scale 2
+  magick "$work/$name-framed.png" \
+    \( +clone -alpha transparent -fill white -draw "roundrectangle 0,0 %[fx:w-1],%[fx:h-1] 24,24" \) \
+    -compose CopyOpacity -composite -strip "$out/$name.png"
+}
+
+frame overview "$work/overview-raw.png"
+frame composer "$work/composer-raw.png;$palette"
+mp resize 1100 687
+mp goto /
+echo "$out/overview.png $out/composer.png"
