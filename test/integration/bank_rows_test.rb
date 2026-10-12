@@ -47,6 +47,18 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     assert_select "#bank_review", count: 0
   end
 
+  test "the overview says the banks are being checked while a sync runs" do
+    access = connect_simplefin
+    access.update!(status: :active)
+
+    get root_url
+    assert_select "section p", text: /Checking your banks/, count: 0
+
+    access.syncs.create!
+    get root_url
+    assert_select "section p", text: /Checking your banks/, count: 1
+  end
+
   test "the summary counts rows a rule or a pick already handled" do
     activate(connect_simplefin)
     grocery = Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: -13_550).transaction_id)

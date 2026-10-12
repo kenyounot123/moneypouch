@@ -74,7 +74,7 @@ class Simplefin::Access < ApplicationRecord
   end
 
   def syncing?
-    syncs.running.exists?
+    syncs.underway.exists?
   end
 
   def syncable?

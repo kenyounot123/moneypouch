@@ -5,6 +5,7 @@ class Simplefin::Sync < ApplicationRecord
   has_many :bank_transactions, foreign_key: :simplefin_sync_id, inverse_of: :simplefin_sync, dependent: :destroy
 
   scope :running, -> { where(finished_at: nil) }
+  scope :underway, -> { running.recent(STALE_AFTER) }
   scope :finished, -> { where.not(finished_at: nil) }
   scope :succeeded, -> { finished.where(failure: nil) }
   scope :answered, -> { finished.where(failure: [ nil, "lapsed", "revoked" ]) }
