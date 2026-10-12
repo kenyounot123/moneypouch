@@ -1,15 +1,27 @@
 #!/usr/bin/env bash
-# Regenerates docs/images from a running verify-moneypouch instance with clean demo data:
-#   bin/rails "dev:transactions[1550]"
-#   .claude/skills/verify-moneypouch/mp.mjs boot --port 3201
-#   script/readme_images 3201
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-port=${1:?usage: script/readme_images PORT}
-mp() { .claude/skills/verify-moneypouch/mp.mjs "$@" --port "$port" > /dev/null; }
+port=${1:-3290}
+out=$PWD/docs/images
 work=$(mktemp -d)
-out=docs/images
+app=$work/app
+driver=$app/.claude/skills/verify-moneypouch/mp.mjs
+mp() { "$driver" "$@" --port "$port" > /dev/null; }
+cleanup() {
+  "$driver" stop --port "$port" > /dev/null 2>&1 || true
+  git worktree remove --force "$app"
+}
+
+git worktree add --quiet --detach "$app" HEAD
+trap cleanup EXIT
+(
+  cd "$app"
+  bin/setup --skip-server > /dev/null
+  bin/rails "dev:transactions[1550]" > /dev/null
+  bin/rails runner 'User.find_by!(username: "demo").transactions.where(name: "Paycheck").delete_all' > /dev/null
+)
+"$driver" boot --port "$port" > /dev/null
 mkdir -p "$out"
 
 mp resize 1100 687
@@ -20,7 +32,7 @@ mp type '[aria-label="Add"]' 'Blue Bottle 6.25 yesterday'
 mp wait 'turbo-frame#voucher' --text Yesterday
 mp js 'document.querySelector("[aria-label=Add]").style.caretColor = "transparent"'
 mp shot "$work/composer-raw.png" --scale 2
-palette=$(.claude/skills/verify-moneypouch/mp.mjs js \
+palette=$("$driver" js \
   'const r = document.getElementById("palette").getBoundingClientRect(); [r.x, r.y, r.width].join(",")' --port "$port" | tr -d '"')
 mp key Escape
 
@@ -56,7 +68,7 @@ frame() {
   mp goto "file://$work/frame.html?$query"
   mp resize 830 1000
   mp wait img
-  height=$(.claude/skills/verify-moneypouch/mp.mjs js \
+  height=$("$driver" js \
     'new Promise(done => document.querySelector("img").decode().then(() => done(document.querySelector(".backdrop").offsetHeight)))' --port "$port")
   mp resize 830 "$height"
   mp shot "$work/$name-framed.png" --scale 2
@@ -67,6 +79,4 @@ frame() {
 
 frame overview "$work/overview-raw.png"
 frame composer "$work/composer-raw.png;$palette"
-mp resize 1100 687
-mp goto /
 echo "$out/overview.png $out/composer.png"
