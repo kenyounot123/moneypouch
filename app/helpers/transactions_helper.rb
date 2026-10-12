@@ -25,6 +25,16 @@ module TransactionsHelper
     )
   end
 
+  def categorization_chip(categorization)
+    if categorization.transfer?
+      tag.span safe_join([ transfer_icon(size: 12), "Transfer" ]),
+        class: "inline-flex shrink-0 items-center gap-1.25 rounded-[4px] border border-secondary px-1.75 py-px align-middle text-sm font-medium text-tertiary"
+    else
+      tag.span categorization.category.name,
+        class: "inline-block max-w-full truncate rounded-[4px] border border-secondary bg-level-3 px-1.75 py-px align-middle text-sm font-medium text-primary"
+    end
+  end
+
   def short_date(date)
     if date.year == Date.current.year
       date.strftime("%b %-d")
