@@ -66,6 +66,8 @@ class Simplefin::Sync < ApplicationRecord
       finish("revoked")
     rescue Simplefin::Unavailable
       finish("unavailable")
+    ensure
+      abandon unless finished?
     end
 
     def finish(failure = nil)

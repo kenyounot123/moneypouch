@@ -18,6 +18,7 @@ class Transaction < ApplicationRecord
 
   def self.broadcasting_once_for(user)
     suppressing_turbo_broadcasts { yield }
+  ensure
     Turbo::StreamsChannel.broadcast_refresh_to(user, :transactions)
   end
 
