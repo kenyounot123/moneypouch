@@ -23,6 +23,7 @@ trap cleanup EXIT
 )
 "$driver" boot --port "$port" > /dev/null
 mkdir -p "$out"
+magick app/assets/images/pouch.png -filter point -resize 400% -strip "$out/pouch.png"
 
 mp resize 1100 687
 mp goto /
@@ -79,4 +80,4 @@ frame() {
 
 frame overview "$work/overview-raw.png"
 frame composer "$work/composer-raw.png;$palette"
-echo "$out/overview.png $out/composer.png"
+echo "$out/pouch.png $out/overview.png $out/composer.png"
