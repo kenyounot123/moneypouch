@@ -2,6 +2,9 @@ class Simplefin::ReviewsController < ApplicationController
   before_action :set_review
 
   def show
+    @list = @review.list_named(params[:show])
+    set_page_and_extract_portion_from @review.transactions_in(@list), per_page: 50
+    @rules = Current.user.rules.latest.with_row_counts
     @category_names = Current.user.categories.alphabetically.pluck(:name)
   end
 

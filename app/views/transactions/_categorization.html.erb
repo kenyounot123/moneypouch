@@ -1,0 +1,5 @@
+<% if categorization.transfer? %>
+  <span class="flex shrink-0 items-center gap-1.25 rounded-[4px] border border-secondary px-1.75 py-px text-sm font-medium text-tertiary"><%= transfer_icon size: 12 %>Transfer</span>
+<% else %>
+  <span class="min-w-0 truncate rounded-[4px] border border-secondary bg-level-3 px-1.75 py-px text-sm font-medium"><%= categorization.category.name %></span>
+<% end %>

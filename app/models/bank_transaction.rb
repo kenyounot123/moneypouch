@@ -7,8 +7,16 @@ class BankTransaction < ApplicationRecord
   scope :matched, -> { where(matched: true) }
   scope :imported, -> { where(matched: false) }
 
+  def self.count_by_account_and_name
+    imported.where(transaction_id: Transaction.kept.select(:id)).group(:bank_account_id, :name_key).count
+  end
+
   def remember(categorization)
-    bank_account.remember(name_key, categorization)
+    bank_account.remember(name, categorization)
+  end
+
+  def name
+    BankTransaction::Name.new(payee:, description:)
   end
 
   def imported?

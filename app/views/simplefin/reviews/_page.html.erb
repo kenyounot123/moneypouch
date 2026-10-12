@@ -1,0 +1,11 @@
+<%= turbo_frame_tag list, :page, page.number, target: "_top" do %>
+  <% page.records.each do |transaction| %>
+    <%= render "transactions/transaction", transaction:, field: true, account: true %>
+  <% end %>
+  <% if page.first? && page.records.empty? %>
+    <li class="py-3 pl-5 text-sm text-tertiary"><%= review_list_empty list %></li>
+  <% end %>
+  <% if page.before_last? %>
+    <%= turbo_frame_tag list, :page, page.number + 1, src: simplefin_review_path(show: list, page: page.next_param), loading: :lazy, refresh: :morph, target: "_top" %>
+  <% end %>
+<% end %>

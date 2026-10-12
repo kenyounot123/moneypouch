@@ -1,0 +1,26 @@
+<section class="flex min-w-0 flex-1 flex-col lg:sticky lg:top-9 lg:max-h-[calc(100dvh-72px)] lg:overflow-y-auto">
+  <div class="flex h-12.25 shrink-0 items-center justify-between border-b border-secondary pb-3">
+    <h2 class="font-pixel text-lg font-semibold tracking-pixel">Rules</h2>
+    <p class="text-sm text-tertiary"><%= rules.size %></p>
+  </div>
+  <p class="pt-3 pb-2 text-sm text-tertiary">Bank transactions with these names get that category.</p>
+
+  <ul class="flex flex-col">
+    <% rules.each do |rule, rows| %>
+      <li class="flex items-center gap-3 border-b border-secondary px-2 py-3 last:border-b-0 <%= "bg-highlight/14" if rule_just_made?(rule) %>">
+        <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+          <p class="flex min-w-0 items-center gap-2">
+            <span class="truncate font-medium">“<%= rule.name %>”</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" class="shrink-0 text-tertiary" aria-hidden="true"><path d="M2 7h10M8.5 3.5L12 7l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <%= render "transactions/categorization", categorization: rule.categorization %>
+          </p>
+          <p class="truncate text-sm text-tertiary"><%= rule_summary rule, rows %></p>
+        </div>
+        <%= button_to "Forget", bank_account_rule_path(rule.bank_account, rule), method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+      </li>
+    <% end %>
+    <% if rules.empty? %>
+      <li class="py-3 text-sm text-tertiary">Rules you make show up here.</li>
+    <% end %>
+  </ul>
+</section>

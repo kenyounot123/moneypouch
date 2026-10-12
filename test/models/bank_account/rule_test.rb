@@ -14,7 +14,7 @@ class BankAccount::RuleTest < ActiveSupport::TestCase
 
     assert_equal [ "Groceries", "Groceries" ], categories_of("Demo Savings", "grocery store")
     assert_equal [ nil, nil ], categories_of("Demo Checking", "grocery store")
-    assert_equal [ [ "grocery store", "Groceries", false ] ], rules
+    assert_equal [ [ "Grocery store", "grocery store", "Groceries", false ] ], rules
   end
 
   test "a rule never overwrites a category or a transfer" do
@@ -30,7 +30,7 @@ class BankAccount::RuleTest < ActiveSupport::TestCase
     imported("Demo Savings", -13_550).categorize(Transaction::Categorization.new(category: @groceries))
     imported("Demo Savings", -13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
 
-    assert_equal [ [ "grocery store", "Food", false ] ], rules
+    assert_equal [ [ "Grocery store", "grocery store", "Food", false ] ], rules
     assert_equal "Groceries", imported("Demo Savings", -13_000).category.name
   end
 
@@ -82,6 +82,6 @@ class BankAccount::RuleTest < ActiveSupport::TestCase
     end
 
     def rules
-      BankAccount::Rule.order(:id).map { |rule| [ rule.name_key, rule.category&.name, rule.transfer ] }
+      BankAccount::Rule.order(:id).map { |rule| [ rule.name, rule.name_key, rule.category&.name, rule.transfer ] }
     end
 end

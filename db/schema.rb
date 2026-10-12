@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_11_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_11_160000) do
   create_table "bank_account_rules", force: :cascade do |t|
     t.integer "bank_account_id", null: false
     t.string "name_key", null: false
@@ -18,6 +18,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_150000) do
     t.boolean "transfer", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "name", null: false
     t.index ["bank_account_id", "name_key"], name: "index_bank_account_rules_on_bank_account_id_and_name_key", unique: true
     t.index ["category_id"], name: "index_bank_account_rules_on_category_id"
     t.check_constraint "(category_id IS NULL) = transfer", name: "rule_is_a_category_or_a_transfer"
