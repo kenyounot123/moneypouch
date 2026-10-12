@@ -1,6 +1,9 @@
 require "test_helper"
+require "turbo/broadcastable/test_helper"
 
 class Simplefin::SyncTest < ActiveSupport::TestCase
+  include Turbo::Broadcastable::TestHelper
+
   setup do
     travel_to Time.utc(2026, 10, 6, 18)
     @user = users(:one)
@@ -192,6 +195,29 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert_equal "unavailable", access.syncs.last.failure
     assert_equal synced_at, access.last_synced_at
     assert_equal Time.utc(2026, 10, 6, 18), synced_at
+  end
+
+  test "a sync that crashes still ends" do
+    access = connect_simplefin
+    activate(access)
+    access.update!(access_url: "https://demo:secret@beta bridge.simplefin.org/simplefin")
+    sync = access.syncs.create!
+
+    assert_raises(URI::InvalidURIError) { sync.run_now }
+
+    assert_equal [ "abandoned", true ], [ sync.reload.failure, sync.finished? ]
+    assert_not access.syncing?
+  end
+
+  test "a sync that crashes still refreshes the user's pages" do
+    access = connect_simplefin
+    activate(access)
+    access.update!(access_url: "https://demo:secret@beta bridge.simplefin.org/simplefin")
+    sync = access.syncs.create!
+
+    assert_turbo_stream_broadcasts [ @user, :transactions ], count: 1 do
+      assert_raises(URI::InvalidURIError) { sync.run_now }
+    end
   end
 
   test "SimpleFIN's error reaches each account it names and clears once fixed" do
