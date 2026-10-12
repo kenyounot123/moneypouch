@@ -10,5 +10,6 @@ class WelcomeController < ApplicationController
     @period = Period.new(params[:period], today: Date.current)
     @spending = Spending.new(transactions, @period)
     @review = Current.user.simplefin_access&.review
+    @syncing = Current.user.simplefin_access&.syncing?
   end
 end

@@ -83,6 +83,15 @@
           <section class="flex min-w-0 flex-col gap-1">
             <div class="flex items-baseline justify-between border-b border-secondary pb-3">
               <h2 class="font-pixel text-lg font-semibold tracking-pixel">Recent</h2>
+              <% if @syncing %>
+                <p class="flex items-center gap-1.5 text-sm text-tertiary">
+                  <svg class="size-3 shrink-0 animate-spin" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                    <circle class="opacity-30" cx="7" cy="7" r="5.5" />
+                    <path d="M7 1.5a5.5 5.5 0 0 1 5.5 5.5" />
+                  </svg>
+                  Checking your banks
+                </p>
+              <% end %>
             </div>
 
             <ul class="flex flex-col gap-1" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>">

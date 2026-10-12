@@ -68,6 +68,23 @@ class Simplefin::AccessTest < ActiveSupport::TestCase
     assert_equal "abandoned", stuck.reload.failure
   end
 
+  test "syncing is true only for a running sync that is not stale" do
+    access = connect_simplefin
+    access.syncs.create!
+
+    assert_equal true, access.syncing?
+
+    travel 16.minutes
+    assert_equal false, access.syncing?
+
+    access.syncs.abandon_stale
+    access.syncs.create!
+    assert_equal true, access.syncing?
+
+    access.syncs.underway.each(&:abandon)
+    assert_equal false, access.syncing?
+  end
+
   test "the hourly sweep syncs only accesss with no sync in the last 23 hours" do
     access = connect_simplefin
     activate(access)
