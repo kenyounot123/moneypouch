@@ -43,7 +43,27 @@ Most finance apps want you to budget. MoneyPouch only asks what you spent, and m
 
 ## Quickstart
 
-Run it with Docker Compose in an empty folder.
+Pick one of two ways to run MoneyPouch.
+
+### Install with ONCE
+
+Use [ONCE](https://github.com/basecamp/once) on Linux or macOS. This is the recommended way.
+
+1. Install ONCE.
+
+   ```bash
+   curl https://get.once.com | sh
+   ```
+
+2. In the ONCE dashboard, choose to install from a Docker image.
+3. Enter the image `ghcr.io/kenyounot123/moneypouch:latest`.
+4. Enter a hostname. If you point a domain at the machine, ONCE sets up HTTPS for it. `moneypouch.localhost` works on this machine only.
+
+ONCE creates and keeps the secret key for you, backs up your data daily and keeps 30 days of backups, and installs updates.
+
+### Install with Docker Compose
+
+Use Docker Compose on any system that runs Docker, including Windows. Run these commands in an empty folder.
 
 ```bash
 curl -O https://raw.githubusercontent.com/kenyounot123/moneypouch/main/compose.yaml
@@ -53,7 +73,11 @@ docker compose up -d
 
 Then open `localhost:8080` and create your account.
 
-To upgrade, back up the `moneypouch-data` volume and run `docker compose pull && docker compose up -d`.
+The second command creates the `.env` file. `openssl rand -hex 64` prints 64 random bytes as 128 hex characters. Rails uses `SECRET_KEY_BASE` to sign the cookie that keeps you signed in, and to derive the key that encrypts your SimpleFIN connection.
+
+The value must be secret and random, so nobody can forge a sign-in. It must also stay the same. If you lose or change `.env`, everyone is signed out and you must reconnect SimpleFIN. Keep `.env` next to `compose.yaml` and back it up with your data.
+
+To upgrade, back up the `moneypouch-data` volume and the `.env` file. Then run `docker compose pull && docker compose up -d`.
 
 ## Contributing
 
