@@ -39,7 +39,7 @@ Most finance apps want you to budget. MoneyPouch only asks what you spent, and m
 </p>
 
 | | You type | MoneyPouch reads |
-| --- | --- | --- |
+| :--- | :--- | :--- |
 | **Amount** | `6.25` `$6.25` `1,650` | Money out |
 | **Money in** | `+2000` | Income, not spending |
 | **Date** | `yesterday` `sep 26` `friday` | That day, or today if left out |
