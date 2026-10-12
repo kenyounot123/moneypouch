@@ -29,7 +29,7 @@ mp resize 1100 687
 mp goto /
 mp shot "$work/overview-raw.png" --scale 2
 mp key Meta+k
-mp type '[aria-label="Add"]' 'Blue Bottle 6.25 yesterday'
+mp type '[aria-label="Add"]' 'Chipotle 11.25 yesterday'
 mp wait 'turbo-frame#voucher' --text Yesterday
 mp js 'document.querySelector("[aria-label=Add]").style.caretColor = "transparent"'
 mp shot "$work/composer-raw.png" --scale 2
