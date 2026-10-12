@@ -6,6 +6,7 @@ class BankAccounts::RulesControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(users(:one))
     activate(connect_simplefin)
     imported(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
+    imported(-13_550).make_rule
     @rule = BankAccount::Rule.sole
   end
 

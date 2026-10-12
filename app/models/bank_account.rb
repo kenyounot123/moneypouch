@@ -35,6 +35,10 @@ class BankAccount < ApplicationRecord
     end
   end
 
+  def remembers?(name_key, categorization)
+    rules.find_by(name_key:)&.categorization == categorization
+  end
+
   def transactions_named(name_key)
     Transaction.where(id: bank_transactions.imported.where(name_key:).select(:transaction_id))
   end

@@ -63,6 +63,7 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     activate(connect_simplefin)
     grocery = Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: -13_550).transaction_id)
     grocery.categorize(Transaction::Categorization.new(category: categories(:food)))
+    grocery.make_rule
     Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: -1_000).transaction_id).categorize(Transaction::Categorization.transfer)
 
     get root_url

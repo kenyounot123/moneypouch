@@ -28,10 +28,24 @@ module TransactionsHelper
   def categorization_chip(categorization)
     if categorization.transfer?
       tag.span safe_join([ transfer_icon(size: 12), "Transfer" ]),
-        class: "inline-flex shrink-0 items-center gap-1.25 rounded-[4px] border border-secondary px-1.75 py-px align-middle text-sm font-medium text-tertiary"
+        class: "inline-flex shrink-0 items-center gap-1.25 rounded-[4px] border border-secondary px-1.75 py-px text-sm font-medium text-tertiary"
     else
       tag.span categorization.category.name,
-        class: "inline-block max-w-full truncate rounded-[4px] border border-secondary bg-level-3 px-1.75 py-px align-middle text-sm font-medium text-primary"
+        class: "inline-block rounded-[4px] border border-secondary bg-level-3 px-1.75 py-px text-sm font-medium text-primary"
+    end
+  end
+
+  def offering_rule?(transaction)
+    flash[:categorized_id] == transaction.id && transaction.offers_rule?
+  end
+
+  def rule_reach(transaction)
+    waiting = transaction.waiting_namesake_count
+
+    if waiting.zero?
+      "Applies to future syncs."
+    else
+      "#{waiting} more waiting now, plus future syncs."
     end
   end
 

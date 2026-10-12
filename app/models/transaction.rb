@@ -80,13 +80,21 @@ class Transaction < ApplicationRecord
   end
 
   def categorize(categorization)
-    transaction do
-      update!(category: categorization.category, transfer: categorization.transfer?)
+    update!(category: categorization.category, transfer: categorization.transfer?)
+  end
 
-      if imported? && !categorization.none?
-        bank_transaction.remember(categorization)
-      end
+  def offers_rule?
+    imported? && !categorization.none? && !bank_transaction.remembers?(categorization)
+  end
+
+  def make_rule
+    if imported? && !categorization.none?
+      bank_transaction.remember(categorization)
     end
+  end
+
+  def waiting_namesake_count
+    bank_transaction.namesakes.needing_category.count
   end
 
   def discard

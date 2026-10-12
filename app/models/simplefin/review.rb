@@ -33,9 +33,9 @@ class Simplefin::Review
     end
   end
 
-  def transactions_in(list)
+  def transactions_in(list, including: nil)
     if LISTS.include?(list)
-      public_send(list)
+      public_send(list).or(transactions.where(id: including))
     else
       raise ArgumentError, "no #{list} list in a review"
     end
