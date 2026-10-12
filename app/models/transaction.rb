@@ -5,6 +5,8 @@ class Transaction < ApplicationRecord
 
   MATCH_WINDOW = -5..1
 
+  normalizes :note, with: ->(note) { note.strip.presence }
+
   broadcasts_refreshes_to ->(transaction) { [ transaction.user, :transactions ] }
 
   scope :kept, -> { where(discarded_at: nil) }
