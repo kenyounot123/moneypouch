@@ -1,7 +1,4 @@
-<h1 align="center">
-  <img src="public/icon.svg" width="96" height="96" alt="The MoneyPouch pouch"><br>
-  MoneyPouch
-</h1>
+<h1 align="center"><img src="public/icon.svg" width="96" height="96" alt="The MoneyPouch pouch"><br>MoneyPouch</h1>
 
 <p align="center">A free, self-hosted expense tracker with the fastest manual entry around.</p>
 
