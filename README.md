@@ -31,7 +31,7 @@ I was first using Excel to track my expenses via a simple layout that summed up 
 ## Type it like you'd say it
 
 <p align="center">
-  <img src="docs/images/composer.png" alt="The composer reads Blue Bottle 6.25 yesterday as $6.25 at Blue Bottle, in Food, yesterday">
+  <img src="docs/images/composer.png" alt="The composer reads Chipotle 11.25 yesterday as $11.25 at Chipotle, in Food, yesterday">
 </p>
 
 | | You type | MoneyPouch reads |
@@ -39,11 +39,11 @@ I was first using Excel to track my expenses via a simple layout that summed up 
 | **Amount** | `6.25` `$6.25` `1,650` | this is an expense/spending |
 | **Money in** | `+2000` | income, not spending |
 | **Date** | `yesterday` `sep 26` `friday` | that day, or today if left out |
-| **Category** | `#food` | food, or the latest transaction with that name's last category |
+| **Category** | `#food` | food, or if left out, the category you last used for that name |
 
 ## Bank sync with SimpleFIN
 
-Bank sync is optional but highly recommended. When you turn it on, MoneyPouch reads your transactions through [SimpleFIN](https://www.simplefin.org/), an open protocol for sharing read-only financial data with apps. Some reasons as to why you might trust simplefin.
+Bank sync is optional but highly recommended. When you turn it on, MoneyPouch reads your transactions through [SimpleFIN](https://www.simplefin.org/), an open protocol for sharing read-only financial data with apps. Here is why you can trust SimpleFIN:
 
 1. **Read-only.** The [protocol](https://www.simplefin.org/protocol.html) has no way to move money. MoneyPouch can see your transactions, and that's all.
 2. **Your bank login never reaches MoneyPouch.** You add your bank on the [SimpleFIN Bridge](https://bridge.simplefin.org), not in MoneyPouch. The Bridge hands bank connections to [MX](https://www.mx.com/) and says bank credentials never touch its own servers ([security](https://beta-bridge.simplefin.org/info/security)).
