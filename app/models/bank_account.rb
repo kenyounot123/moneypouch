@@ -27,10 +27,10 @@ class BankAccount < ApplicationRecord
     update!(status: :skipped)
   end
 
-  def remember(name_key, categorization)
+  def remember(name, categorization)
     transaction do
-      rule = rules.find_or_initialize_by(name_key:)
-      rule.update!(category: categorization.category, transfer: categorization.transfer?)
+      rule = rules.find_or_initialize_by(name_key: name.key)
+      rule.update!(name: name.to_s, category: categorization.category, transfer: categorization.transfer?)
       rule.apply_to_uncategorized
     end
   end

@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :discarded_transactions, -> { discarded }, class_name: "Transaction"
   has_many :categories, dependent: :destroy
   has_many :bank_accounts, dependent: :destroy
+  has_many :rules, through: :bank_accounts, class_name: "BankAccount::Rule"
 
   has_one :simplefin_access, class_name: "Simplefin::Access", dependent: :destroy
 

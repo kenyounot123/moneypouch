@@ -15,6 +15,8 @@ class Transaction < ApplicationRecord
   scope :listed, -> { latest.includes(:category, :bank_transaction) }
   scope :matchable, -> { where.missing(:bank_transaction) }
   scope :needing_category, -> { kept.where(category_id: nil, transfer: false) }
+  scope :categorized, -> { where.not(category_id: nil) }
+  scope :transfers, -> { where(transfer: true) }
 
   def self.broadcasting_once_for(user)
     suppressing_turbo_broadcasts { yield }

@@ -13,7 +13,9 @@ Rails.application.routes.draw do
     resource :sync, only: :create
     resource :review, only: %i[ show update ]
   end
-  resources :bank_accounts, only: :update
+  resources :bank_accounts, only: :update do
+    resources :rules, only: :destroy, module: :bank_accounts
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

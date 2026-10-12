@@ -1,4 +1,6 @@
 class Simplefin::Review
+  LISTS = %w[ needing_category categorized transfers ].freeze
+
   def initialize(syncs)
     @syncs = syncs.unreviewed
   end
@@ -8,19 +10,35 @@ class Simplefin::Review
   end
 
   def count
-    transactions.size
+    transactions.count
   end
 
   def needing_category
-    transactions.select(&:needs_category?)
+    transactions.needing_category
   end
 
   def categorized
-    transactions.select(&:category)
+    transactions.categorized
   end
 
   def transfers
-    transactions.select(&:transfer?)
+    transactions.transfers
+  end
+
+  def list_named(name)
+    if LISTS.include?(name)
+      name
+    else
+      LISTS.find { |list| transactions_in(list).exists? } || LISTS.first
+    end
+  end
+
+  def transactions_in(list)
+    if LISTS.include?(list)
+      public_send(list)
+    else
+      raise ArgumentError, "no #{list} list in a review"
+    end
   end
 
   def complete
@@ -29,6 +47,6 @@ class Simplefin::Review
 
   private
     def transactions
-      @transactions ||= @syncs.imported_transactions.listed.includes(bank_transaction: :bank_account).to_a
+      @syncs.imported_transactions.listed.includes(bank_transaction: :bank_account)
     end
 end

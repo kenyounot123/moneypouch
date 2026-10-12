@@ -7,6 +7,8 @@ module SimplefinHelper
 
   HEADER_BUTTON = "cursor-pointer text-sm font-medium text-secondary hover:text-primary disabled:cursor-default disabled:text-tertiary"
 
+  REVIEW_LISTS = { "needing_category" => "Need a category", "categorized" => "Categorized for you", "transfers" => "Transfers" }
+
   def link_to_simplefin(label, url = SIMPLEFIN_URL)
     link_to url, target: "_blank", rel: "noopener", class: OUTLINE_BUTTON do
       safe_join [ label, external_arrow ]
@@ -47,6 +49,22 @@ module SimplefinHelper
     else
       "Synced #{short_date time.to_date}"
     end
+  end
+
+  def review_list_empty(list)
+    case list
+    when "needing_category" then "Every row has a category."
+    when "categorized" then "Nothing was categorized for you."
+    else "No transfers."
+    end
+  end
+
+  def rule_just_made?(rule)
+    rule.updated_at > 1.minute.ago
+  end
+
+  def rule_summary(rule, rows)
+    [ rule.bank_account_name, pluralize(rows, "row"), ("just now" if rule_just_made?(rule)) ].compact.join(" · ")
   end
 
   def simplefin_review_summary(review)
