@@ -10,6 +10,16 @@ class WelcomeController < ApplicationController
     @period = Period.new(params[:period], today: Date.current)
     @spending = Spending.new(transactions, @period)
     @review = Current.user.simplefin_access&.review
+    @review_rows = review_rows
     @syncing = Current.user.simplefin_access&.syncing?
   end
+
+  private
+    def review_rows
+      if @review&.pending?
+        @review.transactions_in("needing_category", including: flash[:categorized_id]).first(3)
+      else
+        []
+      end
+    end
 end

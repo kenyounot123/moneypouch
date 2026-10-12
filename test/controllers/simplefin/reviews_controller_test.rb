@@ -9,6 +9,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
 
   test "opens on the rows that need a category, with each list's count in its tab" do
     imported(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
+    imported(-13_550).make_rule
     imported(-1_000).categorize(Transaction::Categorization.transfer)
 
     get simplefin_review_url
@@ -64,8 +65,10 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
 
   test "lists rules newest first with the bank account and the rows they cover" do
     imported(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
+    imported(-13_550).make_rule
     travel 2.minutes
     imported(-1_000).categorize(Transaction::Categorization.transfer)
+    imported(-1_000).make_rule
 
     get simplefin_review_url
 

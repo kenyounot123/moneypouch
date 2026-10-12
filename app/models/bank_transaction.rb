@@ -15,6 +15,14 @@ class BankTransaction < ApplicationRecord
     bank_account.remember(name, categorization)
   end
 
+  def remembers?(categorization)
+    bank_account.remembers?(name_key, categorization)
+  end
+
+  def namesakes
+    bank_account.transactions_named(name_key)
+  end
+
   def name
     BankTransaction::Name.new(payee:, description:)
   end

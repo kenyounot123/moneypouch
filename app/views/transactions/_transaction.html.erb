@@ -1,5 +1,6 @@
 <% field = local_assigns[:field] && transaction.needs_category? %>
-<li id="<%= dom_id transaction %>" class="relative flex items-center gap-3 border-b border-secondary py-3 last:border-b-0">
+<% offering_rule = local_assigns.fetch(:offer_rule, true) && offering_rule?(transaction) %>
+<li id="<%= dom_id transaction %>" class="relative flex items-center gap-3 border-b border-secondary py-3 last:border-b-0 <%= "flex-wrap" if offering_rule %>">
   <div class="flex w-2 shrink-0 justify-center">
     <% if local_assigns[:marked] || transaction.needs_category? %>
       <div class="size-1.5 rounded-[1px] bg-highlight"></div>
@@ -33,4 +34,7 @@
     <% end %>
   </div>
   <%= yield %>
+  <% if offering_rule %>
+    <%= render "transactions/rule_offer", transaction: %>
+  <% end %>
 </li>

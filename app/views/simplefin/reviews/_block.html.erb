@@ -6,9 +6,9 @@
     <% end %>
   </div>
 
-  <% if needing.any? %>
+  <% if rows.any? %>
     <ul class="flex flex-col">
-      <% needing.first(3).each do |transaction| %>
+      <% rows.each do |transaction| %>
         <%= render "transactions/transaction", transaction:, field: true %>
       <% end %>
     </ul>
