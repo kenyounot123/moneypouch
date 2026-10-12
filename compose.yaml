@@ -1,11 +1,11 @@
 services:
   app:
     image: ghcr.io/kenyounot123/moneypouch:latest
+    restart: unless-stopped
     ports:
       - "8080:80"
     environment:
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Set SECRET_KEY_BASE in .env}
-      SOLID_QUEUE_IN_PUMA: "true"
     volumes:
       - moneypouch-data:/rails/storage
 
