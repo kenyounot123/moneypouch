@@ -4,8 +4,10 @@
   "packages": {
     ".": {
       "release-type": "simple",
+      "package-name": "moneypouch",
+      "initial-version": "0.1.0",
       "bump-minor-pre-major": true,
-      "package-name": "moneypouch"
+      "include-component-in-tag": false
     }
   }
 }
