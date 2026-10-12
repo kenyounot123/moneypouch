@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/kenyounot123/moneypouch/compare/v0.1.0...v0.2.0) (2026-10-12)
+
+
+### Features
+
+* **docker:** support installing with ONCE ([#69](https://github.com/kenyounot123/moneypouch/issues/69)) ([a38481a](https://github.com/kenyounot123/moneypouch/commit/a38481a3e79838003b24514f9d7f22404cd662c1))
+
 ## 0.1.0 (2026-10-12)
 
 
