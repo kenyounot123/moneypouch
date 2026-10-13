@@ -1,1 +1,16 @@
+version: 0.11.0
 framework: actionview
+
+linter:
+  enabled: true
+  rules:
+    html-no-space-in-tag:
+      enabled: false
+    html-no-nested-forms:
+      enabled: false
+    erb-no-output-in-attribute-name:
+      enabled: false
+    actionview-prefer-collection-render:
+      enabled: false
+    erb-require-trailing-newline:
+      enabled: false

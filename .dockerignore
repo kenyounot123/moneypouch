@@ -49,3 +49,6 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Ignore Node packages; they are only needed to lint templates.
+/node_modules
