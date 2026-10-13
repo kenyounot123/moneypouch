@@ -12,7 +12,7 @@
           <% if voucher.completion %>
             <% typed_length = voucher.shorthand.lstrip.length %>
             <span class="min-w-0 truncate"><%= voucher.completion[0, typed_length] %><span class="font-normal text-tertiary"><%= voucher.completion[typed_length..] %></span></span>
-            <span class="ml-1 shrink-0 rounded-sm border border-primary bg-level-2 px-1.5 font-mono text-xs leading-[14px] font-normal text-secondary">Tab</span>
+            <span class="ml-1 shrink-0 rounded-sm border border-primary bg-level-2 px-1.5 font-mono text-xs leading-3.5 font-normal text-secondary">Tab</span>
           <% elsif voucher.name.present? %>
             <span class="min-w-0 truncate"><%= voucher.name %></span>
           <% else %>
