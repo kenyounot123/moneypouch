@@ -36,10 +36,10 @@
         <p class="text-sm text-tertiary">Days before this stay as you typed them.</p>
       </div>
       <div role="radiogroup" aria-label="Start from" class="ml-auto flex w-[220px] shrink-0 gap-1 rounded-md bg-level-3 p-1">
-        <% { "today" => "Today", "90_days" => "90 days ago" }.each do |history, label| %>
+        <% { "today" => "Today", "90_days" => "90 days ago" }.each do |history, title| %>
           <label class="flex-1 cursor-pointer rounded-sm px-3 py-1.5 text-center text-sm whitespace-nowrap text-secondary has-checked:bg-level-2 has-checked:font-medium has-checked:text-primary has-checked:shadow-control has-focus-visible:ring-3 has-focus-visible:ring-focus/22">
             <%= form.radio_button :history, history, checked: history == "today", class: "sr-only" %>
-            <%= label %>
+            <%= title %>
           </label>
         <% end %>
       </div>

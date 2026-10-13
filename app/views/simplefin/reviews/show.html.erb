@@ -21,10 +21,10 @@
       <div class="flex flex-col gap-14 lg:flex-row lg:items-start">
         <section class="flex min-w-0 flex-[1.3] flex-col gap-3">
           <nav class="flex flex-wrap gap-1 self-start rounded-[10px] bg-level-3 p-1" aria-label="Lists">
-            <% SimplefinHelper::REVIEW_LISTS.each do |list, label| %>
+            <% SimplefinHelper::REVIEW_LISTS.each do |list, title| %>
               <%= link_to simplefin_review_path(show: list), aria: { current: list == @list ? "true" : nil },
                 class: [ "flex shrink-0 items-baseline gap-2 rounded-sm px-3 py-1.5 text-sm whitespace-nowrap", list == @list ? "bg-level-2 font-medium text-primary shadow-control" : "text-secondary hover:text-primary" ] do %>
-                <%= label %>
+                <%= title %>
                 <span class="font-mono text-xs font-normal text-tertiary"><%= @review.transactions_in(list).count %></span>
               <% end %>
             <% end %>

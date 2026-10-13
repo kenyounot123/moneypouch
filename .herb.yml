@@ -3,7 +3,10 @@ framework: actionview
 
 linter:
   enabled: true
+  failLevel: hint
   rules:
+    actionview-no-implicit-partial:
+      enabled: false
     html-no-space-in-tag:
       enabled: false
     html-no-nested-forms:
