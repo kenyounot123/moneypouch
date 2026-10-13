@@ -12,9 +12,9 @@ class RuleOfferTest < ActionDispatch::IntegrationTest
 
     pick grocery, category: "Food"
 
-    assert_nil BankAccount::Rule.first
+    assert_nil Rule.first
     assert_select "li#transaction_#{grocery.id} p", text: "Always put transactions named “Grocery store” in the Food category?"
-    assert_select "li#transaction_#{grocery.id} p", text: "1 more waiting now, plus future syncs."
+    assert_select "li#transaction_#{grocery.id} p", text: "3 more waiting now, plus future syncs."
     assert_select "li#transaction_#{grocery.id} button[data-action='dismiss#dismiss']", text: "Just this one"
     assert_select "li#transaction_#{grocery.id} form[action=?] button", transaction_rule_path(grocery), text: "Make a rule"
     assert_select "[data-controller=dismiss]", 1
@@ -29,7 +29,7 @@ class RuleOfferTest < ActionDispatch::IntegrationTest
     pick shack, transfer: "1"
 
     assert_select "li#transaction_#{shack.id} p", text: "Always mark transactions named “John's Fishin Shack” as Transfer?"
-    assert_select "li#transaction_#{shack.id} p", text: "Applies to future syncs."
+    assert_select "li#transaction_#{shack.id} p", text: "2 more waiting now, plus future syncs."
   end
 
   test "the picked row stays in its list so the question has a place" do

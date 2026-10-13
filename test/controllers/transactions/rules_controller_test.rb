@@ -9,13 +9,13 @@ class Transactions::RulesControllerTest < ActionDispatch::IntegrationTest
     @grocery.categorize(Transaction::Categorization.new(category: categories(:food)))
   end
 
-  test "Make a rule saves the row's pick for its name and fills that account's waiting rows" do
+  test "Make a rule saves the row's pick for its name and fills same-name waiting rows on every account" do
     post transaction_rule_url(@grocery), headers: { "HTTP_REFERER" => simplefin_review_url }
 
     assert_redirected_to simplefin_review_url
-    assert_equal [ [ "Grocery store", "Food" ] ], BankAccount::Rule.all.map { [ _1.name, _1.category.name ] }
+    assert_equal [ [ "Grocery store", "Food" ] ], Rule.all.map { [ _1.name, _1.category.name ] }
     assert_equal "Food", imported(-13_000).category.name
-    assert_nil imported(-17_667).category
+    assert_equal "Food", imported(-17_667).category.name
   end
 
   test "another user's transaction is not found" do
@@ -24,7 +24,7 @@ class Transactions::RulesControllerTest < ActionDispatch::IntegrationTest
     post transaction_rule_url(@grocery)
 
     assert_response :not_found
-    assert_equal 0, BankAccount::Rule.count
+    assert_equal 0, Rule.count
   end
 
   private

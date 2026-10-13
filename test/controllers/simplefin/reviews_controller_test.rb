@@ -14,9 +14,9 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
 
     get simplefin_review_url
 
-    assert_equal [ "Need a category 6", "Categorized for you 2", "Transfers 1" ], css_select("nav[aria-label=Lists] a").map { _1.text.squish }
+    assert_equal [ "Need a category 4", "Categorized for you 4", "Transfers 1" ], css_select("nav[aria-label=Lists] a").map { _1.text.squish }
     assert_select "nav[aria-label=Lists] a[aria-current=true]", text: /Need a category/
-    assert_select "turbo-frame#needing_category_page_1 li", 6
+    assert_select "turbo-frame#needing_category_page_1 li", 4
     assert_select "turbo-frame#needing_category_page_1 li:first-child", text: /Category\s+· Oct 3\s+· SimpleFIN Checking/
     assert_select "li#transaction_#{transactions(:coffee).id}", count: 0
   end
@@ -63,7 +63,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#needing_category_page_3", count: 0
   end
 
-  test "lists rules newest first with the bank account and the rows they cover" do
+  test "lists rules newest first and the rows they cover" do
     imported(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
     imported(-13_550).make_rule
     travel 2.minutes
@@ -73,7 +73,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
     get simplefin_review_url
 
     assert_select "section h2", "Rules"
-    assert_equal [ "“John's Fishin Shack” Transfer SimpleFIN Savings · 1 row · just now Forget", "“Grocery store” Food SimpleFIN Savings · 2 rows Forget" ],
+    assert_equal [ "“John's Fishin Shack” Transfer 3 rows · just now Forget", "“Grocery store” Food 4 rows Forget" ],
       css_select("section:has(h2) ul li").map { _1.text.squish }
     assert_select "li.bg-highlight\\/14", 1
   end
