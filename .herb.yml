@@ -9,8 +9,6 @@ linter:
       enabled: false
     html-no-space-in-tag:
       enabled: false
-    html-no-nested-forms:
-      enabled: false
     erb-no-output-in-attribute-name:
       enabled: false
     actionview-prefer-collection-render:
