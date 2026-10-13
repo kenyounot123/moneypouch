@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/kenyounot123/moneypouch/compare/v0.3.0...v0.4.0) (2026-10-13)
+
+
+### Features
+
+* **transactions:** turn /transactions into a month ledger ([#78](https://github.com/kenyounot123/moneypouch/issues/78)) ([131a5d8](https://github.com/kenyounot123/moneypouch/commit/131a5d874e70ab9024305bc04c4e72f85d47014c))
+
 ## [0.3.0](https://github.com/kenyounot123/moneypouch/compare/v0.2.0...v0.3.0) (2026-10-13)
 
 
