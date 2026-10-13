@@ -7,8 +7,6 @@ linter:
   rules:
     actionview-no-implicit-partial:
       enabled: false
-    html-no-space-in-tag:
-      enabled: false
     erb-no-output-in-attribute-name:
       enabled: false
     actionview-prefer-collection-render:
