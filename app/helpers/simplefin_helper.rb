@@ -64,7 +64,7 @@ module SimplefinHelper
   end
 
   def rule_summary(rule, rows)
-    [ rule.bank_account_name, pluralize(rows, "row"), ("just now" if rule_just_made?(rule)) ].compact.join(" · ")
+    [ pluralize(rows, "row"), ("just now" if rule_just_made?(rule)) ].compact.join(" · ")
   end
 
   def simplefin_review_summary(review)

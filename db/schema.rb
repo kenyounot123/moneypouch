@@ -10,20 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_12_012807) do
-  create_table "bank_account_rules", force: :cascade do |t|
-    t.integer "bank_account_id", null: false
-    t.string "name_key", null: false
-    t.integer "category_id"
-    t.boolean "transfer", default: false, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "name", null: false
-    t.index ["bank_account_id", "name_key"], name: "index_bank_account_rules_on_bank_account_id_and_name_key", unique: true
-    t.index ["category_id"], name: "index_bank_account_rules_on_category_id"
-    t.check_constraint "(category_id IS NULL) = transfer", name: "rule_is_a_category_or_a_transfer"
-  end
-
+ActiveRecord::Schema[8.1].define(version: 2026_10_13_120000) do
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -66,6 +53,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_012807) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index "user_id, lower(name)", name: "index_categories_on_user_id_and_lower_name", unique: true
+  end
+
+  create_table "rules", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "name_key", null: false
+    t.string "name", null: false
+    t.integer "category_id"
+    t.boolean "transfer", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_rules_on_category_id"
+    t.index ["user_id", "name_key"], name: "index_rules_on_user_id_and_name_key", unique: true
+    t.check_constraint "(category_id IS NULL) = transfer", name: "rule_is_a_category_or_a_transfer"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -128,14 +128,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_012807) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
-  add_foreign_key "bank_account_rules", "bank_accounts", on_delete: :cascade
-  add_foreign_key "bank_account_rules", "categories", on_delete: :cascade
   add_foreign_key "bank_accounts", "simplefin_accesses"
   add_foreign_key "bank_accounts", "users"
   add_foreign_key "bank_transactions", "bank_accounts"
   add_foreign_key "bank_transactions", "simplefin_syncs"
   add_foreign_key "bank_transactions", "transactions"
   add_foreign_key "categories", "users"
+  add_foreign_key "rules", "categories", on_delete: :cascade
+  add_foreign_key "rules", "users", on_delete: :cascade
   add_foreign_key "sessions", "users"
   add_foreign_key "simplefin_accesses", "users"
   add_foreign_key "simplefin_syncs", "simplefin_accesses", column: "access_id"

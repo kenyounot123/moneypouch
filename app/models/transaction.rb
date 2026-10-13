@@ -3,6 +3,8 @@ class Transaction < ApplicationRecord
   belongs_to :category, optional: true
   has_one :bank_transaction
 
+  delegate :name, to: :bank_transaction, prefix: true
+
   MATCH_WINDOW = -5..1
 
   normalizes :note, with: ->(note) { note.strip.presence }
@@ -112,17 +114,17 @@ class Transaction < ApplicationRecord
   end
 
   def offers_rule?
-    imported? && !categorization.none? && !bank_transaction.remembers?(categorization)
+    imported? && !categorization.none? && !user.remembers?(bank_transaction_name, categorization)
   end
 
   def make_rule
     if imported? && !categorization.none?
-      bank_transaction.remember(categorization)
+      user.remember(bank_transaction_name, categorization)
     end
   end
 
   def waiting_namesake_count
-    bank_transaction.namesakes.needing_category.count
+    user.transactions_named(bank_transaction_name.key).needing_category.count
   end
 
   def discard

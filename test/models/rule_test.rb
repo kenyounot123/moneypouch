@@ -1,6 +1,6 @@
 require "test_helper"
 
-class BankAccount::RuleTest < ActiveSupport::TestCase
+class RuleTest < ActiveSupport::TestCase
   setup do
     travel_to Time.utc(2026, 10, 6, 18)
     @user = users(:one)
@@ -16,14 +16,14 @@ class BankAccount::RuleTest < ActiveSupport::TestCase
     assert_empty rules
   end
 
-  test "making a rule fills that account's same-name rows that still need a category" do
+  test "making a rule fills same-name rows on every account that still need a category" do
     grocery = imported("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.new(category: @groceries))
 
     grocery.make_rule
 
     assert_equal [ "Groceries", "Groceries" ], categories_of("Demo Savings", "grocery store")
-    assert_equal [ nil, nil ], categories_of("Demo Checking", "grocery store")
+    assert_equal [ "Groceries", "Groceries" ], categories_of("Demo Checking", "grocery store")
     assert_equal [ [ "Grocery store", "grocery store", "Groceries", false ] ], rules
   end
 
@@ -61,7 +61,7 @@ class BankAccount::RuleTest < ActiveSupport::TestCase
     assert_empty rules
   end
 
-  test "a row offers a rule until its account remembers that pick for its name" do
+  test "a row offers a rule until the user remembers that pick for its name" do
     grocery = imported("Demo Savings", -13_550)
     assert_not grocery.offers_rule?
 
@@ -76,11 +76,11 @@ class BankAccount::RuleTest < ActiveSupport::TestCase
     assert grocery.offers_rule?
   end
 
-  test "counts the same-name rows on that account still waiting for a category" do
+  test "counts the same-name rows on every account still waiting for a category" do
     grocery = imported("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.new(category: @groceries))
 
-    assert_equal 1, grocery.waiting_namesake_count
+    assert_equal 3, grocery.waiting_namesake_count
 
     grocery.make_rule
     assert_equal 0, grocery.waiting_namesake_count
@@ -100,7 +100,19 @@ class BankAccount::RuleTest < ActiveSupport::TestCase
     assert_equal [ true, nil, false ], [ arrived.transfer?, arrived.category, arrived.needs_category? ]
   end
 
-  test "a sync reads each account's rules once, not once per row" do
+  test "a rule reaches rows of another account on the next sync" do
+    grocery = imported("Demo Savings", -13_550)
+    grocery.categorize(Transaction::Categorization.new(category: @groceries))
+    grocery.make_rule
+    report = simplefin_report
+    checking = demo_account(report, "Demo Checking")["transactions"]
+    checking << checking[2].merge("id" => "next-week", "amount" => "-99.00")
+    sync_again(@access, report:)
+
+    assert_equal "Groceries", imported("Demo Checking", -9_900).category.name
+  end
+
+  test "a sync reads the user's rules once, not once per account or row" do
     grocery = imported("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.new(category: @groceries))
     grocery.make_rule
@@ -110,10 +122,10 @@ class BankAccount::RuleTest < ActiveSupport::TestCase
       rows << rows[2].merge("id" => "#{account}-a", "amount" => "-91.00") << rows[2].merge("id" => "#{account}-b", "amount" => "-92.00")
     end
 
-    assert_queries_match(/FROM "bank_account_rules"/, count: 2) do
+    assert_queries_match(/FROM "rules"/, count: 1) do
       sync_again(@access, report:)
     end
-    assert_equal [ "Groceries", "Groceries", nil, nil ],
+    assert_equal [ "Groceries", "Groceries", "Groceries", "Groceries" ],
       [ imported("Demo Savings", -9_100), imported("Demo Savings", -9_200), imported("Demo Checking", -9_100), imported("Demo Checking", -9_200) ].map { _1.category&.name }
   end
 
@@ -123,7 +135,7 @@ class BankAccount::RuleTest < ActiveSupport::TestCase
     end
 
     def bank_rows(account, name_key)
-      BankAccount.find_by!(external_id: account).transactions_named(name_key).order(:amount_in_cents).to_a
+      @user.transactions_named(name_key).joins(:bank_transaction).where(bank_transactions: { bank_account_id: BankAccount.where(external_id: account).select(:id) }).order(:amount_in_cents).to_a
     end
 
     def categories_of(account, name_key)
@@ -131,6 +143,6 @@ class BankAccount::RuleTest < ActiveSupport::TestCase
     end
 
     def rules
-      BankAccount::Rule.order(:id).map { |rule| [ rule.name, rule.name_key, rule.category&.name, rule.transfer ] }
+      Rule.order(:id).map { |rule| [ rule.name, rule.name_key, rule.category&.name, rule.transfer ] }
     end
 end

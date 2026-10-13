@@ -16,7 +16,7 @@
           </p>
           <p class="truncate text-sm text-tertiary"><%= rule_summary rule, rows %></p>
         </div>
-        <%= button_to "Forget", bank_account_rule_path(rule.bank_account, rule), method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+        <%= button_to "Forget", rule_path(rule), method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
       </li>
     <% end %>
     <% if rules.empty? %>

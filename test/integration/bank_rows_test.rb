@@ -92,8 +92,8 @@ class BankRowsTest < ActionDispatch::IntegrationTest
 
     get root_url
 
-    assert_select "#bank_review", text: /6 need a category/
-    assert_select "#bank_review p", text: "9 new. 2 categorized for you, 1 transfer."
+    assert_select "#bank_review", text: /4 need a category/
+    assert_select "#bank_review p", text: "9 new. 4 categorized for you, 1 transfer."
   end
 
   test "a sync that only matched what you typed shows no block" do
