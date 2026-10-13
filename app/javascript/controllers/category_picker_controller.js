@@ -10,7 +10,7 @@ export default class extends Controller {
   open({ currentTarget, params: { url, category } }) {
     this.close()
     this.row = currentTarget.closest("li")
-    this.label = this.categoryTargets.find((target) => this.row.contains(target))
+    this.label = this.categoryTargets.find((target) => this.row.contains(target)).querySelector("button")
     this.label.hidden = true
     this.form = this.editor(url)
     this.label.before(this.form)
@@ -34,7 +34,7 @@ export default class extends Controller {
     const form = document.createElement("form")
     form.action = url
     form.method = "post"
-    form.className = "relative min-w-24 max-w-[140px] flex-1"
+    form.className = "relative w-[140px] max-w-full"
     form.dataset.turboFrame = "_top"
     form.innerHTML = `
       <input type="hidden" name="_method" value="patch">
@@ -137,7 +137,7 @@ export default class extends Controller {
       event.preventDefault()
       const label = this.label
       this.close()
-      label.querySelector("button").focus()
+      label.focus()
     }
   }
 
@@ -167,7 +167,7 @@ export default class extends Controller {
     const item = this.items[this.index]
     if (item) this.field.value = item.name
     this.transfer.value = item?.transfer ? "1" : "0"
-    this.label.querySelector("button").textContent = this.field.value.trim() || "Uncategorized"
+    this.label.textContent = this.field.value.trim() || "Uncategorized"
     this.form.requestSubmit()
   }
 }
