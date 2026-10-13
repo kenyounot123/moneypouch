@@ -95,9 +95,7 @@
             </div>
 
             <ul class="flex flex-col gap-1" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>">
-              <% @recent.each do |transaction| %>
-                <%= render transaction, marked: transaction == @added, offer_rule: @review_rows.exclude?(transaction) %>
-              <% end %>
+              <%= render @recent, added: @added, review_rows: @review_rows %>
               <% if @recent.empty? %>
                 <li class="py-3 pl-5 text-sm text-tertiary">No transactions yet. Type one above.</li>
               <% end %>

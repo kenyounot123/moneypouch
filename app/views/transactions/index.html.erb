@@ -11,11 +11,7 @@
 
   <% if @transactions.any? %>
     <ul id="transactions" class="flex flex-col gap-1" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>">
-      <% @transactions.each do |transaction| %>
-        <%= render transaction do %>
-          <%= button_to "Delete", transaction, method: :delete, class: "rounded-md px-3.5 py-2.5 text-white bg-red-600 hover:bg-red-500 font-medium cursor-pointer", data: { turbo_confirm: "Delete this transaction?" } %>
-        <% end %>
-      <% end %>
+      <%= render @transactions, deletable: true %>
     </ul>
   <% else %>
     <p class="text-center my-10">No transactions yet.</p>

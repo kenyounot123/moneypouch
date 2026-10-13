@@ -1,8 +1,8 @@
 <% field = local_assigns[:field] && transaction.needs_category? %>
-<% offering_rule = local_assigns.fetch(:offer_rule, true) && offering_rule?(transaction) %>
+<% offering_rule = local_assigns.fetch(:review_rows, []).exclude?(transaction) && offering_rule?(transaction) %>
 <li id="<%= dom_id transaction %>" class="group relative flex items-center gap-3 border-b border-secondary py-3 last:border-b-0 <%= "flex-wrap" if offering_rule %>">
   <div class="flex w-2 shrink-0 justify-center">
-    <% if local_assigns[:marked] || transaction.needs_category? %>
+    <% if transaction == local_assigns[:added] || transaction.needs_category? %>
       <div class="size-1.5 rounded-[1px] bg-highlight"></div>
     <% end %>
   </div>
@@ -43,7 +43,9 @@
       <span class="sr-only">From your bank</span>
     <% end %>
   </div>
-  <%= yield %>
+  <% if local_assigns[:deletable] %>
+    <%= button_to "Delete", transaction, method: :delete, class: "rounded-md px-3.5 py-2.5 text-white bg-red-600 hover:bg-red-500 font-medium cursor-pointer", data: { turbo_confirm: "Delete this transaction?" } %>
+  <% end %>
   <% if offering_rule %>
     <%= render "transactions/rule_offer", transaction: %>
   <% end %>

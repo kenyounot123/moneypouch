@@ -7,5 +7,3 @@ linter:
   rules:
     actionview-no-implicit-partial:
       enabled: false
-    actionview-prefer-collection-render:
-      enabled: false
