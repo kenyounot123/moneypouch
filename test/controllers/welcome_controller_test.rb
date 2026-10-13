@@ -35,7 +35,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
 
     get root_url
 
-    assert_select "a[href='#{transactions_path}']", count: 0
+    assert_select "main a[href='#{transactions_path}']", count: 0
   end
 
   test "shows the month's spending by category and day" do

@@ -70,6 +70,22 @@ module TransactionsHelper
     end
   end
 
+  def day_heading(date)
+    date.strftime("%a, %b %-d")
+  end
+
+  def month_title(month)
+    month.first_day.strftime("%B %Y")
+  end
+
+  def short_month_title(month)
+    month.first_day.strftime("%b %Y")
+  end
+
+  def month_abbreviation(month)
+    month.first_day.strftime("%b")
+  end
+
   def relative_date(date)
     case date
     when Date.current then "Today"

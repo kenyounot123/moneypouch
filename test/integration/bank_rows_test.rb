@@ -6,16 +6,14 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     sign_in_as(users(:one))
   end
 
-  test "rows from the bank carry the bank icon and typed rows keep an empty slot" do
+  test "each row names its bank account and a typed row leaves the account blank" do
     activate(connect_simplefin)
 
     get transactions_url
 
-    assert_select "ul#transactions > li", 11
-    assert_select "ul#transactions > li > div.w-4", 11
-    assert_select "ul#transactions > li span.sr-only", text: "From your bank", count: 10
-    assert_select "li#transaction_#{transactions(:coffee).id} span.sr-only", text: "From your bank"
-    assert_select "li#transaction_#{transactions(:paycheck).id} span.sr-only", count: 0
+    assert_select "main section li", 11
+    assert_select "li#transaction_#{transactions(:coffee).id} p.w-47\\.5", text: "SimpleFIN Savings"
+    assert_select "li#transaction_#{transactions(:paycheck).id} p.w-47\\.5", text: ""
   end
 
   test "imported rows with no category carry the marker and a matched row does not" do
@@ -24,9 +22,35 @@ class BankRowsTest < ActionDispatch::IntegrationTest
 
     get transactions_url
 
-    assert_select "li#transaction_#{grocery.id} div.bg-highlight"
-    assert_select "li#transaction_#{transactions(:coffee).id} div.bg-highlight", count: 0
-    assert_select "ul#transactions div.bg-highlight", 9
+    assert_select "li#transaction_#{grocery.id} div.h-10 div.bg-highlight"
+    assert_select "li#transaction_#{transactions(:coffee).id} div.h-10 div.bg-highlight", count: 0
+    assert_select "main section div.h-10 div.bg-highlight", 9
+  end
+
+  test "the needs-a-category chip counts the marked rows and narrows the month to them" do
+    activate(connect_simplefin)
+
+    get transactions_url
+    assert_select "a[aria-pressed=false]", text: /Needs a category · 9/
+
+    get transactions_url(needs: "1")
+    assert_select "a[aria-pressed=true]", text: /Needs a category · 9/
+    assert_select "main section li", 9
+    assert_select "main section div.h-10 div.bg-highlight", 9
+  end
+
+  test "the account filter narrows to one bank account, or to rows typed in" do
+    activate(connect_simplefin)
+    savings = BankAccount.find_by!(external_id: "Demo Savings")
+
+    get transactions_url(account: savings.id)
+    assert_select "main section li", 5
+    assert_select "main section li p.w-47\\.5", text: "SimpleFIN Savings", count: 5
+    assert_select "select#account option[selected][value=?]", savings.id.to_s
+
+    get transactions_url(account: "typed")
+    assert_select "main section li", 1
+    assert_select "li#transaction_#{transactions(:paycheck).id}"
   end
 
   test "the overview holds what syncs brought in until Done" do
