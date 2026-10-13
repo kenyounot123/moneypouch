@@ -24,7 +24,7 @@
           class: "flex h-7 w-full cursor-text items-center rounded-sm border border-primary bg-level-2 px-2.5 text-sm text-tertiary hover:border-(--ring-color-focus)" %></span>
         <span class="shrink-0 pl-0.5 whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
       <% else %>
-        <span data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: categorization_label(transaction),
+        <span class="flex h-4 items-center [&_input]:h-6" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: categorization_label(transaction),
           class: "cursor-pointer text-secondary underline decoration-dotted underline-offset-3 hover:text-primary" %></span>
         <span class="whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
       <% end %>
