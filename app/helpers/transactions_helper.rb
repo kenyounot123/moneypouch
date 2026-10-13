@@ -1,4 +1,10 @@
 module TransactionsHelper
+  CATEGORY_FIELD_SLOT = "flex min-w-24 max-w-[140px] flex-1"
+
+  CATEGORY_FIELD = "flex h-7 w-full cursor-text items-center rounded-sm border border-primary bg-level-2 px-2.5 text-sm text-tertiary hover:border-(--ring-color-focus)"
+
+  CATEGORY_LINK = "cursor-pointer text-secondary underline decoration-dotted underline-offset-3 hover:text-primary"
+
   def money(amount_in_cents)
     amount = number_to_currency(amount_in_cents.abs.to_d / 100)
 
