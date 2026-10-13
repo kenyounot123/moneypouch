@@ -4,7 +4,6 @@ class Rule < ApplicationRecord
 
   scope :latest, -> { order(updated_at: :desc, id: :desc) }
 
-  # {rule => kept imported rows with its name, across its user's bank accounts}
   def self.with_row_counts
     rules = includes(:category, :user).to_a
     counts = rules.map(&:user).uniq.index_with { |user| user.bank_transactions.count_by_name }
