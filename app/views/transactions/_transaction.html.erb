@@ -43,9 +43,6 @@
       <span class="sr-only">From your bank</span>
     <% end %>
   </div>
-  <% if local_assigns[:deletable] %>
-    <%= button_to "Delete", transaction, method: :delete, class: "rounded-md px-3.5 py-2.5 text-danger bg-(--text-color-danger)/10 hover:bg-(--text-color-danger)/18 font-medium cursor-pointer", data: { turbo_confirm: "Delete this transaction?" } %>
-  <% end %>
   <% if offering_rule %>
     <%= render "transactions/rule_offer", transaction: %>
   <% end %>

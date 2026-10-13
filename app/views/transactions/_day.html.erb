@@ -12,8 +12,6 @@
     <% end %>
   </div>
   <ul class="min-w-0 flex-1">
-    <% transactions.each do |transaction| %>
-      <%= render "transactions/row", transaction: %>
-    <% end %>
+    <%= render partial: "transactions/row", collection: transactions, as: :transaction %>
   </ul>
 </section>

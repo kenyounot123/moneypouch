@@ -29,9 +29,9 @@
           <p class="text-display"><%= spent @spent %></p>
         </div>
         <dl class="hidden gap-8 pb-1.5 @xl:flex">
-          <% { "Income" => spent(@income), "Net" => spent(@net), "Transactions" => number_with_delimiter(@transactions.size) }.each do |label, value| %>
+          <% { "Income" => spent(@income), "Net" => spent(@net), "Transactions" => number_with_delimiter(@transactions.size) }.each do |term, value| %>
             <div class="flex flex-col gap-1">
-              <dt class="text-sm text-tertiary"><%= label %></dt>
+              <dt class="text-sm text-tertiary"><%= term %></dt>
               <dd class="font-mono text-md"><%= value %></dd>
             </div>
           <% end %>
