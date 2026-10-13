@@ -28,7 +28,7 @@ class ColorsVisitor extends BaseRuleVisitor {
     const code = node.content?.value ?? ""
     const { line, column } = node.content?.location.start ?? {}
     for (const match of code.matchAll(RUBY_OPTION)) {
-      for (const string of this.stringsAt(code, match.index + match[0].length)) {
+      for (const string of this.optionValueStrings(code, match.index + match[0].length)) {
         const location = locationFromContentOffset(line, column, code, string.index)
         if (match[1] === "class") {
           this.checkClasses(string.value, location)
@@ -67,8 +67,7 @@ class ColorsVisitor extends BaseRuleVisitor {
     }
   }
 
-  // The string literals of one option value: a single "..." or every string inside [ ... ].
-  stringsAt(code, start) {
+  optionValueStrings(code, start) {
     const strings = []
     const array = code[start] === "["
     let index = array ? start + 1 : start
