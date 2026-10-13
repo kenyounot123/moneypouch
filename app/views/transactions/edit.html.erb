@@ -1,0 +1,32 @@
+<%= turbo_frame_tag "sheet" do %>
+  <div class="flex flex-col gap-5 px-5 pt-2.5 pb-8">
+    <div class="mx-auto h-1 w-9 rounded-full bg-(--border-color-primary)"></div>
+
+    <div class="flex flex-col gap-1">
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 class="truncate text-lg font-semibold"><%= @transaction.name %></h2>
+        <p class="shrink-0 font-mono text-md <%= "text-tertiary" if @transaction.transfer? %>"><%= money @transaction.amount_in_cents %></p>
+      </div>
+      <p class="text-sm text-tertiary"><%= [ day_heading(@transaction.occurred_on), @transaction.bank_account_name ].compact.join(" · ") %></p>
+    </div>
+
+    <div class="flex flex-col gap-2" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>" data-category-picker-size-value="large">
+      <p class="text-sm text-secondary">Category</p>
+      <span class="flex" data-category-picker-target="category"><%= render "transactions/category_button", transaction: @transaction,
+        label: (@transaction.categorization.none? ? "Category" : categorization_label(@transaction)),
+        class: "flex h-11 w-full cursor-text items-center rounded-md border border-primary bg-level-2 px-3 text-md hover:border-(--ring-color-focus) #{@transaction.categorization.none? ? "text-tertiary" : "text-primary"}" %></span>
+    </div>
+
+    <%= form_with url: transaction_note_path(@transaction), method: :patch, scope: :transaction, id: "sheet_note", data: { turbo_frame: "_top" }, class: "flex flex-col gap-2" do |form| %>
+      <%= form.label :note, "Note", class: "text-sm text-secondary" %>
+      <%= form.text_field :note, value: @transaction.note, placeholder: "Add a note", autocomplete: "off",
+        class: "h-11 w-full rounded-md border border-primary bg-level-2 px-3 text-md outline-none placeholder:text-tertiary focus:border-(--ring-color-focus)" %>
+    <% end %>
+
+    <div class="flex items-center justify-between pt-1">
+      <%= button_to "Delete", @transaction, method: :delete, form: { data: { turbo_frame: "_top" } }, data: { turbo_confirm: "Delete #{@transaction.name}?" },
+        class: "cursor-pointer rounded-sm py-2 text-md font-medium text-danger" %>
+      <button form="sheet_note" class="h-11 cursor-pointer rounded-md bg-level-3 px-5 text-md font-medium text-primary">Done</button>
+    </div>
+  </div>
+<% end %>

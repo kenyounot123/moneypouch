@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  resources :transactions, only: %i[ index create update destroy ] do
+  resources :transactions, only: %i[ index create edit update destroy ] do
     resource :categorization, only: :update, module: :transactions
     resource :rule, only: :create, module: :transactions
     resource :note, only: :update, module: :transactions

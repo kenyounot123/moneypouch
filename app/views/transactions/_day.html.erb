@@ -1,0 +1,17 @@
+<section class="@xl:flex @xl:gap-4 @xl:border-b @xl:border-primary" aria-label="<%= day_heading date %>">
+  <div class="-mx-5 flex items-center justify-between gap-4 border-y border-secondary bg-level-1 px-5 py-2 md:-mx-14 md:px-14 @xl:hidden">
+    <h2 class="font-semibold"><%= day_heading date %></h2>
+    <% if transactions.many? %>
+      <p class="font-mono text-xs text-tertiary"><%= money total %></p>
+    <% end %>
+  </div>
+  <div class="hidden w-24 shrink-0 flex-col gap-0.75 pt-2.75 @xl:flex" aria-hidden="true">
+    <p class="font-semibold"><%= day_heading date %></p>
+    <% if transactions.many? %>
+      <p class="font-mono text-xs text-tertiary"><%= money total %></p>
+    <% end %>
+  </div>
+  <ul class="min-w-0 flex-1">
+    <%= render partial: "transactions/row", collection: transactions, as: :transaction %>
+  </ul>
+</section>

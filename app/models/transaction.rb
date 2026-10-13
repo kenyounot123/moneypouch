@@ -16,13 +16,39 @@ class Transaction < ApplicationRecord
   scope :spending, -> { where(transfer: false).and(where(amount_in_cents: ...0).or(where.not(category_id: nil))) }
   scope :listed, -> { latest.includes(:category, :bank_transaction) }
   scope :matchable, -> { where.missing(:bank_transaction) }
-  scope :needing_category, -> { kept.where(category_id: nil, transfer: false) }
+  scope :typed_in, -> { where.not(id: BankTransaction.select(:transaction_id)) }
+  scope :imported, -> { where(id: BankTransaction.imported.select(:transaction_id)) }
+  scope :uncategorized, -> { where(category_id: nil, transfer: false) }
+  scope :needing_category, -> { kept.imported.uncategorized }
   scope :categorized, -> { where.not(category_id: nil) }
   scope :transfers, -> { where(transfer: true) }
+  scope :in_category, ->(category) { where(category:) }
+  scope :from_bank_account, ->(bank_account) { merge(bank_account.transactions) }
 
   def self.broadcasting_once_for(user)
     suppressing_turbo_broadcasts { yield }
     Turbo::StreamsChannel.broadcast_refresh_to(user, :transactions)
+  end
+
+  def self.matching(query)
+    if query.present?
+      pattern = "%#{sanitize_sql_like(query.downcase(:ascii))}%"
+      where("lower(transactions.name) LIKE :pattern ESCAPE '\\' OR lower(transactions.note) LIKE :pattern ESCAPE '\\'", pattern:)
+    else
+      all
+    end
+  end
+
+  def self.spent
+    -spending.sum(:amount_in_cents)
+  end
+
+  def self.net
+    where(transfer: false).sum(:amount_in_cents)
+  end
+
+  def self.income
+    net + spent
   end
 
   def self.match_for(amount_in_cents, currency, date)

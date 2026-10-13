@@ -1,15 +1,27 @@
 import { Controller } from "@hotwired/stimulus"
 
 const OPTION = "flex cursor-pointer items-center rounded-sm px-2.5 py-1.5"
+const SIZES = {
+  small: {
+    form: "relative w-[140px] max-w-full",
+    field: "h-7 rounded-sm px-2.5 text-sm",
+    list: "absolute top-full left-0 z-10 mt-1 w-56 text-sm",
+  },
+  large: {
+    form: "flex w-full flex-col",
+    field: "h-11 rounded-md px-3 text-md",
+    list: "mt-1 w-full text-md",
+  },
+}
 const TRANSFER_ICON = `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" class="shrink-0 text-tertiary"><path d="M2 4.5h9M8.5 2l2.5 2.5L8.5 7M12 9.5H3M5.5 7L3 9.5 5.5 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
 
 export default class extends Controller {
   static targets = ["category"]
-  static values = { categories: Array }
+  static values = { categories: Array, size: { type: String, default: "small" } }
 
   open({ currentTarget, params: { url, category } }) {
     this.close()
-    this.row = currentTarget.closest("li")
+    this.row = currentTarget.closest("li") ?? this.element
     this.label = this.categoryTargets.find((target) => this.row.contains(target)).querySelector("button")
     this.label.hidden = true
     this.form = this.editor(url)
@@ -34,15 +46,16 @@ export default class extends Controller {
     const form = document.createElement("form")
     form.action = url
     form.method = "post"
-    form.className = "relative w-[140px] max-w-full"
+    const size = SIZES[this.sizeValue]
+    form.className = size.form
     form.dataset.turboFrame = "_top"
     form.innerHTML = `
       <input type="hidden" name="_method" value="patch">
       <input type="hidden" name="categorization[transfer]" value="0">
       <input name="categorization[category]" role="combobox" aria-label="Category" aria-autocomplete="list" aria-expanded="true" aria-controls="category-picker-list"
         autocomplete="off" spellcheck="false" placeholder="Category"
-        class="h-7 w-full rounded-sm border border-(--ring-color-focus) bg-level-2 px-2.5 text-sm outline-none shadow-[0_0_0_3px_color-mix(in_oklab,var(--ring-color-focus)_22%,transparent)] placeholder:text-tertiary">
-      <div id="category-picker-list" role="listbox" class="absolute top-full left-0 z-10 mt-1 max-h-[250px] w-56 overflow-y-auto rounded-md border border-primary bg-level-2 p-1 text-sm shadow-control"></div>`
+        class="${size.field} w-full border border-(--ring-color-focus) bg-level-2 outline-none shadow-[0_0_0_3px_color-mix(in_oklab,var(--ring-color-focus)_22%,transparent)] placeholder:text-tertiary">
+      <div id="category-picker-list" role="listbox" class="${size.list} max-h-[250px] overflow-y-auto rounded-md border border-primary bg-level-2 p-1 shadow-control"></div>`
     this.field = form.querySelector("[role=combobox]")
     this.list = form.querySelector("[role=listbox]")
     this.transfer = form.querySelector("[name='categorization[transfer]']")

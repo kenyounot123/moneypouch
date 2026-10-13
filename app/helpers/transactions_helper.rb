@@ -1,4 +1,10 @@
 module TransactionsHelper
+  CATEGORY_FIELD_SLOT = "flex min-w-24 max-w-[140px] flex-1"
+
+  CATEGORY_FIELD = "flex h-7 w-full cursor-text items-center rounded-sm border border-primary bg-level-2 px-2.5 text-sm text-tertiary hover:border-(--ring-color-focus)"
+
+  CATEGORY_LINK = "cursor-pointer text-secondary underline decoration-dotted underline-offset-3 hover:text-primary"
+
   def money(amount_in_cents)
     amount = number_to_currency(amount_in_cents.abs.to_d / 100)
 
@@ -62,6 +68,22 @@ module TransactionsHelper
     else
       date.strftime("%b %-d, %Y")
     end
+  end
+
+  def day_heading(date)
+    date.strftime("%a, %b %-d")
+  end
+
+  def month_title(month)
+    month.first_day.strftime("%B %Y")
+  end
+
+  def short_month_title(month)
+    month.first_day.strftime("%b %Y")
+  end
+
+  def month_abbreviation(month)
+    month.first_day.strftime("%b")
   end
 
   def relative_date(date)
