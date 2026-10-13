@@ -1,5 +1,5 @@
 <section class="flex flex-col gap-4">
-  <%= render layout: "simplefin/accesses/header" do %><% end %>
+  <%= render "simplefin/accesses/header" %>
 
   <div class="flex items-center justify-between gap-6">
     <div class="flex flex-col gap-1">
@@ -7,6 +7,6 @@
       <p class="text-sm text-tertiary">Through SimpleFIN, $15 a year, paid to them.</p>
     </div>
     <%= link_to "Connect a bank", new_simplefin_access_path,
-      class: "shrink-0 rounded-md bg-action px-3.5 py-2 font-pixel text-[15px] leading-[18px] font-semibold whitespace-nowrap tracking-pixel text-on-action hover:brightness-95" %>
+      class: "shrink-0 rounded-md bg-action px-3.5 py-2 text-button whitespace-nowrap text-on-action hover:brightness-95" %>
   </div>
 </section>

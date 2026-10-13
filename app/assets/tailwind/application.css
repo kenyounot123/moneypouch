@@ -48,6 +48,8 @@
   --red-600: oklch(55% 0.160 25);
 
   --white: oklch(100% 0 0);
+
+  --font-pixel: "Pixelify Sans", "Geist", ui-sans-serif, sans-serif;
 }
 
 @theme static {
@@ -77,9 +79,9 @@
 
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-pixel: "Pixelify Sans", "Geist", ui-sans-serif, sans-serif;
   --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
 
+  --text-*: initial;
   --text-xs: 12px;
   --text-xs--line-height: 16px;
   --text-sm: 13px;
@@ -90,15 +92,8 @@
   --text-md--line-height: 20px;
   --text-lg: 18px;
   --text-lg--line-height: 22px;
-  --text-display: 64px;
-  --text-display--line-height: 64px;
-  --text-display--letter-spacing: -0.035em;
 
-  --font-weight-regular: 400;
-
-  --tracking-display: -0.035em;
-  --tracking-snug: -0.01em;
-  --tracking-pixel: 0.02em;
+  --tracking-*: initial;
 
   --radius-bar: 3px;
   --radius-sm: 6px;
@@ -125,6 +120,51 @@
       transform: none;
     }
   }
+}
+
+@utility text-display {
+  font-family: var(--font-sans);
+  font-size: 48px;
+  line-height: var(--tw-leading, 48px);
+  font-weight: var(--tw-font-weight, 600);
+  letter-spacing: var(--tw-tracking, -0.035em);
+
+  @variant sm {
+    font-size: 64px;
+    line-height: var(--tw-leading, 64px);
+  }
+}
+
+@utility text-title {
+  font-family: var(--font-pixel);
+  font-size: 28px;
+  line-height: var(--tw-leading, 34px);
+  font-weight: var(--tw-font-weight, 600);
+  letter-spacing: var(--tw-tracking, 0.02em);
+}
+
+@utility text-heading {
+  font-family: var(--font-pixel);
+  font-size: 18px;
+  line-height: var(--tw-leading, 22px);
+  font-weight: var(--tw-font-weight, 600);
+  letter-spacing: var(--tw-tracking, 0.02em);
+}
+
+@utility text-button {
+  font-family: var(--font-pixel);
+  font-size: 15px;
+  line-height: var(--tw-leading, 18px);
+  font-weight: var(--tw-font-weight, 600);
+  letter-spacing: var(--tw-tracking, 0.02em);
+}
+
+@utility text-button-sm {
+  font-family: var(--font-pixel);
+  font-size: 13px;
+  line-height: var(--tw-leading, 16px);
+  font-weight: var(--tw-font-weight, 600);
+  letter-spacing: var(--tw-tracking, 0.02em);
 }
 
 @layer base {

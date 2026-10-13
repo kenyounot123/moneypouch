@@ -11,7 +11,7 @@
       class: "min-w-0 flex-1 bg-transparent text-md outline-none placeholder:text-tertiary",
       data: { composer_target: "field", action: "input->composer#forgetFailure input->composer#refresh keyup->composer#refresh click->composer#refresh focus->composer#refresh blur->composer#refresh keydown->composer#keydown" } %>
     <span class="hidden in-[dialog]:inline-block pointer-coarse:hidden rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary">esc</span>
-    <button class="shrink-0 cursor-pointer rounded-md bg-action px-4 py-2.5 font-pixel text-[15px] leading-[18px] font-semibold whitespace-nowrap tracking-pixel text-on-action hover:brightness-95">Add ↵</button>
+    <button class="shrink-0 cursor-pointer rounded-md bg-action px-4 py-2.5 text-button whitespace-nowrap text-on-action hover:brightness-95">Add ↵</button>
   <% end %>
   <%= render "vouchers/voucher", voucher: %>
   <template data-composer-target="failure">

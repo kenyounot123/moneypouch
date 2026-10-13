@@ -1,6 +1,6 @@
 <section id="bank_review" class="flex flex-col gap-1" data-controller="category-picker" data-category-picker-categories-value="<%= category_names.to_json %>">
   <div class="flex items-baseline justify-between border-b border-secondary pb-3">
-    <h2 class="font-pixel text-lg font-semibold tracking-pixel">From your bank</h2>
+    <h2 class="text-heading">From your bank</h2>
     <% if (needing = review.needing_category).any? %>
       <p class="text-sm text-tertiary"><%= needing.size %> need a category</p>
     <% end %>

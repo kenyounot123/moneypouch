@@ -10,7 +10,7 @@
       <div class="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
         <div class="flex min-w-0 flex-col gap-2.5">
           <p class="text-secondary"><%= spent_heading(@period) %></p>
-          <p class="font-sans text-5xl font-semibold tracking-display sm:text-display"><%= spent @spending.total %></p>
+          <p class="text-display"><%= spent @spending.total %></p>
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
             <div class="flex w-[300px] max-w-full shrink-0 gap-0.5">
               <% @period.columns.each do |column| %>
@@ -35,7 +35,7 @@
       <div class="flex flex-col gap-14 lg:flex-row">
         <section class="flex min-w-0 flex-[1.3] flex-col gap-[18px]">
           <div class="flex items-baseline justify-between border-b border-secondary pb-3">
-            <h2 class="font-pixel text-lg font-semibold tracking-pixel">Where it went</h2>
+            <h2 class="text-heading">Where it went</h2>
             <p class="text-sm text-tertiary"><%= span @period.range %></p>
           </div>
 
@@ -82,7 +82,7 @@
           <% end %>
           <section class="flex min-w-0 flex-col gap-1">
             <div class="flex items-baseline justify-between border-b border-secondary pb-3">
-              <h2 class="font-pixel text-lg font-semibold tracking-pixel">Recent</h2>
+              <h2 class="text-heading">Recent</h2>
               <% if @syncing %>
                 <p class="flex items-center gap-1.5 text-sm text-tertiary">
                   <svg class="size-3 shrink-0 animate-spin" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
