@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/kenyounot123/moneypouch/compare/v0.2.0...v0.3.0) (2026-10-13)
+
+
+### Features
+
+* **palette:** dim the page behind the palette to 40% in light mode ([#74](https://github.com/kenyounot123/moneypouch/issues/74)) ([c12c8ff](https://github.com/kenyounot123/moneypouch/commit/c12c8ff4d9bb824a5328333db0f39cc2aaa002ca))
+
+
+### Bug Fixes
+
+* **transactions:** keep the row height when the category picker opens ([#76](https://github.com/kenyounot123/moneypouch/issues/76)) ([ef5e194](https://github.com/kenyounot123/moneypouch/commit/ef5e1941e44ed6d5ce6381880fbc3f35c129d39b))
+
 ## [0.2.0](https://github.com/kenyounot123/moneypouch/compare/v0.1.0...v0.2.0) (2026-10-12)
 
 
