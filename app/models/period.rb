@@ -16,14 +16,6 @@ class Period
     end
   end
 
-  def elapsed
-    range.begin..today
-  end
-
-  def previous
-    Period.new(kind, today: today.advance("#{kind}s": -1))
-  end
-
   def unit
     if kind == "year"
       :month
@@ -45,14 +37,6 @@ class Period
       date.beginning_of_month
     else
       date
-    end
-  end
-
-  def column_range(column)
-    if unit == :month
-      column.all_month
-    else
-      column..column
     end
   end
 

@@ -49,11 +49,9 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "Spent in October"
     assert_select "p", text: "$1,655.50"
     assert_select "p", text: "Day 15 of 31"
-    assert_select "p", text: "↑ $1,646 (16,455%) vs. Sep 1–15"
     assert_select "p", text: "Oct 1–31"
     assert_select "p", text: "Food"
     assert_select "p", text: "Uncategorized"
-    assert_select "p", text: "Oct 1 Rent · $1,650"
   end
 
   test "shows the year by month" do
