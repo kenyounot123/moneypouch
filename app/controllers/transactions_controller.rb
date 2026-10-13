@@ -1,5 +1,5 @@
 class TransactionsController < ApplicationController
-  before_action :set_transaction, only: %i[ update destroy ]
+  before_action :set_transaction, only: %i[ edit update destroy ]
 
   helper_method :filters
 
@@ -22,6 +22,10 @@ class TransactionsController < ApplicationController
     @day_totals = shown.group(:occurred_on).sum(:amount_in_cents)
     @previous_count = only_needing_category(narrow(transactions.occurred_in(@month.previous.range))).count
     @earlier = transactions.occurred_in(...@month.range.begin).exists?
+  end
+
+  def edit
+    @category_names = Current.user.categories.alphabetically.pluck(:name)
   end
 
   def create

@@ -134,12 +134,37 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "li##{ActionView::RecordIdentifier.dom_id(@transaction)} button[data-category-picker-category-param=Food]", text: "Food"
   end
 
-  test "each row deletes from the ledger" do
+  test "each row deletes from the ledger and opens its sheet on a phone" do
     travel_to Time.utc(2026, 10, 13, 12) do
       get transactions_url
     end
 
     assert_select "li#transaction_#{@transaction.id} form[action=?] button", transaction_path(@transaction), text: "Delete"
+    assert_select "li#transaction_#{@transaction.id} a[data-turbo-frame=sheet][href=?]", edit_transaction_path(@transaction)
+    assert_select "dialog[data-controller=sheet] turbo-frame#sheet"
+  end
+
+  test "the sheet holds the category, the note, and Delete" do
+    @transaction.update!(note: "With Sam")
+
+    get edit_transaction_url(@transaction)
+
+    assert_response :success
+    assert_select "turbo-frame#sheet h2", text: "Blue Bottle"
+    assert_select "turbo-frame#sheet p", text: "Thu, Oct 1"
+    assert_select "turbo-frame#sheet [data-category-picker-size-value=large] button[data-category-picker-url-param=?]",
+      transaction_categorization_path(@transaction), text: "Food"
+    assert_select "turbo-frame#sheet form[action=?] input[name='transaction[note]'][value='With Sam']", transaction_note_path(@transaction)
+    assert_select "turbo-frame#sheet form[action=?] button", transaction_path(@transaction), text: "Delete"
+    assert_select "turbo-frame#sheet button[form=sheet_note]", text: "Done"
+  end
+
+  test "another user's sheet is not found" do
+    sign_in_as(users(:two))
+
+    get edit_transaction_url(@transaction)
+
+    assert_response :not_found
   end
 
   test "should update transaction" do

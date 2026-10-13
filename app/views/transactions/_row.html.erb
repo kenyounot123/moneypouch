@@ -1,6 +1,7 @@
 <% offering_rule = offering_rule?(transaction) %>
 <li id="<%= dom_id transaction %>" class="group border-b border-secondary last:border-b-0 <%= "pb-3" if offering_rule %>">
-  <div class="flex items-center gap-3 py-3 @xl:hidden">
+  <div class="relative flex items-center gap-3 py-3 @xl:hidden">
+    <%= link_to "", edit_transaction_path(transaction), aria: { label: transaction.name }, data: { turbo_frame: "sheet" }, class: "absolute inset-0" %>
     <div class="flex w-2 shrink-0 justify-center">
       <% if transaction.needs_category? %>
         <div class="size-1.5 rounded-[1px] bg-highlight"></div>

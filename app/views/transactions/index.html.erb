@@ -125,5 +125,11 @@
         <p class="text-sm text-tertiary">Nothing in <%= @month.name %>.</p>
       <% end %>
     </div>
+
+    <dialog aria-label="Transaction" data-controller="sheet"
+      data-action="turbo:frame-load->sheet#open click->sheet#dismiss turbo:submit-start->sheet#close turbo:before-morph-attribute->sheet#keepClosed close->sheet#forget"
+      class="m-0 mt-auto max-h-[85dvh] w-full max-w-none overflow-y-auto rounded-t-[16px] border-0 bg-level-2 p-0 text-primary backdrop:bg-scrim">
+      <%= turbo_frame_tag "sheet", data: { sheet_target: "frame" } %>
+    </dialog>
   </main>
 </div>
