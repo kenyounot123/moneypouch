@@ -43,30 +43,6 @@ module WelcomeHelper
     end
   end
 
-  def spending_change(spending)
-    before = spending.previous_total
-    return if before.zero?
-
-    difference = spending.elapsed_total - before
-    against = span(spending.period.previous.elapsed)
-
-    if difference.zero?
-      "Same as #{against}"
-    else
-      arrow = difference.negative? ? "↓" : "↑"
-      dollars = number_to_currency(difference.abs.to_d / 100, precision: difference.abs < 1_000 ? 2 : 0)
-      percent = number_to_percentage(difference.abs * 100.0 / before, precision: 1, delimiter: ",", strip_insignificant_zeros: true)
-      "#{arrow} #{dollars} (#{percent}) vs. #{against}"
-    end
-  end
-
-  def spending_peak(transaction)
-    cents = transaction.amount_in_cents.abs
-    amount = number_to_currency(cents.to_d / 100, precision: (cents % 100).zero? ? 0 : 2)
-
-    "#{short_date(transaction.occurred_on)} #{transaction.name} · #{amount}"
-  end
-
   def share_of(cents, total)
     percent = (cents * 100.0 / total).round
 

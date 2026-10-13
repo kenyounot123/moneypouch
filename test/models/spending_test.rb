@@ -71,7 +71,6 @@ class SpendingTest < ActiveSupport::TestCase
 
     assert_equal 210_000, spending.columns[Date.new(2026, 10, 31)]
     assert_equal 210_550, spending.total
-    assert_equal 550, spending.elapsed_total
   end
 
   test "folds a year into month columns" do
@@ -85,39 +84,12 @@ class SpendingTest < ActiveSupport::TestCase
     assert_nil columns[Date.new(2026, 11, 1)]
   end
 
-  test "totals the same elapsed days of the previous period" do
-    spend(-700, "2026-09-01")
-    spend(-400, "2026-09-05")
-    spend(-9_000, "2026-09-06")
-
-    spending = Spending.new(@user.transactions, Period.new("month", today: Date.new(2026, 10, 5)))
-
-    assert_equal 1_100, spending.previous_total
-  end
-
-  test "names the largest transaction in the busiest column" do
-    spend(-1_200, "2026-10-03", @transport, name: "Uber")
-    spend(-1_500, "2026-10-03", @transport, name: "Lyft")
-    spend(-2_000, "2026-10-04", name: "Dinner")
-
-    assert_equal "Lyft", Spending.new(@user.transactions, Period.new("month", today: Date.new(2026, 10, 5))).peak.name
-  end
-
-  test "names the largest transaction in the busiest month of a year" do
-    spend(-80_000, "2026-03-02", name: "Laptop")
-    spend(-30_000, "2026-03-20", name: "Phone")
-    spend(-90_000, "2026-05-01", name: "Rent")
-
-    assert_equal "Laptop", Spending.new(@user.transactions, Period.new("year", today: Date.new(2026, 10, 5))).peak.name
-  end
-
-  test "has no peak and zero totals without spending" do
+  test "has zero totals without spending" do
     @user.transactions.each(&:discard)
 
     spending = Spending.new(@user.transactions, Period.new("month", today: Date.new(2026, 10, 5)))
 
-    assert_nil spending.peak
-    assert_equal [ 0, 0, [] ], [ spending.total, spending.previous_total, spending.categories ]
+    assert_equal [ 0, [] ], [ spending.total, spending.categories ]
   end
 
   test "never counts another user's spending" do

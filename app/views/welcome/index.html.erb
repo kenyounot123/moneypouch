@@ -18,9 +18,6 @@
               <% end %>
             </div>
             <p class="text-sm text-tertiary">Day <%= @period.day %> of <%= @period.days %></p>
-            <% if (change = spending_change(@spending)) %>
-              <p class="text-sm font-medium text-secondary"><%= change %></p>
-            <% end %>
           </div>
         </div>
 
@@ -55,12 +52,7 @@
           <% end %>
 
           <div class="flex flex-col gap-3 pt-[22px]">
-            <div class="flex justify-between gap-4">
-              <p class="text-sm font-medium text-secondary"><%= @period.unit == :month ? "Monthly" : "Daily" %></p>
-              <% if (peak = @spending.peak) %>
-                <p class="truncate text-sm text-tertiary"><%= spending_peak peak %></p>
-              <% end %>
-            </div>
+            <p class="text-sm font-medium text-secondary"><%= @period.unit == :month ? "Monthly" : "Daily" %></p>
             <% columns = @spending.columns %>
             <% tallest = columns.values.compact.max.to_i %>
             <div class="flex h-16 shrink-0 items-end gap-1">

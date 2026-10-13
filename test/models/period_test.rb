@@ -11,32 +11,7 @@ class PeriodTest < ActiveSupport::TestCase
     period = Period.new("week", today: Date.new(2026, 10, 7))
 
     assert_equal Date.new(2026, 10, 5)..Date.new(2026, 10, 11), period.range
-    assert_equal Date.new(2026, 10, 5)..Date.new(2026, 10, 7), period.elapsed
     assert_equal [ 3, 7 ], [ period.day, period.days ]
-  end
-
-  test "compares a month with the same days of the month before" do
-    previous = Period.new("month", today: Date.new(2026, 9, 27)).previous
-
-    assert_equal Date.new(2026, 8, 1)..Date.new(2026, 8, 27), previous.elapsed
-  end
-
-  test "clamps the previous month to its last day" do
-    previous = Period.new("month", today: Date.new(2026, 3, 31)).previous
-
-    assert_equal Date.new(2026, 2, 1)..Date.new(2026, 2, 28), previous.elapsed
-  end
-
-  test "clamps a leap day to the previous year's February 28" do
-    previous = Period.new("year", today: Date.new(2028, 2, 29)).previous
-
-    assert_equal Date.new(2027, 1, 1)..Date.new(2027, 2, 28), previous.elapsed
-  end
-
-  test "compares a week with the same weekdays of the week before" do
-    previous = Period.new("week", today: Date.new(2026, 10, 5)).previous
-
-    assert_equal Date.new(2026, 9, 28)..Date.new(2026, 9, 28), previous.elapsed
   end
 
   test "has a column per day for a week or month and per month for a year" do
@@ -50,7 +25,6 @@ class PeriodTest < ActiveSupport::TestCase
     period = Period.new("year", today: Date.new(2026, 10, 5))
 
     assert_equal Date.new(2026, 3, 1), period.column_for(Date.new(2026, 3, 17))
-    assert_equal Date.new(2026, 3, 1)..Date.new(2026, 3, 31), period.column_range(Date.new(2026, 3, 1))
   end
 
   test "counts the day of the year" do
