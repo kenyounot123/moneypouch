@@ -9,5 +9,3 @@ linter:
       enabled: false
     actionview-prefer-collection-render:
       enabled: false
-    erb-require-trailing-newline:
-      enabled: false
