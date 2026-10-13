@@ -38,4 +38,24 @@ class TransactionTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "spent, net, and income reconcile over any set of rows" do
+    user = users(:one)
+    user.transactions.create!(name: "To savings", amount_in_cents: -10_000, occurred_on: "2026-10-02", transfer: true)
+    user.transactions.create!(name: "Refund", amount_in_cents: 1_200, occurred_on: "2026-10-03", category: categories(:food))
+
+    assert_equal [ -650, 200_650, 200_000 ], [ user.transactions.spent, user.transactions.net, user.transactions.income ]
+
+    typed = user.transactions.where(name: [ "Blue Bottle", "Paycheck" ])
+    assert_equal [ 550, 199_450, 200_000 ], [ typed.spent, typed.net, typed.income ]
+  end
+
+  test "matches a search in the name or the note, ignoring case" do
+    transactions(:paycheck).update!(note: "October pay")
+
+    assert_equal [ "Blue Bottle" ], Transaction.matching("blue").pluck(:name)
+    assert_equal [ "Paycheck" ], Transaction.matching("OCTOBER").pluck(:name)
+    assert_empty Transaction.matching("100%")
+    assert_equal [ "Blue Bottle", "Paycheck" ], Transaction.matching(" ").order(:name).pluck(:name)
+  end
 end
