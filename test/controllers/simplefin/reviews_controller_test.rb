@@ -8,9 +8,9 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "opens on the rows that need a category, with each list's count in its tab" do
-    imported(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
-    imported(-13_550).make_rule
-    imported(-1_000).categorize(Transaction::Categorization.transfer)
+    added_by_bank(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
+    added_by_bank(-13_550).make_rule
+    added_by_bank(-1_000).categorize(Transaction::Categorization.transfer)
 
     get simplefin_review_url
 
@@ -22,7 +22,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "show picks a list" do
-    imported(-1_000).categorize(Transaction::Categorization.transfer)
+    added_by_bank(-1_000).categorize(Transaction::Categorization.transfer)
 
     get simplefin_review_url(show: "transfers")
 
@@ -38,7 +38,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "with nothing left to categorize it opens on the next list with rows" do
-    Simplefin::Sync.imported_transactions.update_all(category_id: categories(:food).id)
+    Simplefin::Sync.added_transactions.update_all(category_id: categories(:food).id)
 
     get simplefin_review_url(show: "anything")
 
@@ -64,11 +64,11 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "lists rules newest first and the rows they cover" do
-    imported(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
-    imported(-13_550).make_rule
+    added_by_bank(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
+    added_by_bank(-13_550).make_rule
     travel 2.minutes
-    imported(-1_000).categorize(Transaction::Categorization.transfer)
-    imported(-1_000).make_rule
+    added_by_bank(-1_000).categorize(Transaction::Categorization.transfer)
+    added_by_bank(-1_000).make_rule
 
     get simplefin_review_url
 
@@ -105,7 +105,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
-    def imported(cents)
-      Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: cents).transaction_id)
+    def added_by_bank(cents)
+      Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: cents).transaction_id)
     end
 end

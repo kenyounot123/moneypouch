@@ -6,7 +6,7 @@ class Simplefin::Review
   end
 
   def pending?
-    @syncs.imported_transactions.exists?
+    @syncs.added_transactions.exists?
   end
 
   def count
@@ -47,6 +47,6 @@ class Simplefin::Review
 
   private
     def transactions
-      @syncs.imported_transactions.listed.includes(bank_transaction: :bank_account)
+      @syncs.added_transactions.listed.includes(bank_transaction: :bank_account)
     end
 end

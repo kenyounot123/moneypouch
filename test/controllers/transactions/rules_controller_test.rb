@@ -5,7 +5,7 @@ class Transactions::RulesControllerTest < ActionDispatch::IntegrationTest
     travel_to Time.utc(2026, 10, 6, 18)
     sign_in_as(users(:one))
     activate(connect_simplefin)
-    @grocery = imported(-13_550)
+    @grocery = added_by_bank(-13_550)
     @grocery.categorize(Transaction::Categorization.new(category: categories(:food)))
   end
 
@@ -14,8 +14,8 @@ class Transactions::RulesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to simplefin_review_url
     assert_equal [ [ "Grocery store", "Food" ] ], Rule.all.map { [ _1.name, _1.category.name ] }
-    assert_equal "Food", imported(-13_000).category.name
-    assert_equal "Food", imported(-17_667).category.name
+    assert_equal "Food", added_by_bank(-13_000).category.name
+    assert_equal "Food", added_by_bank(-17_667).category.name
   end
 
   test "another user's transaction is not found" do
@@ -28,7 +28,7 @@ class Transactions::RulesControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
-    def imported(cents)
-      Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: cents).transaction_id)
+    def added_by_bank(cents)
+      Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: cents).transaction_id)
     end
 end

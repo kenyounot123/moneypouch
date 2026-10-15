@@ -16,7 +16,7 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     assert_select "li#transaction_#{transactions(:paycheck).id} p.w-47\\.5", text: ""
   end
 
-  test "imported rows with no category carry the marker and a matched row does not" do
+  test "rows added by the bank with no category carry the marker and a matched row does not" do
     activate(connect_simplefin)
     grocery = Transaction.find(BankTransaction.find_by!(external_id: "1790954910", amount_in_cents: -13_550).transaction_id)
 
@@ -84,10 +84,10 @@ class BankRowsTest < ActionDispatch::IntegrationTest
 
   test "the count badge follows the rows a rule or a pick already handled" do
     activate(connect_simplefin)
-    grocery = Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: -13_550).transaction_id)
+    grocery = Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: -13_550).transaction_id)
     grocery.categorize(Transaction::Categorization.new(category: categories(:food)))
     grocery.make_rule
-    Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: -1_000).transaction_id).categorize(Transaction::Categorization.transfer)
+    Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: -1_000).transaction_id).categorize(Transaction::Categorization.transfer)
 
     get root_url
 
@@ -96,10 +96,10 @@ class BankRowsTest < ActionDispatch::IntegrationTest
 
   test "the count badge says one row needs a category in the singular" do
     activate(connect_simplefin)
-    BankTransaction.imported.find_each do |bank_transaction|
+    BankTransaction.unmatched.find_each do |bank_transaction|
       Transaction.find(bank_transaction.transaction_id).categorize(Transaction::Categorization.transfer)
     end
-    Transaction.find(BankTransaction.imported.first.transaction_id).categorize(Transaction::Categorization.none)
+    Transaction.find(BankTransaction.unmatched.first.transaction_id).categorize(Transaction::Categorization.none)
 
     get root_url
 
@@ -108,7 +108,7 @@ class BankRowsTest < ActionDispatch::IntegrationTest
 
   test "the count badge is absent when nothing needs a category" do
     activate(connect_simplefin)
-    BankTransaction.imported.find_each do |bank_transaction|
+    BankTransaction.unmatched.find_each do |bank_transaction|
       Transaction.find(bank_transaction.transaction_id).categorize(Transaction::Categorization.transfer)
     end
 

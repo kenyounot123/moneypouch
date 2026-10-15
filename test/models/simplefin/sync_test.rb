@@ -6,17 +6,17 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     @user = users(:one)
   end
 
-  test "a first sync imports every transaction and matches the one the user typed" do
+  test "a first sync adds every transaction and matches the one the user typed" do
     access = connect_simplefin
     activate(access)
 
     sync = access.syncs.sole
     assert_nil sync.failure
-    assert_equal [ 9, 1 ], [ sync.bank_transactions.count(&:imported?), sync.bank_transactions.count(&:matched?) ]
+    assert_equal [ 9, 1 ], [ sync.bank_transactions.count(&:unmatched?), sync.bank_transactions.count(&:matched?) ]
     assert_equal [ [ "You", 196_000, "2026-10-01" ], [ "You", 256_448, "2026-10-01" ],
                    [ "Grocery store", -13_550, "2026-10-02" ], [ "John's Fishin Shack", -665, "2026-10-02" ], [ "Grocery store", -17_667, "2026-10-02" ],
                    [ "John's Fishin Shack", -1000, "2026-10-03" ], [ "Grocery store", -13_000, "2026-10-03" ], [ "John's Fishin Shack", -1331, "2026-10-03" ], [ "Grocery store", -17_001, "2026-10-03" ] ],
-      access.syncs.imported_transactions.order(:occurred_on, :id).map { |transaction| [ transaction.name, transaction.amount_in_cents, transaction.occurred_on.iso8601 ] }
+      access.syncs.added_transactions.order(:occurred_on, :id).map { |transaction| [ transaction.name, transaction.amount_in_cents, transaction.occurred_on.iso8601 ] }
   end
 
   test "the typed match is linked, not duplicated, and keeps what the user typed" do
@@ -28,7 +28,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert coffee.bank_transaction.matched?
     assert_equal [ "Blue Bottle", "Food", "1790926110", "Demo Savings" ],
       [ coffee.name, coffee.category.name, coffee.bank_transaction.external_id, coffee.bank_transaction.bank_account.external_id ]
-    assert_not coffee.imported?
+    assert_not coffee.added_by_bank?
     assert_not coffee.needs_category?
   end
 
@@ -51,7 +51,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert_equal [ "grocery store", "johns fishin shack", "you" ], BankTransaction.distinct.pluck(:name_key).sort
   end
 
-  test "the same bank id in two accounts imports both transactions" do
+  test "the same bank id in two accounts adds both transactions" do
     access = connect_simplefin
     activate(access)
 
@@ -89,10 +89,10 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     activate(access, [ "Demo Savings" ])
 
     assert_not transactions(:coffee).reload.from_bank?
-    assert_equal 5, BankTransaction.imported.count
+    assert_equal 5, BankTransaction.unmatched.count
   end
 
-  test "an account seen for the first time imports nothing until the user picks it" do
+  test "an account seen for the first time adds nothing until the user picks it" do
     report = simplefin_report
     report["accounts"] << demo_account(report, "Demo Checking").merge("id" => "Demo Brokerage", "name" => "SimpleFIN Brokerage")
     access = connect_simplefin
@@ -104,7 +104,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
       access.bank_accounts.to_h { |account| [ account.external_id, account.bank_transactions.count ] })
   end
 
-  test "Sync it imports the account from today on the next sync" do
+  test "Sync it adds the account from today on the next sync" do
     report = simplefin_report
     access = connect_simplefin
     activate(access, [ "Demo Savings" ], report:)
@@ -140,7 +140,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert_equal Date.new(2026, 10, 2), elsewhere.bank_accounts.find_by!(external_id: "Demo Savings").bank_transactions.find_by!(external_id: "1790911710").occurred_on
   end
 
-  test "an imported row reuses the category the user gave that name before" do
+  test "a row added by the bank reuses the category the user gave that name before" do
     @user.transactions.create!(name: "Grocery store", amount_in_cents: -4000, occurred_on: Date.new(2026, 9, 1), category: categories(:food))
     access = connect_simplefin
     activate(access, [ "Demo Savings" ])
@@ -149,7 +149,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     fishing = Transaction.find(BankTransaction.find_by!(external_id: "1791012510").transaction_id)
     assert_equal [ "Food", false ], [ grocery.category.name, grocery.needs_category? ]
     assert_equal [ nil, true ], [ fishing.category, fishing.needs_category? ]
-    assert_equal [ true, true ], [ grocery.imported?, fishing.imported? ]
+    assert_equal [ true, true ], [ grocery.added_by_bank?, fishing.added_by_bank? ]
 
     fishing.categorize(Transaction::Categorization.transfer)
     assert_not fishing.needs_category?

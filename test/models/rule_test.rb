@@ -10,14 +10,14 @@ class RuleTest < ActiveSupport::TestCase
   end
 
   test "a pick changes only that row and saves no rule" do
-    imported("Demo Savings", -13_550).categorize(Transaction::Categorization.new(category: @groceries))
+    added_by_bank("Demo Savings", -13_550).categorize(Transaction::Categorization.new(category: @groceries))
 
     assert_equal [ "Groceries", nil ], categories_of("Demo Savings", "grocery store")
     assert_empty rules
   end
 
   test "making a rule fills same-name rows on every account that still need a category" do
-    grocery = imported("Demo Savings", -13_550)
+    grocery = added_by_bank("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.new(category: @groceries))
 
     grocery.make_rule
@@ -28,8 +28,8 @@ class RuleTest < ActiveSupport::TestCase
   end
 
   test "a rule never overwrites a category or a transfer" do
-    imported("Demo Savings", -13_000).update!(category: categories(:food))
-    grocery = imported("Demo Savings", -13_550)
+    added_by_bank("Demo Savings", -13_000).update!(category: categories(:food))
+    grocery = added_by_bank("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.transfer)
 
     grocery.make_rule
@@ -39,7 +39,7 @@ class RuleTest < ActiveSupport::TestCase
   end
 
   test "making the rule again changes it but leaves rows it already filled" do
-    grocery = imported("Demo Savings", -13_550)
+    grocery = added_by_bank("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.new(category: @groceries))
     grocery.make_rule
     grocery.categorize(Transaction::Categorization.new(category: categories(:food)))
@@ -47,14 +47,14 @@ class RuleTest < ActiveSupport::TestCase
     grocery.make_rule
 
     assert_equal [ [ "Grocery store", "grocery store", "Food", false ] ], rules
-    assert_equal "Groceries", imported("Demo Savings", -13_000).category.name
+    assert_equal "Groceries", added_by_bank("Demo Savings", -13_000).category.name
   end
 
   test "a typed row or a cleared category makes no rule" do
     coffee = transactions(:coffee).reload
     coffee.categorize(Transaction::Categorization.new(category: @groceries))
     coffee.make_rule
-    grocery = imported("Demo Savings", -13_550)
+    grocery = added_by_bank("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.none)
     grocery.make_rule
 
@@ -62,7 +62,7 @@ class RuleTest < ActiveSupport::TestCase
   end
 
   test "a row offers a rule until the user remembers that pick for its name" do
-    grocery = imported("Demo Savings", -13_550)
+    grocery = added_by_bank("Demo Savings", -13_550)
     assert_not grocery.offers_rule?
 
     grocery.categorize(Transaction::Categorization.new(category: @groceries))
@@ -77,7 +77,7 @@ class RuleTest < ActiveSupport::TestCase
   end
 
   test "counts the same-name rows on every account still waiting for a category" do
-    grocery = imported("Demo Savings", -13_550)
+    grocery = added_by_bank("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.new(category: @groceries))
 
     assert_equal 3, grocery.waiting_namesake_count
@@ -88,7 +88,7 @@ class RuleTest < ActiveSupport::TestCase
 
   test "the next sync brings same-name rows in by the rule, ahead of name history" do
     @user.transactions.create!(name: "Grocery store", amount_in_cents: -4000, occurred_on: Date.new(2026, 9, 1), category: categories(:food))
-    grocery = imported("Demo Savings", -13_550)
+    grocery = added_by_bank("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.transfer)
     grocery.make_rule
 
@@ -96,12 +96,12 @@ class RuleTest < ActiveSupport::TestCase
     demo_account(report, "Demo Savings")["transactions"] << demo_account(report, "Demo Savings")["transactions"][2].merge("id" => "next-week", "amount" => "-99.00")
     sync_again(@access, report:)
 
-    arrived = imported("Demo Savings", -9_900)
+    arrived = added_by_bank("Demo Savings", -9_900)
     assert_equal [ true, nil, false ], [ arrived.transfer?, arrived.category, arrived.needs_category? ]
   end
 
   test "a rule reaches rows of another account on the next sync" do
-    grocery = imported("Demo Savings", -13_550)
+    grocery = added_by_bank("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.new(category: @groceries))
     grocery.make_rule
     report = simplefin_report
@@ -109,11 +109,11 @@ class RuleTest < ActiveSupport::TestCase
     checking << checking[2].merge("id" => "next-week", "amount" => "-99.00")
     sync_again(@access, report:)
 
-    assert_equal "Groceries", imported("Demo Checking", -9_900).category.name
+    assert_equal "Groceries", added_by_bank("Demo Checking", -9_900).category.name
   end
 
   test "a sync reads the user's rules once, not once per account or row" do
-    grocery = imported("Demo Savings", -13_550)
+    grocery = added_by_bank("Demo Savings", -13_550)
     grocery.categorize(Transaction::Categorization.new(category: @groceries))
     grocery.make_rule
     report = simplefin_report
@@ -126,12 +126,12 @@ class RuleTest < ActiveSupport::TestCase
       sync_again(@access, report:)
     end
     assert_equal [ "Groceries", "Groceries", "Groceries", "Groceries" ],
-      [ imported("Demo Savings", -9_100), imported("Demo Savings", -9_200), imported("Demo Checking", -9_100), imported("Demo Checking", -9_200) ].map { _1.category&.name }
+      [ added_by_bank("Demo Savings", -9_100), added_by_bank("Demo Savings", -9_200), added_by_bank("Demo Checking", -9_100), added_by_bank("Demo Checking", -9_200) ].map { _1.category&.name }
   end
 
   private
-    def imported(account, cents)
-      BankTransaction.imported.joins(:bank_account).find_by!(bank_accounts: { external_id: account }, amount_in_cents: cents).then { Transaction.find(_1.transaction_id) }
+    def added_by_bank(account, cents)
+      BankTransaction.unmatched.joins(:bank_account).find_by!(bank_accounts: { external_id: account }, amount_in_cents: cents).then { Transaction.find(_1.transaction_id) }
     end
 
     def bank_rows(account, name_key)

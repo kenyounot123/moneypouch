@@ -12,8 +12,8 @@ class Simplefin::Sync < ApplicationRecord
   scope :recent, ->(within) { where(created_at: within.ago..) }
   scope :unreviewed, -> { finished.where(reviewed_at: nil) }
 
-  def self.imported_transactions
-    Transaction.kept.where(id: BankTransaction.imported.where(simplefin_sync_id: select(:id)).select(:transaction_id))
+  def self.added_transactions
+    Transaction.kept.where(id: BankTransaction.unmatched.where(simplefin_sync_id: select(:id)).select(:transaction_id))
   end
 
   def self.abandon_stale
@@ -28,7 +28,7 @@ class Simplefin::Sync < ApplicationRecord
     return if finished?
 
     Time.use_zone(access.time_zone) do
-      Transaction.broadcasting_once_for(access.user) { import }
+      Transaction.broadcasting_once_for(access.user) { fetch }
     end
   end
 
@@ -45,9 +45,9 @@ class Simplefin::Sync < ApplicationRecord
   end
 
   private
-    def import
+    def fetch
       access.client.accounts(since: access.history_start).each do |simplefin_account|
-        access.update_account(simplefin_account).import(simplefin_account.transactions, sync: self)
+        access.update_account(simplefin_account).add_transactions(simplefin_account.transactions, sync: self)
       end
       finish
     rescue Simplefin::PaymentRequired
