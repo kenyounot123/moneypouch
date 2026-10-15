@@ -110,16 +110,6 @@ module WelcomeHelper
     end
   end
 
-  def net_color(cents, positive:)
-    if cents.negative?
-      "text-danger"
-    elsif cents.positive?
-      positive
-    else
-      "text-tertiary"
-    end
-  end
-
   def total_readout(total)
     "#{month_abbreviation(total.month)} · income #{whole_spent total.income} · spent #{whole_spent total.spent}"
   end

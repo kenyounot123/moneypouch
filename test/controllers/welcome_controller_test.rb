@@ -134,10 +134,10 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{root_path(period: "week", chart: "summary", month: "2026-09")}'][aria-label='Sep · income $7,890 · spent $2,500']" do
       assert_select "span", text: "Sep"
       assert_select "span.text-tertiary", text: "+$5,390"
-      assert_select ".bg-income"
+      assert_select ".bg-data-soft"
     end
     assert_select "a[href*='month=2026-10'] span.text-tertiary", text: "+$1,995"
-    assert_select "a[href*='month=2026-08'] span.text-danger", text: "−$500"
+    assert_select "a[href*='month=2026-08'] span.text-tertiary", text: "−$500"
   end
 
   test "details one month with its sources and categories" do
@@ -155,7 +155,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "p.font-semibold", text: "September"
     assert_select "p", text: "$8,902.88"
     assert_select "p", text: "$1,652.50"
-    assert_select "p.text-success", text: "+$7,250.38"
+    assert_select "p", text: "+$7,250.38"
     assert_select "h3", text: "Where it came from"
     assert_select "h3 ~ div p", text: "Payroll"
     assert_select "h3 ~ div p", text: "$7,890.00"
@@ -173,7 +173,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "p", text: "Nothing came in."
     assert_select "p", text: "Nothing spent."
-    assert_select "p.text-tertiary", text: "$0.00"
+    assert_select "p", text: "$0.00"
   end
 
   test "clamps a future month to the current one" do

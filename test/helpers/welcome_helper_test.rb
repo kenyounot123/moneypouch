@@ -75,11 +75,6 @@ class WelcomeHelperTest < ActionView::TestCase
     assert_equal [ "+$3,912.88", "−$310.00", "$0.00" ], [ exact_net(391_288), exact_net(-31_000), exact_net(0) ]
   end
 
-  test "colors a net by its sign" do
-    assert_equal [ "text-tertiary", "text-danger", "text-tertiary" ],
-      [ net_color(5, positive: "text-tertiary"), net_color(-5, positive: "text-tertiary"), net_color(0, positive: "text-success") ]
-    assert_equal "text-success", net_color(5, positive: "text-success")
-  end
 
   test "reads a month's totals out loud" do
     total = Summary::Total.new(month: Month.new("2026-09", today: Date.current), income: 789_000, spent: 397_712)

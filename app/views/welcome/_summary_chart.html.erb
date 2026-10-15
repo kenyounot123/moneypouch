@@ -8,7 +8,7 @@
       data: { action: "mouseenter->chart#show focus->chart#show mouseleave->chart#clear blur->chart#clear", chart_label_param: readout },
       class: "group flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-sm py-1.5 hover:bg-level-3" do %>
       <div class="flex h-[132px] shrink-0 items-end gap-1">
-        <% [ [ total.income, "bg-income" ], [ total.spent, "bg-data" ] ].each do |cents, color| %>
+        <% [ [ total.income, "bg-data-soft" ], [ total.spent, "bg-data" ] ].each do |cents, color| %>
           <% if cents.positive? %>
             <div class="w-[18px] shrink-0 rounded-bar <%= color %>" style="height: <%= summary_bar_height cents, peak %>px"></div>
           <% end %>
@@ -16,7 +16,7 @@
       </div>
       <div class="flex flex-col items-center text-xs">
         <span class="text-secondary group-hover:font-medium group-hover:text-primary"><%= month_abbreviation total.month %></span>
-        <span class="font-mono <%= net_color total.net, positive: "text-tertiary" %>"><%= whole_net total.net %></span>
+        <span class="font-mono text-tertiary"><%= whole_net total.net %></span>
       </div>
     <% end %>
   <% end %>
