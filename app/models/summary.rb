@@ -17,9 +17,11 @@ class Summary
   end
 
   def totals
-    @totals ||= months.map do |month|
-      Total.new(month:, income: income_by_month.fetch(month.first_day, 0), spent: spent_by_month.fetch(month.first_day, 0))
-    end
+    totals_for(months)
+  end
+
+  def total(month)
+    totals_for([ month ]).first
   end
 
   def sources(month)
@@ -45,19 +47,17 @@ class Summary
       month
     end
 
-    def range
-      months.first.first_day..months.last.range.end
+    def totals_for(months)
+      range = months.first.first_day..months.last.range.end
+      income = by_month(@transactions.incoming, range)
+      spent = by_month(@transactions.spending, range).transform_values(&:-@)
+
+      months.map do |month|
+        Total.new(month:, income: income.fetch(month.first_day, 0), spent: spent.fetch(month.first_day, 0))
+      end
     end
 
-    def income_by_month
-      @income_by_month ||= by_month(@transactions.incoming)
-    end
-
-    def spent_by_month
-      @spent_by_month ||= by_month(@transactions.spending).transform_values(&:-@)
-    end
-
-    def by_month(scope)
+    def by_month(scope, range)
       scope.occurred_in(range)
         .group(:occurred_on)
         .sum(:amount_in_cents)

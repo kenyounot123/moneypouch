@@ -36,6 +36,15 @@ class SummaryTest < ActiveSupport::TestCase
     ], totals
   end
 
+  test "totals one month on its own, even one older than the six" do
+    add 12_300, "2026-01-10", "Gig"
+    add(-4_500, "2026-01-11", "Lunch")
+
+    total = @summary.total(Month.new("2026-01", today: Date.new(2026, 10, 15)))
+
+    assert_equal [ "2026-01", 12_300, 4_500, 7_800 ], [ total.month.to_param, total.income, total.spent, total.net ]
+  end
+
   test "leaves transfers, discarded rows, older months, and other users out" do
     add 50_000, "2026-09-02", "Savings in"
     @user.transactions.last.categorize(Transaction::Categorization.transfer)
