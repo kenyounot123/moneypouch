@@ -1,6 +1,7 @@
 class Transaction < ApplicationRecord
   belongs_to :user
   belongs_to :category, optional: true
+  belongs_to :import, optional: true
   has_one :bank_transaction
 
   delegate :name, to: :bank_transaction, prefix: true
@@ -27,6 +28,11 @@ class Transaction < ApplicationRecord
   scope :transfers, -> { where(transfer: true) }
   scope :in_category, ->(category) { where(category:) }
   scope :from_bank_account, ->(bank_account) { merge(bank_account.transactions) }
+
+  # The spending scope's twin, for counted rows not saved yet. Change the two together.
+  def self.spending?(amount_in_cents, categorized:)
+    amount_in_cents.negative? || categorized
+  end
 
   def self.broadcasting_once_for(user)
     suppressing_turbo_broadcasts { yield }
@@ -69,6 +75,31 @@ class Transaction < ApplicationRecord
       category: categorization.category,
       transfer: categorization.transfer?
     )
+  end
+
+  # Call through user.transactions: the user comes from the scope. ON CONFLICT DO NOTHING skips a key the user
+  # already has, kept or deleted, so a deleted row never comes back. Returns how many rows went in.
+  def self.import(rows, import:, categories:)
+    rows.each_slice(500).sum do |slice|
+      attributes = slice.map do |row|
+        {
+          import_id: import.id,
+          idempotency_key: row.key,
+          name: row.name,
+          occurred_on: row.occurred_on,
+          amount_in_cents: row.amount_in_cents,
+          category_id: categories[row.category_word]&.id,
+          excluded: row.excluded?,
+          note: normalize_value_for(:note, row.note)
+        }
+      end
+
+      insert_all(attributes, returning: :id).length
+    end
+  end
+
+  def self.taken_keys(keys, user:)
+    keys.each_slice(1_000).flat_map { |slice| where(user:, idempotency_key: slice).pluck(:idempotency_key) }.to_set
   end
 
   def self.last_category_for(name)

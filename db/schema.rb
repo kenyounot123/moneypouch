@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_15_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_15_195131) do
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -52,7 +52,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_120000) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "import_id"
     t.index "user_id, lower(name)", name: "index_categories_on_user_id_and_lower_name", unique: true
+    t.index ["import_id"], name: "index_categories_on_import_id"
+  end
+
+  create_table "imports", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "filename", null: false
+    t.text "sheet"
+    t.text "columns", null: false
+    t.text "category_names", default: "{}", null: false
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "completed_at"], name: "index_imports_on_user_id_and_completed_at"
+    t.index ["user_id"], name: "index_imports_one_draft", unique: true, where: "completed_at IS NULL"
+    t.check_constraint "(completed_at IS NULL) = (sheet IS NOT NULL)", name: "draft_has_a_sheet"
   end
 
   create_table "rules", force: :cascade do |t|
@@ -112,7 +128,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_120000) do
     t.boolean "transfer", default: false, null: false
     t.text "note"
     t.boolean "excluded", default: false, null: false
+    t.integer "import_id"
     t.index "user_id, lower(name), occurred_on", name: "index_transactions_on_user_id_and_lower_name_kept", where: "discarded_at IS NULL"
+    t.index ["import_id"], name: "index_transactions_on_import_id"
     t.index ["user_id", "idempotency_key"], name: "index_transactions_on_user_id_and_idempotency_key", unique: true, where: "idempotency_key IS NOT NULL"
     t.index ["user_id", "occurred_on", "category_id", "amount_in_cents"], name: "index_transactions_on_user_id_and_occurred_on_kept", where: "discarded_at IS NULL"
     t.index ["user_id", "occurred_on"], name: "index_transactions_on_user_id_and_occurred_on"
@@ -134,12 +152,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_120000) do
   add_foreign_key "bank_transactions", "bank_accounts"
   add_foreign_key "bank_transactions", "simplefin_syncs"
   add_foreign_key "bank_transactions", "transactions"
+  add_foreign_key "categories", "imports", on_delete: :nullify
   add_foreign_key "categories", "users"
+  add_foreign_key "imports", "users"
   add_foreign_key "rules", "categories", on_delete: :cascade
   add_foreign_key "rules", "users", on_delete: :cascade
   add_foreign_key "sessions", "users"
   add_foreign_key "simplefin_accesses", "users"
   add_foreign_key "simplefin_syncs", "simplefin_accesses", column: "access_id"
   add_foreign_key "transactions", "categories"
+  add_foreign_key "transactions", "imports", on_delete: :nullify
   add_foreign_key "transactions", "users"
 end

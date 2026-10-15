@@ -10,6 +10,7 @@ class User < ApplicationRecord
   has_many :bank_accounts, dependent: :destroy
   has_many :bank_transactions, through: :bank_accounts
   has_many :rules, dependent: :destroy
+  has_many :imports, dependent: :destroy
 
   has_one :simplefin_access, class_name: "Simplefin::Access", dependent: :destroy
 

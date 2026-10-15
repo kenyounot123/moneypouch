@@ -1,5 +1,6 @@
 class Category < ApplicationRecord
   belongs_to :user
+  belongs_to :import, optional: true
   has_many :transactions, dependent: :nullify
 
   normalizes :name, with: ->(name) { name.squish }

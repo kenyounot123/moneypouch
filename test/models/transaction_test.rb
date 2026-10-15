@@ -59,6 +59,27 @@ class TransactionTest < ActiveSupport::TestCase
     assert_equal [ true, false, false ], [ transactions(:coffee).counted?, savings.counted?, trip.counted? ]
   end
 
+  test "spending? counts the rows the spending scope counts" do
+    user = users(:two)
+    fun = user.categories.create!(name: "Fun")
+    user.transactions.create!(name: "Lunch", amount_in_cents: -1_200, occurred_on: "2026-10-01")
+    user.transactions.create!(name: "Refund", amount_in_cents: 500, occurred_on: "2026-10-01", category: fun)
+    user.transactions.create!(name: "Pay", amount_in_cents: 100_000, occurred_on: "2026-10-01")
+
+    assert_equal [ "Lunch", "Refund" ], user.transactions.spending.order(:name).pluck(:name)
+    assert_equal [ "Lunch", "Refund" ],
+      user.transactions.order(:name).select { |transaction| Transaction.spending?(transaction.amount_in_cents, categorized: transaction.category_id.present?) }.map(&:name)
+  end
+
+  test "import adds an import's rows for its user once and says how many went in" do
+    user = users(:two)
+    import = user.imports.create!(file: upload("tea.csv", "Date,Name,Amount,Note\n2024-10-01,Tea,3,\n2024-10-02,Tea,3,hot\n"))
+
+    assert_equal [ 2, 0 ], 2.times.map { user.transactions.import(import.rows, import:, categories: {}) }
+    assert_equal [ [ "Tea", -300, nil, import.id ], [ "Tea", -300, "hot", import.id ] ],
+      user.transactions.order(:occurred_on).map { |transaction| [ transaction.name, transaction.amount_in_cents, transaction.note, transaction.import_id ] }
+  end
+
   test "matches a search in the name or the note, ignoring case" do
     transactions(:paycheck).update!(note: "October pay")
 
