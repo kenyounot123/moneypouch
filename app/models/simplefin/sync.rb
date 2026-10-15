@@ -10,7 +10,6 @@ class Simplefin::Sync < ApplicationRecord
   scope :succeeded, -> { finished.where(failure: nil) }
   scope :answered, -> { finished.where(failure: [ nil, "lapsed", "revoked" ]) }
   scope :recent, ->(within) { where(created_at: within.ago..) }
-  scope :with_bank_transactions, -> { where.associated(:bank_transactions).distinct }
   scope :unreviewed, -> { finished.where(reviewed_at: nil) }
 
   def self.imported_transactions
@@ -43,14 +42,6 @@ class Simplefin::Sync < ApplicationRecord
 
   def lapsed?
     failure == "lapsed"
-  end
-
-  def imported_count
-    bank_transactions.imported.count
-  end
-
-  def matched_count
-    bank_transactions.matched.count
   end
 
   private

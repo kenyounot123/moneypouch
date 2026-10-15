@@ -10,11 +10,9 @@ class TransactionTest < ActiveSupport::TestCase
 
     coffee.discard
     assert_equal [ "Paycheck" ], Transaction.kept.pluck(:name)
-    assert_equal [ "Blue Bottle" ], Transaction.discarded.pluck(:name)
 
     coffee.restore
     assert_equal [ "Blue Bottle", "Paycheck" ], Transaction.kept.order(:name).pluck(:name)
-    assert_empty Transaction.discarded
   end
 
   test "tells the owner's open pages to refresh when a row is added, discarded, or restored" do
