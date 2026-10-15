@@ -24,18 +24,11 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "ul li", text: "No transactions yet. Type one above.", count: 1
   end
 
-  test "links the total count and first month under Recent" do
+  test "links Show all from the Recent heading to the full list" do
     get root_url
 
-    assert_select "a[href='#{transactions_path}']", text: "2 transactions since Oct 2026"
-  end
-
-  test "has no count link when the user has no kept rows" do
-    users(:one).transactions.each(&:discard)
-
-    get root_url
-
-    assert_select "main a[href='#{transactions_path}']", count: 0
+    assert_select "main a[href='#{transactions_path}'][data-turbo-frame=_top]", text: "Show all", count: 1
+    assert_select "main a", text: /transactions since/, count: 0
   end
 
   test "shows the month's spending by category and day" do

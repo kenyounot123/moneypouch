@@ -1,10 +1,6 @@
 module WelcomeHelper
   CHART_HEIGHT = 64
 
-  def transactions_total(count, since)
-    "#{number_with_delimiter(count)} #{"transaction".pluralize(count)} since #{since.strftime("%b %Y")}"
-  end
-
   def spent_heading(period)
     case period.kind
     when "week" then "Spent this week"
