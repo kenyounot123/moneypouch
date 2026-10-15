@@ -5,7 +5,7 @@ Rails.application.routes.draw do
     resource :note, only: :update, module: :transactions
   end
   resource :voucher, only: :show
-  resource :session
+  resource :session, only: %i[ new create destroy ]
   resource :settings, only: :show
   resource :account, only: %i[ new create ]
   resource :first_transaction, controller: "first_transaction", only: :show
