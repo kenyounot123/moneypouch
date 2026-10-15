@@ -67,16 +67,11 @@ module SimplefinHelper
     [ pluralize(rows, "row"), ("just now" if rule_just_made?(rule)) ].compact.join(" · ")
   end
 
-  def simplefin_review_summary(review)
-    handled = [
-      ("#{review.categorized.size} categorized for you" if review.categorized.any?),
-      (pluralize(review.transfers.size, "transfer") if review.transfers.any?)
-    ].compact
-
-    if handled.any?
-      "#{review.count} new. #{handled.join(", ")}."
+  def need_a_category(count)
+    if count == 1
+      "1 needs a category"
     else
-      "#{review.count} new."
+      "#{count} need a category"
     end
   end
 end

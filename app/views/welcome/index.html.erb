@@ -14,7 +14,7 @@
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
             <div class="flex w-[300px] max-w-full shrink-0 gap-0.5">
               <% @period.columns.each do |column| %>
-                <div class="h-2.5 flex-1 rounded-[2px] <%= column <= @period.today ? "bg-highlight" : "bg-data-track" %>"></div>
+                <div class="h-2.5 flex-1 rounded-[2px] <%= column <= @period.today ? "bg-data" : "bg-data-track" %>"></div>
               <% end %>
             </div>
             <p class="text-sm text-tertiary">Day <%= @period.day %> of <%= @period.days %></p>
@@ -23,7 +23,7 @@
 
         <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Period">
           <% Period::KINDS.each do |kind| %>
-            <%= link_to kind.capitalize, root_path(period: kind), aria: { current: kind == @period.kind ? "true" : nil },
+            <%= link_to kind.capitalize, root_path(period: kind, chart: @chart), aria: { current: kind == @period.kind ? "true" : nil },
               class: [ "rounded-sm px-3 py-1.5 text-sm", kind == @period.kind ? "bg-level-2 font-medium text-primary shadow-control" : "text-secondary hover:text-primary" ] %>
           <% end %>
         </nav>
@@ -41,7 +41,7 @@
             <div class="flex items-center gap-4">
               <p class="w-28 shrink-0 truncate"><%= category&.name || "Uncategorized" %></p>
               <div class="h-2.5 flex-1 rounded-bar bg-data-track">
-                <div class="h-full rounded-bar <%= index.zero? ? "bg-data-strong" : "bg-data" %>" style="width: max(3px, round(<%= (cents * 100.0 / categories.first.last).round(1) %>%, 1px))"></div>
+                <div class="h-full rounded-bar <%= category_color category, index %>" style="width: max(3px, round(<%= (cents * 100.0 / categories.first.last).round(1) %>%, 1px))"></div>
               </div>
               <p class="w-22 shrink-0 text-right font-mono"><%= spent cents %></p>
               <p class="w-10 shrink-0 text-right text-sm text-tertiary"><%= share_of cents, categories.sum(&:last) %></p>
@@ -51,21 +51,7 @@
             <p class="text-sm text-tertiary"><%= nothing_spent @period %></p>
           <% end %>
 
-          <div class="flex flex-col gap-3 pt-[22px]">
-            <p class="text-sm font-medium text-secondary"><%= @period.unit == :month ? "Monthly" : "Daily" %></p>
-            <% columns = @spending.columns %>
-            <% tallest = columns.values.compact.max.to_i %>
-            <div class="flex h-16 shrink-0 items-end gap-1">
-              <% columns.each do |column, cents| %>
-                <% if cents.to_i.positive? %>
-                  <div class="flex-1 rounded-bar <%= { @period.column_for(@period.today) => "bg-highlight", columns.key(tallest) => "bg-data-strong" }.fetch(column, "bg-data-soft") %>"
-                    style="height: <%= column_height cents, tallest %>px" title="<%= column_title @period, column, cents %>"></div>
-                <% else %>
-                  <div class="h-1 flex-1 rounded-[2px] <%= column == @period.column_for(@period.today) ? "bg-highlight" : "bg-data-track" %>"></div>
-                <% end %>
-              <% end %>
-            </div>
-          </div>
+          <%= render "welcome/chart", period: @period, chart: @chart, spending: @spending, summary: @summary, month: @month %>
         </section>
 
         <div class="flex min-w-0 flex-1 flex-col gap-10">
@@ -73,17 +59,20 @@
             <%= render "simplefin/reviews/block", review: @review, rows: @review_rows, category_names: @category_names %>
           <% end %>
           <section class="flex min-w-0 flex-col gap-1">
-            <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+            <div class="flex items-center justify-between border-b border-secondary pb-3">
               <h2 class="text-heading">Recent</h2>
-              <% if @syncing %>
-                <p class="flex items-center gap-1.5 text-sm text-tertiary">
-                  <svg class="size-3 shrink-0 animate-spin" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-                    <circle class="opacity-30" cx="7" cy="7" r="5.5" />
-                    <path d="M7 1.5a5.5 5.5 0 0 1 5.5 5.5" />
-                  </svg>
-                  Checking your banks
-                </p>
-              <% end %>
+              <div class="flex items-center gap-4">
+                <% if @syncing %>
+                  <p class="flex items-center gap-1.5 text-sm text-tertiary">
+                    <svg class="size-3 shrink-0 animate-spin" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                      <circle class="opacity-30" cx="7" cy="7" r="5.5" />
+                      <path d="M7 1.5a5.5 5.5 0 0 1 5.5 5.5" />
+                    </svg>
+                    Checking your banks
+                  </p>
+                <% end %>
+                <%= link_to "Show all", transactions_path, class: "text-sm font-medium text-secondary hover:text-primary", data: { turbo_frame: "_top" } %>
+              </div>
             </div>
 
             <ul class="flex flex-col gap-1" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>">
@@ -92,10 +81,6 @@
                 <li class="py-3 pl-5 text-sm text-tertiary">No transactions yet. Type one above.</li>
               <% end %>
             </ul>
-
-            <% if @total_count.positive? %>
-              <%= link_to transactions_total(@total_count, @since), transactions_path, class: "pt-3 pl-5 text-sm text-tertiary hover:text-secondary", data: { turbo_frame: "_top" } %>
-            <% end %>
           </section>
         </div>
       </div>

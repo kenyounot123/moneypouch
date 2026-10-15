@@ -24,18 +24,11 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "ul li", text: "No transactions yet. Type one above.", count: 1
   end
 
-  test "links the total count and first month under Recent" do
+  test "links Show all from the Recent heading to the full list" do
     get root_url
 
-    assert_select "a[href='#{transactions_path}']", text: "2 transactions since Oct 2026"
-  end
-
-  test "has no count link when the user has no kept rows" do
-    users(:one).transactions.each(&:discard)
-
-    get root_url
-
-    assert_select "main a[href='#{transactions_path}']", count: 0
+    assert_select "main a[href='#{transactions_path}'][data-turbo-frame=_top]", text: "Show all", count: 1
+    assert_select "main a", text: /transactions since/, count: 0
   end
 
   test "shows the month's spending by category and day" do
@@ -49,9 +42,12 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "Spent in October"
     assert_select "p", text: "$1,655.50"
     assert_select "p", text: "Day 15 of 31"
+    assert_select "div.h-2\\.5.bg-data", 15
+    assert_select "div.h-2\\.5.bg-highlight", 0
     assert_select "p", text: "Oct 1–31"
     assert_select "p", text: "Food"
     assert_select "p", text: "Uncategorized"
+    assert_select "div.rounded-bar.bg-highlight", 1
   end
 
   test "shows the year by month" do
@@ -60,8 +56,8 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "p", text: "Spent in 2026"
-    assert_select "p", text: "Monthly"
-    assert_select "[title='October · $5.50']"
+    assert_select "[data-chart-label-param='October · $5.50']"
+    assert_select "p[data-chart-target=readout]", text: ""
   end
 
   test "falls back to the month for an unknown period" do
@@ -87,6 +83,120 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#spending[data-turbo-action=advance] nav[aria-label=Period] a", count: 3
     assert_select "nav[aria-label=Period] a[href='#{root_path(period: "year")}']", text: "Year"
     assert_select "nav[aria-label=Period] a[aria-current=true]", text: "Week", count: 1
+  end
+
+  test "draws the spending chart by default with a readout label on each column that has spending" do
+    travel_to Time.utc(2026, 10, 15) do
+      get root_url
+    end
+
+    assert_select "nav[aria-label=Chart] a[aria-current=true]", text: "Spending", count: 1
+    assert_select "nav[aria-label=Chart] a[href='#{root_path(period: "month", chart: "summary")}']", text: "Summary"
+    assert_select "[data-chart-label-param='Oct 1 · $5.50'] .bg-data-strong"
+    assert_select "[data-chart-target=readout]", text: ""
+    assert_select "[data-chart-target=key]", count: 0
+    assert_select "p.basis-0", text: "Oct 1"
+    assert_select "p.basis-0", text: "Oct 29"
+    assert_select "p.basis-0", text: "Oct 2", count: 0
+  end
+
+  test "labels every column when the period has twelve or fewer" do
+    travel_to Time.utc(2026, 10, 15) do
+      get root_url(period: "week")
+    end
+
+    assert_select "p.basis-0", count: 7
+    assert_select "p.basis-0", text: "Oct 12"
+  end
+
+  test "keeps the chart across periods and the period across charts" do
+    get root_url(period: "week", chart: "summary")
+
+    assert_select "nav[aria-label=Period] a[href='#{root_path(period: "year", chart: "summary")}']", text: "Year"
+    assert_select "nav[aria-label=Chart] a[href='#{root_path(period: "week")}']", text: "Spending"
+    assert_select "nav[aria-label=Chart] a[aria-current=true]", text: "Summary"
+  end
+
+  test "falls back to the spending chart for an unknown chart" do
+    get root_url(chart: "pie")
+
+    assert_select "nav[aria-label=Chart] a[aria-current=true]", text: "Spending"
+    assert_select "[data-chart-label-param^='Oct 1']"
+  end
+
+  test "summarizes the last six months, each linking to its detail" do
+    travel_to Time.utc(2026, 10, 15) do
+      users(:one).transactions.create!(name: "Rent", amount_in_cents: -250_000, occurred_on: "2026-09-02")
+      users(:one).transactions.create!(name: "Payroll", amount_in_cents: 789_000, occurred_on: "2026-09-01")
+      users(:one).transactions.create!(name: "Repairs", amount_in_cents: -50_000, occurred_on: "2026-08-09")
+
+      get root_url(period: "week", chart: "summary")
+    end
+
+    assert_select "a[href='#{root_path(period: "week", chart: "summary", month: "2026-05")}']"
+    assert_select "a[href='#{root_path(period: "week", chart: "summary", month: "2026-10")}']"
+    assert_select "a[href='#{root_path(period: "week", chart: "summary", month: "2026-09")}'][aria-label='Sep · income $7,890 · spent $2,500']" do
+      assert_select "span", text: "Sep"
+      assert_select "span.text-tertiary", text: "+$5,390"
+      assert_select ".bg-data-soft"
+    end
+    assert_select "a[href*='month=2026-10'][aria-label^='Oct so far · income']"
+    assert_select "a[href*='month=2026-10'] span.text-tertiary", text: "+$1,995"
+    assert_select "[data-chart-target=readout]", text: ""
+    assert_equal [ "Income", "Spent", "±Net" ], css_select("[data-chart-target=key] > span").map { |span| span.text.strip }
+    assert_select "a[href*='month=2026-08'] span.text-tertiary", text: "−$500"
+  end
+
+  test "details one month with its sources and categories" do
+    travel_to Time.utc(2026, 10, 15) do
+      users(:one).transactions.create!(name: "Payroll", amount_in_cents: 789_000, occurred_on: "2026-09-01")
+      users(:one).transactions.create!(name: "Bonus", amount_in_cents: 100_000, occurred_on: "2026-09-02")
+      users(:one).transactions.create!(name: "Interest", amount_in_cents: 1_288, occurred_on: "2026-09-03")
+      users(:one).transactions.create!(name: "Rent", amount_in_cents: -165_000, occurred_on: "2026-09-04")
+      users(:one).transactions.create!(name: "Soda", amount_in_cents: -250, occurred_on: "2026-09-05", category: categories(:food))
+
+      get root_url(chart: "summary", month: "2026-09")
+    end
+
+    assert_select "a[href='#{root_path(period: "month", chart: "summary")}']", text: "← All months"
+    assert_select "[data-chart-target=key]", count: 0
+    assert_select "p.font-semibold", text: "September"
+    assert_select "p", text: "$8,902.88"
+    assert_select "p", text: "$1,652.50"
+    assert_select "p", text: "+$7,250.38"
+    assert_select "h3", text: "Where it came from"
+    assert_select "h3 ~ div p", text: "Payroll"
+    assert_select "h3 ~ div p", text: "$7,890.00"
+    assert_select "h3 ~ div p", text: "1 more"
+    assert_select "h3 ~ div p", text: "$12.88"
+    assert_select "h3 ~ div p", text: "Uncategorized"
+    assert_select "h3 ~ div p", text: "Food"
+    assert_select "[data-chart-target=readout]", count: 0
+  end
+
+  test "says nothing came in or went out of an empty month" do
+    travel_to Time.utc(2026, 10, 15) do
+      get root_url(chart: "summary", month: "2026-03")
+    end
+
+    assert_select "p", text: "Nothing came in."
+    assert_select "p", text: "Nothing spent."
+    assert_select "p", text: "$0.00"
+  end
+
+  test "clamps a future month to the current one" do
+    travel_to Time.utc(2026, 10, 15) do
+      get root_url(chart: "summary", month: "2030-01")
+    end
+
+    assert_select "p.font-semibold", text: "October"
+  end
+
+  test "ignores a month outside the summary chart" do
+    get root_url(month: "2026-09")
+
+    assert_select "p.font-semibold", count: 0
+    assert_select "[data-chart-target=readout]"
   end
 
   test "keeps the period after an add" do

@@ -16,6 +16,7 @@ class Transaction < ApplicationRecord
   scope :latest, -> { order(occurred_on: :desc, id: :desc) }
   scope :occurred_in, ->(dates) { where(occurred_on: dates) }
   scope :spending, -> { where(transfer: false).and(where(amount_in_cents: ...0).or(where.not(category_id: nil))) }
+  scope :incoming, -> { where(transfer: false, category_id: nil).where(amount_in_cents: 0..) }
   scope :listed, -> { latest.includes(:category, :bank_transaction) }
   scope :matchable, -> { where.missing(:bank_transaction) }
   scope :typed_in, -> { where.not(id: BankTransaction.select(:transaction_id)) }
@@ -50,7 +51,7 @@ class Transaction < ApplicationRecord
   end
 
   def self.income
-    net + spent
+    incoming.sum(:amount_in_cents)
   end
 
   def self.match_for(amount_in_cents, currency, date)

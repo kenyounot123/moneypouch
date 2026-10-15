@@ -59,12 +59,11 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_select "#bank_review h2", "From your bank"
-    assert_select "#bank_review", text: /9 need a category/
+    assert_select "#bank_review span[aria-label='9 need a category']", text: "9"
     assert_select "#bank_review li", 3
     assert_select "#bank_review li button[data-action='category-picker#open']", text: "Category", count: 3
-    assert_select "#bank_review p", text: "9 new."
-    assert_select "#bank_review a[href=?]", simplefin_review_path, text: "Show all"
-    assert_select "#bank_review form[action=?] button", simplefin_review_path, text: "Done"
+    assert_select "#bank_review a[href=?][data-turbo-frame=_top]", simplefin_review_path, text: "Show all", count: 1
+    assert_select "#bank_review form", count: 0
 
     patch simplefin_review_url
     get root_url
@@ -83,7 +82,7 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     assert_select "section p", text: /Checking your banks/, count: 1
   end
 
-  test "the summary counts rows a rule or a pick already handled" do
+  test "the count badge follows the rows a rule or a pick already handled" do
     activate(connect_simplefin)
     grocery = Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: -13_550).transaction_id)
     grocery.categorize(Transaction::Categorization.new(category: categories(:food)))
@@ -92,8 +91,31 @@ class BankRowsTest < ActionDispatch::IntegrationTest
 
     get root_url
 
-    assert_select "#bank_review", text: /4 need a category/
-    assert_select "#bank_review p", text: "9 new. 4 categorized for you, 1 transfer."
+    assert_select "#bank_review span[aria-label='4 need a category']", text: "4"
+  end
+
+  test "the count badge says one row needs a category in the singular" do
+    activate(connect_simplefin)
+    BankTransaction.imported.find_each do |bank_transaction|
+      Transaction.find(bank_transaction.transaction_id).categorize(Transaction::Categorization.transfer)
+    end
+    Transaction.find(BankTransaction.imported.first.transaction_id).categorize(Transaction::Categorization.none)
+
+    get root_url
+
+    assert_select "#bank_review span[aria-label='1 needs a category']", text: "1"
+  end
+
+  test "the count badge is absent when nothing needs a category" do
+    activate(connect_simplefin)
+    BankTransaction.imported.find_each do |bank_transaction|
+      Transaction.find(bank_transaction.transaction_id).categorize(Transaction::Categorization.transfer)
+    end
+
+    get root_url
+
+    assert_select "#bank_review h2", "From your bank"
+    assert_select "#bank_review span[aria-label]", count: 0
   end
 
   test "a sync that only matched what you typed shows no block" do

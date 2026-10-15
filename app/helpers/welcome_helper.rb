@@ -1,9 +1,8 @@
 module WelcomeHelper
-  CHART_HEIGHT = 64
-
-  def transactions_total(count, since)
-    "#{number_with_delimiter(count)} #{"transaction".pluralize(count)} since #{since.strftime("%b %Y")}"
-  end
+  CHART_HEIGHT = 136
+  SUMMARY_BAR_HEIGHT = 130
+  LABEL_SPAN = 7
+  MAX_LABELLED_COLUMNS = 12
 
   def spent_heading(period)
     case period.kind
@@ -61,7 +60,76 @@ module WelcomeHelper
     end
   end
 
-  def column_height(cents, peak)
-    [ (cents * CHART_HEIGHT.to_f / peak).round, 4 ].max
+  def column_height(cents, peak, tallest = CHART_HEIGHT)
+    [ (cents * tallest.to_f / peak).round, 4 ].max
   end
+
+  def summary_bar_height(cents, peak)
+    column_height(cents, peak, SUMMARY_BAR_HEIGHT)
+  end
+
+  def category_color(category, index)
+    if category.nil?
+      "bg-highlight"
+    elsif index.zero?
+      "bg-data-strong"
+    else
+      "bg-data"
+    end
+  end
+
+  def column_color(column, today_column, tallest_column)
+    if column == tallest_column
+      "bg-data-strong"
+    elsif column == today_column
+      "bg-data"
+    else
+      "bg-data-soft"
+    end
+  end
+
+  def column_labels(period, columns)
+    if columns.size <= MAX_LABELLED_COLUMNS
+      columns.keys.map { |column| [ column_label(period, column), 1 ] }
+    else
+      columns.keys.each_slice(LABEL_SPAN).map { |week| [ column_label(period, week.first), week.size ] }
+    end
+  end
+
+  def whole_spent(cents)
+    number_to_currency((cents.to_d / 100).round, precision: 0)
+  end
+
+  def whole_net(cents)
+    if cents.negative?
+      "−#{whole_spent(-cents)}"
+    elsif cents.positive?
+      "+#{whole_spent(cents)}"
+    else
+      whole_spent(0)
+    end
+  end
+
+  def exact_net(cents)
+    if cents.negative?
+      "−#{spent(-cents)}"
+    elsif cents.positive?
+      "+#{spent(cents)}"
+    else
+      spent(0)
+    end
+  end
+
+  def total_readout(total)
+    "#{month_abbreviation(total.month)}#{" so far" if total.month.current?} · income #{whole_spent total.income} · spent #{whole_spent total.spent}"
+  end
+
+  private
+    def column_label(period, column)
+      if period.unit == :month
+        column.strftime("%b")
+      else
+        short_date(column)
+      end
+    end
 end
