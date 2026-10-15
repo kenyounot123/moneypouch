@@ -14,7 +14,7 @@
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
             <div class="flex w-[300px] max-w-full shrink-0 gap-0.5">
               <% @period.columns.each do |column| %>
-                <div class="h-2.5 flex-1 rounded-[2px] <%= column <= @period.today ? "bg-highlight" : "bg-data-track" %>"></div>
+                <div class="h-2.5 flex-1 rounded-[2px] <%= column <= @period.today ? "bg-data" : "bg-data-track" %>"></div>
               <% end %>
             </div>
             <p class="text-sm text-tertiary">Day <%= @period.day %> of <%= @period.days %></p>
@@ -41,7 +41,7 @@
             <div class="flex items-center gap-4">
               <p class="w-28 shrink-0 truncate"><%= category&.name || "Uncategorized" %></p>
               <div class="h-2.5 flex-1 rounded-bar bg-data-track">
-                <div class="h-full rounded-bar <%= index.zero? ? "bg-data-strong" : "bg-data" %>" style="width: max(3px, round(<%= (cents * 100.0 / categories.first.last).round(1) %>%, 1px))"></div>
+                <div class="h-full rounded-bar <%= category_color category, index %>" style="width: max(3px, round(<%= (cents * 100.0 / categories.first.last).round(1) %>%, 1px))"></div>
               </div>
               <p class="w-22 shrink-0 text-right font-mono"><%= spent cents %></p>
               <p class="w-10 shrink-0 text-right text-sm text-tertiary"><%= share_of cents, categories.sum(&:last) %></p>

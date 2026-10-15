@@ -68,11 +68,21 @@ module WelcomeHelper
     column_height(cents, peak, SUMMARY_BAR_HEIGHT)
   end
 
+  def category_color(category, index)
+    if category.nil?
+      "bg-highlight"
+    elsif index.zero?
+      "bg-data-strong"
+    else
+      "bg-data"
+    end
+  end
+
   def column_color(column, today_column, tallest_column)
     if column == tallest_column
       "bg-data-strong"
     elsif column == today_column
-      "bg-highlight"
+      "bg-data"
     else
       "bg-data-soft"
     end
@@ -111,7 +121,7 @@ module WelcomeHelper
   end
 
   def total_readout(total)
-    "#{month_abbreviation(total.month)} · income #{whole_spent total.income} · spent #{whole_spent total.spent}"
+    "#{month_abbreviation(total.month)}#{" so far" if total.month.current?} · income #{whole_spent total.income} · spent #{whole_spent total.spent}"
   end
 
   private

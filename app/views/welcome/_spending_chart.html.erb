@@ -9,7 +9,7 @@
         <div class="w-full rounded-bar <%= column_color column, today_column, columns.key(tallest) %>" style="height: <%= column_height cents, tallest %>px"></div>
       </div>
     <% else %>
-      <div class="h-1 flex-1 rounded-[2px] <%= column == today_column ? "bg-highlight" : "bg-data-track" %>"></div>
+      <div class="h-1 flex-1 rounded-[2px] <%= column == today_column ? "bg-data" : "bg-data-track" %>"></div>
     <% end %>
   <% end %>
 </div>

@@ -42,9 +42,12 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "Spent in October"
     assert_select "p", text: "$1,655.50"
     assert_select "p", text: "Day 15 of 31"
+    assert_select "div.h-2\\.5.bg-data", 15
+    assert_select "div.h-2\\.5.bg-highlight", 0
     assert_select "p", text: "Oct 1–31"
     assert_select "p", text: "Food"
     assert_select "p", text: "Uncategorized"
+    assert_select "div.rounded-bar.bg-highlight", 1
   end
 
   test "shows the year by month" do
@@ -91,6 +94,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "nav[aria-label=Chart] a[href='#{root_path(period: "month", chart: "summary")}']", text: "Summary"
     assert_select "[data-chart-label-param='Oct 1 · $5.50'] .bg-data-strong"
     assert_select "[data-chart-target=readout]", text: ""
+    assert_select "[data-chart-target=key]", count: 0
     assert_select "p.basis-0", text: "Oct 1"
     assert_select "p.basis-0", text: "Oct 29"
     assert_select "p.basis-0", text: "Oct 2", count: 0
@@ -136,7 +140,10 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
       assert_select "span.text-tertiary", text: "+$5,390"
       assert_select ".bg-data-soft"
     end
+    assert_select "a[href*='month=2026-10'][aria-label^='Oct so far · income']"
     assert_select "a[href*='month=2026-10'] span.text-tertiary", text: "+$1,995"
+    assert_select "[data-chart-target=readout]", text: ""
+    assert_equal [ "Income", "Spent", "±Net" ], css_select("[data-chart-target=key] > span").map { |span| span.text.strip }
     assert_select "a[href*='month=2026-08'] span.text-tertiary", text: "−$500"
   end
 
@@ -152,6 +159,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "a[href='#{root_path(period: "month", chart: "summary")}']", text: "← All months"
+    assert_select "[data-chart-target=key]", count: 0
     assert_select "p.font-semibold", text: "September"
     assert_select "p", text: "$8,902.88"
     assert_select "p", text: "$1,652.50"

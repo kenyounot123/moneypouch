@@ -35,12 +35,17 @@ class WelcomeHelperTest < ActionView::TestCase
     assert_equal [ 130, 65 ], [ summary_bar_height(500, 500), summary_bar_height(250, 500) ]
   end
 
-  test "colors the tallest column dark, today gold, and the rest soft" do
+  test "colors the tallest column dark, today a step lighter, and the rest soft" do
     day = Date.new(2026, 10, 3)
 
     assert_equal "bg-data-strong", column_color(day, day, day)
-    assert_equal "bg-highlight", column_color(day, day, day + 1)
+    assert_equal "bg-data", column_color(day, day, day + 1)
     assert_equal "bg-data-soft", column_color(day, day - 1, day + 1)
+  end
+
+  test "colors uncategorized spending gold and the biggest category dark" do
+    assert_equal [ "bg-highlight", "bg-highlight", "bg-data-strong", "bg-data" ],
+      [ category_color(nil, 0), category_color(nil, 3), category_color(categories(:food), 0), category_color(categories(:food), 1) ]
   end
 
   test "labels every column of a short period" do
@@ -80,5 +85,13 @@ class WelcomeHelperTest < ActionView::TestCase
     total = Summary::Total.new(month: Month.new("2026-09", today: Date.current), income: 789_000, spent: 397_712)
 
     assert_equal "Sep · income $7,890 · spent $3,977", total_readout(total)
+  end
+
+  test "says the current month is only so far" do
+    travel_to Time.utc(2026, 10, 15) do
+      total = Summary::Total.new(month: Month.new(nil, today: Date.current), income: 199_500, spent: 119_412)
+
+      assert_equal "Oct so far · income $1,995 · spent $1,194", total_readout(total)
+    end
   end
 end
