@@ -12,7 +12,6 @@ class Transaction < ApplicationRecord
   broadcasts_refreshes_to ->(transaction) { [ transaction.user, :transactions ] }
 
   scope :kept, -> { where(discarded_at: nil) }
-  scope :discarded, -> { where.not(discarded_at: nil) }
   scope :latest, -> { order(occurred_on: :desc, id: :desc) }
   scope :occurred_in, ->(dates) { where(occurred_on: dates) }
   scope :spending, -> { where(transfer: false).and(where(amount_in_cents: ...0).or(where.not(category_id: nil))) }
@@ -84,10 +83,6 @@ class Transaction < ApplicationRecord
       .group(:name)
       .order(Arel.sql("count(*) DESC, max(transactions.occurred_on) DESC"))
       .pick(:name)
-  end
-
-  def added_on
-    (created_at || Time.current).in_time_zone.to_date
   end
 
   def bank_account_name

@@ -12,7 +12,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
 
     sync = access.syncs.sole
     assert_nil sync.failure
-    assert_equal [ 9, 1 ], [ sync.imported_count, sync.matched_count ]
+    assert_equal [ 9, 1 ], [ sync.bank_transactions.count(&:imported?), sync.bank_transactions.count(&:matched?) ]
     assert_equal [ [ "You", 196_000, "2026-10-01" ], [ "You", 256_448, "2026-10-01" ],
                    [ "Grocery store", -13_550, "2026-10-02" ], [ "John's Fishin Shack", -665, "2026-10-02" ], [ "Grocery store", -17_667, "2026-10-02" ],
                    [ "John's Fishin Shack", -1000, "2026-10-03" ], [ "Grocery store", -13_000, "2026-10-03" ], [ "John's Fishin Shack", -1331, "2026-10-03" ], [ "Grocery store", -17_001, "2026-10-03" ] ],
@@ -41,7 +41,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
         sync_again(access)
       end
     end
-    assert_equal [ 0, 0 ], [ access.syncs.last.imported_count, access.syncs.last.matched_count ]
+    assert_empty access.syncs.last.bank_transactions
   end
 
   test "each bank transaction stores the key its cleaned name matches on" do

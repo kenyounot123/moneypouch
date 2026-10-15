@@ -24,7 +24,7 @@ Sidebar, Settings, Bank sync, Connect a bank. Open SimpleFIN, copy a setup token
 - `mp.mjs goto /settings --port N`, `mp.mjs click 'turbo-frame#bank_sync a' --port N`, `mp.mjs wait 'turbo-frame#bank_sync' --text 'Paste it here' --port N`.
 - `mp.mjs paste '#simplefin_access_setup_token' "$TOKEN" --port N`, then `mp.mjs wait 'turbo-frame#bank_sync' --text 'Pick the accounts' --timeout 20000 --port N`. Paste the same token again for the rejected state: `--text 'already used'`.
 - Choose 90 days: `mp.mjs click 'label:has(input[value="90_days"])' --port N`. Start: `mp.mjs click 'turbo-frame#bank_sync button.bg-action' --port N`, then `mp.mjs wait 'turbo-frame#bank_sync' --text 'Synced just now' --timeout 30000 --port N`.
-- Proof of an import: `mp.mjs query 's = Simplefin::Sync.last; [s.failure, s.imported_count, s.matched_count]'` and `mp.mjs query '[Transaction.count, BankTransaction.count]'`. The demo gives about 170 transactions per account for 90 days.
+- Proof of an import: `mp.mjs query 's = Simplefin::Sync.last; [s.failure, s.bank_transactions.count(&:imported?), s.bank_transactions.count(&:matched?)]'` and `mp.mjs query '[Transaction.count, BankTransaction.count]'`. The demo gives about 170 transactions per account for 90 days.
 - Sync now: `mp.mjs click 'turbo-frame#bank_sync form[action="/simplefin/sync"] button' --port N` (the page goes to `/`), poll `Simplefin::Sync.finished.count` until it grows, and compare the counts. A second sync of the same data adds 0 rows.
 - Disconnect: `mp.mjs click 'turbo-frame#bank_sync form[action="/simplefin/access"] button' --port N`. Transactions and bank transactions stay.
 

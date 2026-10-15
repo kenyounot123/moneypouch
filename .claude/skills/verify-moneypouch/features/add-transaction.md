@@ -27,5 +27,5 @@ Sign in. The composer sits at the top of `/`. Type shorthand such as `coffee 5.5
 - Invalid shorthand answers `422` and saves nothing, so a `POST /transactions` in the log is not proof of an add. Check the count.
 - `TransactionsController#create` takes `shorthand` and `idempotency_key`. A second post with the same key returns the first row.
 - `/transactions` renders each row with `transactions/_row.html.erb`, not Recent's `_transaction.html.erb`. Count a month's rows with `mp.mjs js 'document.querySelectorAll("main section li").length' --port N`. Delete discards the row (sets `discarded_at`), so `Transaction.count` stays the same.
-- `User#transactions` returns kept rows only. Count discarded rows with `User#discarded_transactions`.
+- `User#transactions` returns kept rows only. Count discarded rows with `Transaction.where.not(discarded_at: nil)`.
 - `dev:transactions` writes to the development database every instance shares, and repeated runs add rows. It loads the seed first, so it also resets the `demo` password.

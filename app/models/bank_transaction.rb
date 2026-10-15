@@ -4,7 +4,6 @@ class BankTransaction < ApplicationRecord
 
   delegate :name, to: :bank_account, prefix: true
 
-  scope :matched, -> { where(matched: true) }
   scope :imported, -> { where(matched: false) }
 
   def self.count_by_name
