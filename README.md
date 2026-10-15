@@ -25,6 +25,20 @@
 - **Your data, your server.** One container and one SQLite file, in a volume you own.
 - **Bank sync, optional.** Connect your own SimpleFIN account to pull in transactions from your bank accounts.
 
+## System requirements
+
+MoneyPouch is light. The image is built for 64-bit x86 and ARM, so an old PC or a Raspberry Pi 4 or later has enough power to run it.
+
+|      | Minimum | Recommended |
+| ---- | ------- | ----------- |
+| RAM  | 512 MB free | 1 GB free |
+| CPU  | Any 64-bit x86 or ARM CPU | 2 cores |
+| Disk | 2 GB free | 2 GB free |
+
+Your data takes almost no space. Ten years of spending, 30,000 transactions, is about 5 MB.
+
+These numbers come from running the Docker image with Docker's memory and CPU limits and loading pages as a user with 30,000 transactions. MoneyPouch used about 300 MB of memory and stopped working at a 256 MB limit. With a quarter of one CPU core, pages still loaded in about 0.1 to 0.2 seconds.
+
 ## Getting started
 
 Pick one of two ways to run MoneyPouch.
