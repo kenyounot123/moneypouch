@@ -156,4 +156,58 @@ class ImportTest < ActiveSupport::TestCase
                    [ "2024-01-03", "Bookshop", -2_400, "Fun", false ], [ "2024-01-05", "Late dinner", -3_640, "Eating out", false ] ],
       import.transactions.order(:occurred_on).map { |transaction| [ transaction.occurred_on.iso8601, transaction.name, transaction.amount_in_cents, transaction.category.name, transaction.excluded? ] }
   end
+
+  test "Undo removes the rows and the categories only it created, and the same file then imports in full" do
+    import = @user.imports.create!(file: import_file("personal.csv"))
+    import.complete
+
+    import.undo
+
+    assert_equal [ [ "Blue Bottle", "Paycheck" ], [ "Food" ], false ],
+      [ @user.transactions.order(:name).pluck(:name), @user.categories.pluck(:name), Import.exists?(import.id) ]
+    again = @user.imports.create!(file: import_file("personal.csv"))
+    assert_equal [ 11, 0 ], [ again.tally.adding, again.tally.already_here ]
+  end
+
+  test "Undo keeps a row a bank sync matched since, and the category it uses" do
+    travel_to Time.utc(2026, 10, 6, 18)
+    import = @user.imports.create!(file: upload("october.csv", "Date,Name,Category,Amount\n2026-10-02,Grocery store,Groceries,135.50\n2026-10-04,Cake,Treats,12.00\n"))
+    import.complete
+    activate(connect_simplefin)
+    grocery = import.transactions.find_by!(name: "Grocery store")
+    assert grocery.bank_transaction.matched?
+
+    import.undo
+
+    assert_equal [ nil, "Groceries", nil ], [ grocery.reload.import_id, grocery.category.name, grocery.category.import_id ]
+    assert_not Transaction.exists?(name: "Cake")
+    assert_equal [ "Food", "Groceries" ], @user.categories.order(:name).pluck(:name)
+  end
+
+  test "Undo tells the user's open pages to refresh once" do
+    import = @user.imports.create!(file: import_file("personal.csv"))
+    import.complete
+
+    perform_enqueued_jobs do
+      assert_turbo_stream_broadcasts [ @user, :transactions ], count: 1 do
+        import.undo
+      end
+    end
+  end
+
+  test "Start over drops a draft" do
+    import = @user.imports.create!(file: import_file("personal.csv"))
+
+    import.undo
+
+    assert_not Import.exists?(import.id)
+    assert_equal 2, Transaction.count
+  end
+
+  test "the database holds one draft per user and a sheet only while drafting" do
+    import = @user.imports.create!(file: import_file("personal.csv"))
+
+    assert_raises(ActiveRecord::RecordNotUnique) { Import.create!(user: @user, file: import_file("bank.csv")) }
+    assert_raises(ActiveRecord::StatementInvalid) { import.update_columns(completed_at: Time.current) }
+  end
 end

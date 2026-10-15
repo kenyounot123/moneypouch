@@ -20,6 +20,24 @@ class User < ApplicationRecord
     end
   end
 
+  # A new upload replaces the draft in progress. A file that can't be read leaves that draft alone.
+  def start_import(file)
+    import = imports.new(file:)
+
+    if import.valid?
+      transaction do
+        imports.drafts.destroy_all
+        import.save!
+      end
+    end
+
+    import
+  end
+
+  def latest_import
+    imports.completed.order(:completed_at).last
+  end
+
   def remember(name, categorization)
     remember_once(name, categorization)
   rescue ActiveRecord::RecordNotUnique

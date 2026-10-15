@@ -91,6 +91,18 @@ class Import < ApplicationRecord
     end
   end
 
+  # Undo, and Start over on a draft. A row a bank sync matched since stays as an ordinary transaction, since the
+  # bank vouches for it. Deleting rather than discarding frees the keys, so the same file imports in full again.
+  def undo
+    Transaction.broadcasting_once_for(user) do
+      transaction do
+        transactions.matchable.delete_all
+        created_categories.unused.destroy_all
+        destroy!
+      end
+    end
+  end
+
   private
     def readings
       @readings ||= columns.read(sheet)
