@@ -23,7 +23,7 @@
 
         <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Period">
           <% Period::KINDS.each do |kind| %>
-            <%= link_to kind.capitalize, root_path(period: kind), aria: { current: kind == @period.kind ? "true" : nil },
+            <%= link_to kind.capitalize, root_path(period: kind, chart: @chart), aria: { current: kind == @period.kind ? "true" : nil },
               class: [ "rounded-sm px-3 py-1.5 text-sm", kind == @period.kind ? "bg-level-2 font-medium text-primary shadow-control" : "text-secondary hover:text-primary" ] %>
           <% end %>
         </nav>
@@ -51,21 +51,7 @@
             <p class="text-sm text-tertiary"><%= nothing_spent @period %></p>
           <% end %>
 
-          <div class="flex flex-col gap-3 pt-[22px]">
-            <p class="text-sm font-medium text-secondary"><%= @period.unit == :month ? "Monthly" : "Daily" %></p>
-            <% columns = @spending.columns %>
-            <% tallest = columns.values.compact.max.to_i %>
-            <div class="flex h-16 shrink-0 items-end gap-1">
-              <% columns.each do |column, cents| %>
-                <% if cents.to_i.positive? %>
-                  <div class="flex-1 rounded-bar <%= { @period.column_for(@period.today) => "bg-highlight", columns.key(tallest) => "bg-data-strong" }.fetch(column, "bg-data-soft") %>"
-                    style="height: <%= column_height cents, tallest %>px" title="<%= column_title @period, column, cents %>"></div>
-                <% else %>
-                  <div class="h-1 flex-1 rounded-[2px] <%= column == @period.column_for(@period.today) ? "bg-highlight" : "bg-data-track" %>"></div>
-                <% end %>
-              <% end %>
-            </div>
-          </div>
+          <%= render "welcome/chart", period: @period, chart: @chart, spending: @spending, summary: @summary, month: @month %>
         </section>
 
         <div class="flex min-w-0 flex-1 flex-col gap-10">

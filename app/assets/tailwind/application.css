@@ -65,6 +65,7 @@
   --background-color-data: light-dark(var(--slate-500), var(--slate-400));
   --background-color-data-strong: light-dark(var(--slate-600), var(--slate-200));
   --background-color-data-soft: light-dark(var(--slate-300), var(--slate-700));
+  --background-color-income: light-dark(var(--green-600), var(--green-300));
   --background-color-data-track: light-dark(var(--slate-100), var(--slate-800));
 
   --text-color-primary: light-dark(var(--slate-900), var(--slate-50));
