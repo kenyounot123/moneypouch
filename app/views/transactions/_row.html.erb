@@ -8,18 +8,21 @@
       <% end %>
     </div>
     <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-      <p class="truncate font-medium <%= "text-tertiary" if transaction.transfer? %>"><%= transaction.name %></p>
+      <p class="truncate font-medium <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
       <% if transaction.note %>
         <p class="flex min-w-0 items-center gap-1.5 text-secondary"><%= pencil_icon %><span class="truncate"><%= transaction.note %></span></p>
       <% end %>
       <p class="flex min-w-0 items-center gap-1 text-sm text-tertiary">
         <span class="flex shrink-0 items-center gap-1 text-secondary underline decoration-dotted underline-offset-3"><%= transfer_icon(size: 12) if transaction.transfer? %><%= categorization_label transaction %></span>
+        <% if transaction.excluded? %>
+          <span class="shrink-0">· Excluded</span>
+        <% end %>
         <% if transaction.from_bank? %>
           <span class="truncate">· <%= transaction.bank_account_name %></span>
         <% end %>
       </p>
     </div>
-    <p class="w-[90px] shrink-0 text-right font-mono <%= "text-tertiary" if transaction.transfer? %>"><%= money transaction.amount_in_cents %></p>
+    <p class="w-[90px] shrink-0 text-right font-mono <%= "text-tertiary" unless transaction.counted? %>"><%= money transaction.amount_in_cents %></p>
   </div>
 
   <div class="hidden h-10 items-center gap-4 @xl:flex">
@@ -30,7 +33,10 @@
     </div>
     <div class="flex min-w-0 flex-1 items-center gap-2.5" data-controller="note" data-note-url-value="<%= transaction_note_path(transaction) %>">
       <div class="flex min-w-0 items-baseline gap-2.5" data-note-target="name">
-        <p class="max-w-full shrink-0 truncate font-medium <%= "text-tertiary" if transaction.transfer? %>"><%= transaction.name %></p>
+        <p class="max-w-full shrink-0 truncate font-medium <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
+        <% if transaction.excluded? %>
+          <%= excluded_tag class: "group-focus-within:hidden group-hover:hidden" %>
+        <% end %>
         <% if transaction.note %>
           <button type="button" class="min-w-0 cursor-text truncate text-left text-sm text-tertiary hover:text-secondary"
             data-note-target="label" data-action="note#open" data-note-text-param="<%= transaction.note %>"><%= transaction.note %></button>
@@ -39,9 +45,11 @@
             data-note-target="label" data-action="note#open"><%= pencil_icon %>Add a note</button>
         <% end %>
       </div>
-      <%= button_to "Delete", transaction, method: :delete, form: { class: "ml-auto hidden shrink-0 group-focus-within:block group-hover:block" },
-        data: { turbo_confirm: "Delete #{transaction.name}?" },
-        class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" %>
+      <div class="ml-auto hidden shrink-0 items-center gap-1 bg-level-0 group-focus-within:flex group-hover:flex">
+        <%= exclusion_button transaction, class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" %>
+        <%= button_to "Delete", transaction, method: :delete, data: { turbo_confirm: "Delete #{transaction.name}?" },
+          class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" %>
+      </div>
     </div>
     <div class="flex w-37.5 shrink-0 text-sm">
       <% if transaction.needs_category? %>
@@ -53,7 +61,7 @@
       <% end %>
     </div>
     <p class="hidden w-47.5 shrink-0 truncate text-sm text-tertiary @4xl:block"><%= transaction.bank_account_name %></p>
-    <p class="w-25 shrink-0 text-right font-mono <%= "text-tertiary" if transaction.transfer? %>"><%= money transaction.amount_in_cents %></p>
+    <p class="w-25 shrink-0 text-right font-mono <%= "text-tertiary" unless transaction.counted? %>"><%= money transaction.amount_in_cents %></p>
   </div>
 
   <% if offering_rule %>

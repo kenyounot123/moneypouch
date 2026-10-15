@@ -23,6 +23,15 @@ module TransactionsHelper
     end
   end
 
+  def excluded_tag(**options)
+    tag.span "Excluded", class: [ "shrink-0 rounded-[4px] bg-level-3 px-1.5 py-px text-xs text-tertiary", options[:class] ]
+  end
+
+  def exclusion_button(transaction, **options)
+    button_to transaction.excluded? ? "Include" : "Exclude", transaction_exclusion_path(transaction), method: :patch,
+      params: { transaction: { excluded: !transaction.excluded? } }, **options
+  end
+
   def transfer_icon(size: 14)
     tag.svg(
       tag.path(d: "M2 4.5h9M8.5 2l2.5 2.5L8.5 7M12 9.5H3M5.5 7L3 9.5 5.5 12", fill: "none", stroke: "currentColor",
