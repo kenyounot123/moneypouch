@@ -14,7 +14,7 @@
   <% end %>
 </div>
 <div class="flex gap-1">
-  <% column_labels(period, columns).each do |label, span| %>
-    <p class="basis-0 text-xs text-tertiary" style="flex-grow: <%= span %>"><%= label %></p>
+  <% column_labels(period, columns).each do |caption, span| %>
+    <p class="basis-0 text-xs text-tertiary" style="flex-grow: <%= span %>"><%= caption %></p>
   <% end %>
 </div>
