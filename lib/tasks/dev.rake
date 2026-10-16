@@ -23,7 +23,7 @@ namespace :dev do
                  Albany Piedmont Montclair Rockridge Temescal Fruitvale Jingletown ]
     variants = merchants.product(places).map { |(name, dollars, category), place| [ "#{name} #{place}", dollars, category ] }
 
-    categories = (merchants.map(&:last) << "Income").uniq.index_with do |name|
+    categories = merchants.map(&:last).uniq.index_with do |name|
       user.categories.named(name).first_or_create!(name: name)
     end
 
@@ -31,7 +31,7 @@ namespace :dev do
     rows = Array.new(count) do |index|
       occurred_on = today - rand(365)
       if rand < 0.04
-        name, cents, category = "Paycheck", rand(180_000..320_000), "Income"
+        name, cents, category = "Paycheck", rand(180_000..320_000), nil
       else
         name, dollars, category = index % 4 == 0 ? variants[(index / 4) % variants.size] : merchants.sample
         cents = -rand((dollars.begin * 100)..(dollars.end * 100))
@@ -39,8 +39,10 @@ namespace :dev do
       added_at = occurred_on.in_time_zone.change(hour: rand(7..22), min: rand(60))
       amount = format("%s%.2f", cents.positive? ? "+" : "", cents.abs / 100.0)
 
-      { user_id: user.id, category_id: categories.fetch(category).id, name: name, amount_in_cents: cents, currency: "USD",
-        occurred_on: occurred_on, shorthand: "#{name} #{amount} ##{category} #{occurred_on.iso8601}",
+      tag = ("##{category} " if category)
+
+      { user_id: user.id, category_id: categories[category]&.id, name: name, amount_in_cents: cents, currency: "USD",
+        occurred_on: occurred_on, shorthand: "#{name} #{amount} #{tag}#{occurred_on.iso8601}",
         created_at: added_at, updated_at: added_at }
     end
     rows.each_slice(1000) { |batch| Transaction.insert_all!(batch) }

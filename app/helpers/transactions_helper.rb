@@ -17,6 +17,22 @@ module TransactionsHelper
     end
   end
 
+  def money_color(amount_in_cents, otherwise: nil)
+    if amount_in_cents.positive?
+      "text-success"
+    else
+      otherwise
+    end
+  end
+
+  def amount_color(transaction)
+    if transaction.counted?
+      money_color(transaction.amount_in_cents)
+    else
+      "text-tertiary"
+    end
+  end
+
   def categorization_label(transaction)
     if transaction.transfer?
       "Transfer"

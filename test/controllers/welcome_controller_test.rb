@@ -146,11 +146,11 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{root_path(period: "month", chart: "summary", focus: "2026-10-01")}']"
     assert_select "a[href='#{root_path(period: "month", chart: "summary", focus: "2026-09-01")}'][aria-label='Sep · income $7,890 · spent $2,500']" do
       assert_select "span", text: "Sep"
-      assert_select "span.text-tertiary", text: "+$5,390"
+      assert_select "span.text-success", text: "+$5,390"
       assert_select ".bg-data-soft"
     end
     assert_select "a[href*='focus=2026-10-01'][aria-label^='Oct so far · income']"
-    assert_select "a[href*='focus=2026-10-01'] span.text-tertiary", text: "+$1,995"
+    assert_select "a[href*='focus=2026-10-01'] span.text-success", text: "+$1,995"
     assert_select "[data-chart-target=readout]", text: ""
     assert_equal [ "Income", "Spent", "±Net" ], css_select("[data-chart-target=key] > span").map { |span| span.text.strip }
     assert_select "a[href*='focus=2026-08-01'] span.text-tertiary", text: "−$500"
@@ -171,7 +171,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-10-12")}'][aria-label='Oct 12 so far · income $0 · spent $0']"
     assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-10-05")}'][aria-label='Oct 5 · income $7,890 · spent $2,500']" do
       assert_select "span", text: "Oct 5"
-      assert_select "span.text-tertiary", text: "+$5,390"
+      assert_select "span.text-success", text: "+$5,390"
     end
     assert_select "a[href*='month=']", count: 0
     assert_select "a[href*='focus=2026-09-01']", count: 0
@@ -190,7 +190,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2026-01-01")}'][aria-label='2026 so far · income $2,000 · spent $6']"
     assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2024-01-01")}'][aria-label='2024 · income $7,890 · spent $2,500']" do
       assert_select "span", text: "2024"
-      assert_select "span.text-tertiary", text: "+$5,390"
+      assert_select "span.text-success", text: "+$5,390"
     end
     assert_select "a[href*='focus=2020-01-01']", count: 0
   end
@@ -209,7 +209,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     unfocused = root_path(period: "month", chart: "summary")
     assert_select "a[href='#{unfocused}'][aria-current=true][aria-label='Sep · income $8,903 · spent $1,653'].bg-level-3" do
       assert_select "span.font-medium.text-primary", text: "Sep"
-      assert_select "span.text-secondary", text: "+$7,250"
+      assert_select "span.text-success", text: "+$7,250"
       assert_select ".opacity-40", count: 0
     end
     assert_select "div.flex.gap-1\\.5 > a[aria-current]", count: 1
