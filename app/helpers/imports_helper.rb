@@ -14,6 +14,8 @@ module ImportsHelper
 
   POSITIVE_AMOUNTS = { "spent" => "Spent", "income" => "Income" }
 
+  UNREADABLE_SHOWN = 20
+
   def imported_transactions(import)
     pluralize(number_with_delimiter(import.transactions.count), "transaction")
   end
@@ -40,7 +42,7 @@ module ImportsHelper
     if sheet.skipped_tabs.one?
       "Skipped the #{sheet.skipped_tabs.first} tab, which has different columns."
     else
-      "Skipped the #{sheet.skipped_tabs.to_sentence} tabs, which have different columns."
+      "Skipped the #{listed(sheet.skipped_tabs)} tabs, which have different columns."
     end
   end
 
@@ -51,4 +53,65 @@ module ImportsHelper
   def sheet_cell_classes(kind)
     [ ("font-mono" if kind.in?(%w[ date amount ])), ("text-tertiary" if kind == "skip") ]
   end
+
+  def categories_lead(matched, unmatched)
+    if matched.none?
+      "Choose what each category becomes."
+    elsif unmatched.one?
+      "#{pluralize matched.size, "category"} matched yours. Choose what the other one becomes."
+    else
+      "#{pluralize matched.size, "category"} matched yours. Choose what the other #{unmatched.size} become."
+    end
+  end
+
+  def matched_summary(matched, unmatched)
+    if unmatched.none?
+      "Every category matched yours."
+    elsif matched.size > 3
+      "#{matched.size} matched, like #{listed(matched.first(3).map(&:word))}"
+    else
+      "#{listed(matched.map(&:word))} matched"
+    end
+  end
+
+  def category_choices(category_word, category_names)
+    choices = category_names.map { |name| [ name, name ] } + [ [ "No category", "" ] ]
+
+    if category_word.match
+      choices
+    else
+      [ [ "New category", category_word.word ] ] + choices
+    end
+  end
+
+  def tally_note(tally)
+    if tally.already_here.positive?
+      "Rows you added before are skipped."
+    elsif tally.income.positive?
+      "Money in with no category counts as income."
+    end
+  end
+
+  def unreadable_place(row)
+    if row.tab
+      "#{row.tab}, row #{row.number}"
+    else
+      "Row #{row.number}"
+    end
+  end
+
+  def import_footer_note(tally)
+    if tally.adding.positive?
+      "You can undo the whole import later."
+    elsif tally.already_here.positive?
+      "Every row in this file is already here."
+    else
+      "No row can be read. Go back and check the columns."
+    end
+  end
+
+  private
+    def listed(words)
+      words.to_sentence(last_word_connector: " and ")
+    end
 end
