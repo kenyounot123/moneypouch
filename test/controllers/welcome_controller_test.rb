@@ -263,6 +263,22 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "Spent", count: 0
   end
 
+  test "keeps the categories of a focused period whose refunds outweigh its spending" do
+    travel_to Time.utc(2026, 10, 15) do
+      users(:one).transactions.create!(name: "Soda", amount_in_cents: -2_500, occurred_on: "2026-06-03", category: categories(:food))
+      users(:one).transactions.create!(name: "Rent back", amount_in_cents: 10_000, occurred_on: "2026-06-04", category: categories(:food))
+      users(:one).transactions.create!(name: "Cab", amount_in_cents: -1_200, occurred_on: "2026-06-05")
+
+      get root_url(chart: "summary", focus: "2026-06-01")
+    end
+
+    assert_select "p", text: "Spent"
+    assert_select "p", text: "-$63.00"
+    assert_select "span", text: "Uncategorized"
+    assert_select "span", text: "$12.00"
+    assert_select "p", text: "Nothing spent.", count: 0
+  end
+
   test "clamps a future focus to the current period" do
     travel_to Time.utc(2026, 10, 15) do
       get root_url(chart: "summary", focus: "2030-01-01")

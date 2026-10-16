@@ -4,11 +4,13 @@
     <p class="text-tertiary"><%= label %></p>
     <p class="font-mono text-md text-primary"><%= spent amount %></p>
   </div>
-  <div class="flex h-2.5 gap-0.5" style="width: <%= (amount * 100.0 / peak).round(1) %>%">
-    <% segments.each_with_index do |(_, cents), index| %>
-      <div class="h-full rounded-bar <%= segment_color index %>" style="flex: <%= cents %> 1 0; min-width: 3px"></div>
-    <% end %>
-  </div>
+  <% if amount.positive? %>
+    <div class="flex h-2.5 gap-0.5" style="width: <%= (amount * 100.0 / peak).round(1) %>%">
+      <% segments.each_with_index do |(_, cents), index| %>
+        <div class="h-full rounded-bar <%= segment_color index %>" style="flex: <%= cents %> 1 0; min-width: 3px"></div>
+      <% end %>
+    </div>
+  <% end %>
   <div class="flex flex-wrap gap-x-4.5 gap-y-1 text-sm text-secondary">
     <% segments.each_with_index do |(name, cents), index| %>
       <p class="flex min-w-0 items-center gap-1.5">

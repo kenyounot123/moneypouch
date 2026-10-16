@@ -126,7 +126,7 @@ module WelcomeHelper
 
   def period_abbreviation(period)
     case period.kind
-    when "week" then short_date(period.first_day)
+    when "week" then period.first_day.strftime("%b %-d")
     when "month" then period.first_day.strftime("%b")
     when "year" then period.first_day.strftime("%Y")
     end

@@ -86,7 +86,7 @@ class WelcomeHelperTest < ActionView::TestCase
     assert_equal "Sep 7", period_abbreviation(Period.new("week", today:, on: "2026-09-09"))
     assert_equal "Sep", period_abbreviation(Period.new("month", today:, on: "2026-09-09"))
     assert_equal "2025", period_abbreviation(Period.new("year", today:, on: "2025-09-09"))
-    assert_equal "Dec 29, 2025", period_abbreviation(Period.new("week", today:, on: "2026-01-01"))
+    assert_equal "Dec 29", period_abbreviation(Period.new("week", today:, on: "2026-01-01"))
   end
 
   test "names a period by its kind" do
