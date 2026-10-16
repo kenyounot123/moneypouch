@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0](https://github.com/kenyounot123/moneypouch/compare/v0.4.0...v0.5.0) (2026-10-16)
+
+
+### Features
+
+* **import:** import expense history from an Excel or CSV file ([#92](https://github.com/kenyounot123/moneypouch/issues/92)) ([04c099c](https://github.com/kenyounot123/moneypouch/commit/04c099cf3ecbc44f895ca0804702dd9699801010))
+* **import:** read a CSV or xlsx file and turn its rows into transactions ([#91](https://github.com/kenyounot123/moneypouch/issues/91)) ([effcaad](https://github.com/kenyounot123/moneypouch/commit/effcaad4b4f07066478f2beb0a9c15459cf7e9dc))
+* **overview:** chart slot with a spending and summary toggle, bank count badge, and Show all headers ([#86](https://github.com/kenyounot123/moneypouch/issues/86)) ([cbb9297](https://github.com/kenyounot123/moneypouch/commit/cbb929775042050ae2c9518e515c3a5d296a2d43))
+* **transactions:** add an Excluded flag that keeps a row listed but out of every total ([#89](https://github.com/kenyounot123/moneypouch/issues/89)) ([4e15d4f](https://github.com/kenyounot123/moneypouch/commit/4e15d4f134a5227f94b7e940669d78ede8fb1805))
+
+
+### Bug Fixes
+
+* **import:** one layout for both steps, right-aligned amounts, toast above the composer ([#93](https://github.com/kenyounot123/moneypouch/issues/93)) ([cc57b43](https://github.com/kenyounot123/moneypouch/commit/cc57b43f60eab0dff2c592ce24a075460eaee36f))
+
 ## [0.4.0](https://github.com/kenyounot123/moneypouch/compare/v0.3.0...v0.4.0) (2026-10-13)
 
 
