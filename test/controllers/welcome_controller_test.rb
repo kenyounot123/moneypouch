@@ -16,12 +16,21 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "Blue Bottle", "Old lunch" ], css_select("ul li p.font-medium").map(&:text)
   end
 
-  test "says Recent is empty when the user has no kept rows" do
+  test "an empty Recent offers to type, import a file, or connect a bank, side by side" do
     users(:one).transactions.each(&:discard)
 
     get root_url
 
-    assert_select "ul li", text: "No transactions yet. Type one above.", count: 1
+    assert_equal [ "No transactions yet.", "By hand", "From a file", "From your bank" ], css_select("main ul li").map { |row| row.at_css("p")&.text || row.text }
+    assert_select "main ul li button[aria-haspopup=dialog][onclick=?]", "document.getElementById('palette').showModal()", text: /Add/
+    assert_select "main ul li a[href=?][data-turbo-frame=_top]", new_import_path, text: "Import"
+    assert_select "main ul li a[href=?][data-turbo-frame=_top]", new_simplefin_access_path, text: "Connect"
+  end
+
+  test "Recent with rows offers no ways to start" do
+    get root_url
+
+    assert_select "main ul li", text: /From a file/, count: 0
   end
 
   test "links Show all from the Recent heading to the full list" do
