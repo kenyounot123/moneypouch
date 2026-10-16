@@ -37,14 +37,14 @@
           <p class="text-display"><%= spent @spent %></p>
         </div>
         <dl class="hidden gap-8 pb-1.5 @xl:flex">
-          <% { "Income" => spent(@income), "Net" => spent(@net), "Transactions" => number_with_delimiter(@transactions.size) }.each do |term, value| %>
+          <% { "Income" => spent(@income), "Net" => spent(@net), "Transactions" => number_with_delimiter(@count) }.each do |term, value| %>
             <div class="flex flex-col gap-1">
               <dt class="text-sm text-tertiary"><%= term %></dt>
               <dd class="font-mono text-md"><%= value %></dd>
             </div>
           <% end %>
         </dl>
-        <p class="text-sm text-tertiary @xl:hidden">Income <%= spent @income %> · Net <%= spent @net %> · <%= pluralize @transactions.size, "transaction" %></p>
+        <p class="text-sm text-tertiary @xl:hidden">Income <%= spent @income %> · Net <%= spent @net %> · <%= pluralize @count, "transaction" %></p>
       </div>
 
       <nav class="hidden gap-1 rounded-[10px] bg-level-3 p-1 md:flex" aria-label="Month">
@@ -97,7 +97,7 @@
     <% end %>
 
     <div class="flex flex-col" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>">
-      <% if @transactions.any? %>
+      <% if @count.positive? %>
         <div class="hidden items-center gap-4 border-b border-primary pb-2 text-xs text-tertiary @xl:flex" aria-hidden="true">
           <p class="w-24 shrink-0">Date</p>
           <p class="w-2 shrink-0"></p>
@@ -107,23 +107,30 @@
           <p class="w-25 shrink-0 text-right">Amount</p>
         </div>
 
-        <% @transactions.group_by(&:occurred_on).each do |date, transactions| %>
-          <%= render "transactions/day", date:, transactions:, total: @day_totals[date] %>
-        <% end %>
-
-        <div class="flex flex-wrap items-center justify-between gap-4 pt-12">
-          <div class="flex flex-col gap-1">
-            <p class="font-semibold">That's all of <%= @month.name %></p>
-            <p class="text-sm text-tertiary"><%= pluralize @transactions.size, "transaction" %> · <%= spent @spent %> spent</p>
-          </div>
-          <% if @earlier %>
-            <%= link_to transactions_path(filters.merge(month: @month.previous.to_param)), class: SimplefinHelper::OUTLINE_BUTTON do %>
-              <%= @month.previous.name %>
-              <span class="font-normal text-tertiary"><%= pluralize @previous_count, "transaction" %></span>
-              <span class="text-tertiary" aria-hidden="true">↓</span>
-            <% end %>
+        <%= turbo_frame_tag [ :days, @page.before ].compact.join("_"), target: "_top" do %>
+          <% @transactions.group_by(&:occurred_on).each do |date, transactions| %>
+            <%= render "transactions/day", date:, transactions:, total: @day_totals[date] %>
           <% end %>
-        </div>
+
+          <% if @page.next_before %>
+            <%= turbo_frame_tag :days, @page.next_before, src: transactions_path(filters.merge(month: @month.to_param, before: @page.next_before)),
+              loading: :lazy, refresh: :morph, target: "_top" %>
+          <% elsif @page.last? %>
+            <div class="flex flex-wrap items-center justify-between gap-4 pt-12">
+              <div class="flex flex-col gap-1">
+                <p class="font-semibold">That's all of <%= @month.name %></p>
+                <p class="text-sm text-tertiary"><%= pluralize @count, "transaction" %> · <%= spent @spent %> spent</p>
+              </div>
+              <% if @earlier %>
+                <%= link_to transactions_path(filters.merge(month: @month.previous.to_param)), class: SimplefinHelper::OUTLINE_BUTTON do %>
+                  <%= @month.previous.name %>
+                  <span class="font-normal text-tertiary"><%= pluralize @previous_count, "transaction" %></span>
+                  <span class="text-tertiary" aria-hidden="true">↓</span>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
       <% elsif filters.any? %>
         <p class="text-sm text-tertiary">No transactions match.</p>
       <% else %>

@@ -117,6 +117,29 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "a busy month shows its newest days first and loads the rest as the list scrolls" do
+    rows = { "2026-09-30" => 90, "2026-09-29" => 90, "2026-09-28" => 5 }.flat_map do |date, count|
+      Array.new(count) { { user_id: users(:one).id, name: "Lunch", amount_in_cents: -1_000, occurred_on: date } }
+    end
+    Transaction.insert_all!(rows)
+
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url(month: "2026-09")
+      assert_select "main section li", 180
+      assert_select "turbo-frame#days_2026-09-29[loading=lazy][refresh=morph][src=?]", transactions_path(month: "2026-09", before: "2026-09-29")
+      assert_select "p", text: "That's all of September", count: 0
+      assert_equal [ "185" ], css_select("dl dd").map(&:text).last(1)
+
+      get transactions_url(month: "2026-09", before: "2026-09-29")
+      assert_select "turbo-frame#days_2026-09-29 section li", 5
+      assert_select "p", text: "That's all of September"
+
+      get transactions_url(month: "2026-09", before: "2026-09-30")
+      assert_select "turbo-frame#days_2026-09-30 section", 0
+      assert_select "p", text: "That's all of September", count: 0
+    end
+  end
+
   test "marks Transactions as the current page in the sidebar" do
     get transactions_url
 
