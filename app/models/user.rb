@@ -30,7 +30,7 @@ class User < ApplicationRecord
   end
 
   def transactions_named(name_key)
-    transactions.where(id: bank_transactions.imported.where(name_key:).select(:transaction_id))
+    transactions.where(id: bank_transactions.unmatched.where(name_key:).select(:transaction_id))
   end
 
   # Reads the loaded rules, so one sync that shares this user across its accounts loads them once.

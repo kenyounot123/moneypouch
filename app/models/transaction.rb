@@ -20,9 +20,9 @@ class Transaction < ApplicationRecord
   scope :listed, -> { latest.includes(:category, :bank_transaction) }
   scope :matchable, -> { where.missing(:bank_transaction) }
   scope :typed_in, -> { where.not(id: BankTransaction.select(:transaction_id)) }
-  scope :imported, -> { where(id: BankTransaction.imported.select(:transaction_id)) }
+  scope :added_by_bank, -> { where(id: BankTransaction.unmatched.select(:transaction_id)) }
   scope :uncategorized, -> { where(category_id: nil, transfer: false) }
-  scope :needing_category, -> { kept.imported.uncategorized }
+  scope :needing_category, -> { kept.added_by_bank.uncategorized }
   scope :categorized, -> { where.not(category_id: nil) }
   scope :transfers, -> { where(transfer: true) }
   scope :in_category, ->(category) { where(category:) }
@@ -60,7 +60,7 @@ class Transaction < ApplicationRecord
       .min_by { |transaction| [ (transaction.occurred_on - date).abs, transaction.id ] }
   end
 
-  def self.import(simplefin_transaction, currency:, categorization:)
+  def self.add_from_bank(simplefin_transaction, currency:, categorization:)
     create!(
       name: simplefin_transaction.name.to_s,
       amount_in_cents: simplefin_transaction.amount_in_cents,
@@ -98,12 +98,12 @@ class Transaction < ApplicationRecord
     bank_transaction.present?
   end
 
-  def imported?
-    from_bank? && bank_transaction.imported?
+  def added_by_bank?
+    from_bank? && bank_transaction.unmatched?
   end
 
   def needs_category?
-    imported? && category_id.nil? && !transfer?
+    added_by_bank? && category_id.nil? && !transfer?
   end
 
   def categorization
@@ -115,11 +115,11 @@ class Transaction < ApplicationRecord
   end
 
   def offers_rule?
-    imported? && !categorization.none? && !user.remembers?(bank_transaction_name, categorization)
+    added_by_bank? && !categorization.none? && !user.remembers?(bank_transaction_name, categorization)
   end
 
   def make_rule
-    if imported? && !categorization.none?
+    if added_by_bank? && !categorization.none?
       user.remember(bank_transaction_name, categorization)
     end
   end

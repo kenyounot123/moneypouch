@@ -24,5 +24,5 @@ Sign in and click Transactions in the sidebar, or the count link under Recent. O
 
 ## Gotchas
 
-- Imported rows have no shorthand, so deleting one leaves nothing in the composer to undo with. Restore with `Transaction#restore` from `bin/rails runner`.
+- Rows added by the bank have no shorthand, so deleting one leaves nothing in the composer to undo with. Restore with `Transaction#restore` from `bin/rails runner`.
 - The container breakpoints are on `main`, so a collapsed sidebar can switch the layout at the same window width.

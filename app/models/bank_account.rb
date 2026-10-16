@@ -30,35 +30,35 @@ class BankAccount < ApplicationRecord
     Transaction.where(id: bank_transactions.select(:transaction_id))
   end
 
-  def import(simplefin_transactions, sync:)
+  def add_transactions(simplefin_transactions, sync:)
     if synced?
       simplefin_transactions.each do |simplefin_transaction|
         if simplefin_transaction.occurred_on >= starts_on
-          import_transaction(simplefin_transaction, sync:)
+          add_transaction(simplefin_transaction, sync:)
         end
       end
     end
   end
 
   private
-    def import_new(simplefin_transaction)
-      user.transactions.import(simplefin_transaction, currency:, categorization: user.categorization_for(simplefin_transaction.name))
+    def add_new(simplefin_transaction)
+      user.transactions.add_from_bank(simplefin_transaction, currency:, categorization: user.categorization_for(simplefin_transaction.name))
     end
 
-    def import_transaction(simplefin_transaction, sync:)
-      import_unless_present(simplefin_transaction, sync:)
+    def add_transaction(simplefin_transaction, sync:)
+      add_unless_present(simplefin_transaction, sync:)
     rescue ActiveRecord::RecordNotUnique
-      import_unless_present(simplefin_transaction, sync:)
+      add_unless_present(simplefin_transaction, sync:)
     end
 
-    def import_unless_present(simplefin_transaction, sync:)
+    def add_unless_present(simplefin_transaction, sync:)
       unless bank_transactions.exists?(external_id: simplefin_transaction.id)
         transaction do
           match = user.transactions.match_for(simplefin_transaction.amount_in_cents, currency, simplefin_transaction.occurred_on)
 
           bank_transactions.create!(
             simplefin_sync: sync,
-            transaction_id: (match || import_new(simplefin_transaction)).id,
+            transaction_id: (match || add_new(simplefin_transaction)).id,
             matched: match.present?,
             external_id: simplefin_transaction.id,
             amount_in_cents: simplefin_transaction.amount_in_cents,
