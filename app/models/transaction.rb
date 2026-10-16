@@ -95,6 +95,16 @@ class Transaction < ApplicationRecord
     end
   end
 
+  def self.to_csv
+    CSV.generate do |csv|
+      csv << [ "Date", "Name", "Amount", "Category", "Transfer", "Excluded", "Note", "Bank account" ]
+
+      includes(:category, bank_transaction: :bank_account).latest.each do |transaction|
+        csv << transaction.csv_row
+      end
+    end
+  end
+
   def self.taken_keys(keys, user:)
     keys.each_slice(1_000).flat_map { |slice| where(user:, idempotency_key: slice).pluck(:idempotency_key) }.to_set
   end
@@ -116,6 +126,10 @@ class Transaction < ApplicationRecord
 
   def bank_account_name
     bank_transaction&.bank_account_name
+  end
+
+  def csv_row
+    [ occurred_on.iso8601, name, format("%.2f", amount_in_cents / 100r), category&.name, ("yes" if transfer?), ("yes" if excluded?), note, bank_account_name ]
   end
 
   def counted?
