@@ -10,7 +10,8 @@ class Transaction < ApplicationRecord
 
   normalizes :note, with: ->(note) { note.strip.presence }
 
-  broadcasts_refreshes_to ->(transaction) { [ transaction.user, :transactions ] }
+  # Not broadcasts_refreshes_to: its debounced job reaches other screens a second or more after the change.
+  after_commit -> { broadcast_refresh_to(user, :transactions) }
 
   scope :kept, -> { where(discarded_at: nil) }
   scope :latest, -> { order(occurred_on: :desc, id: :desc) }

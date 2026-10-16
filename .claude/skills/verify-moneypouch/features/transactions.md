@@ -25,7 +25,7 @@ Sign in and click Transactions in the sidebar, or the count link under Recent. O
 
 ## Gotchas
 
+- Other screens refresh at commit: `Transaction` broadcasts `refresh` on `[user, :transactions]` from `after_commit`, not through `broadcasts_refreshes_to`'s debounced job, and `application.js` sets Turbo's refresh debounce to 50 ms. Bulk writes (sync, import) wrap in `Transaction.broadcasting_once_for`.
 - A month needs more than 100 rows to page. `bin/rails "dev:transactions[12000]"` gives about 1,000 per month.
-
 - Rows added by the bank have no shorthand, so deleting one leaves nothing in the composer to undo with. Restore with `Transaction#restore` from `bin/rails runner`.
 - The container breakpoints are on `main`, so a collapsed sidebar can switch the layout at the same window width.
