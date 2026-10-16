@@ -10,3 +10,4 @@
 - [voucher.md](voucher.md). How typed shorthand becomes a name, amount, date, and category.
 - [composer.md](composer.md). The ⌘K palette, preview, add and undo, Tab completion, `#` list, `@` calendar, with their handles, lane recipes, and perf budgets.
 - [bank-sync.md](bank-sync.md). Connect SimpleFIN in Settings, pick accounts, sync, Disconnect, the bank icon and marker on rows, and the sync toast.
+- [import.md](import.md). Import a CSV or xlsx file: the Import page and its drop zone, the Columns grid, the Categories step with its tally, Import, the latest import's Undo, and the empty Overview's ways in.

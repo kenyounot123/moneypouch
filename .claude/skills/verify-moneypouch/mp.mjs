@@ -558,6 +558,8 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   type <selector> <text> [--clear] [--delay ms]
                                      focus the element and type text key by key, --delay ms between keys
   paste <selector> <text>            copy text through the browser clipboard, then press Meta+V in the element
+  upload <selector> <file>           set a file input's file as the picker does, which fires input and change
+  drop <selector> <file>             drag a file from outside the page and drop it on the element's center
   key <Key> [<Key>...]               Enter, Escape, Tab, ArrowDown, Backspace, a, Meta+z, Shift+Tab; several keys go back to back
   wait <selector> [--text s] [--gone] [--timeout ms]
                                      poll until an element matches (and contains s), or until none does; prints its text
@@ -600,7 +602,7 @@ async function main() {
     if (!args[0]) die("query needs a Ruby expression")
     return console.log(rails(["runner", READONLY_RUNNER], { MP_QUERY: args[0] }).trim())
   }
-  if (!["goto", "type", "paste", "key", "hover", "click", "shot", "resize", "theme", "signin", "signout", "js", "text", "wait", "latency"].includes(cmd)) {
+  if (!["goto", "type", "paste", "upload", "drop", "key", "hover", "click", "shot", "resize", "theme", "signin", "signout", "js", "text", "wait", "latency"].includes(cmd)) {
     console.error(USAGE)
     process.exit(cmd ? 1 : 0)
   }
@@ -635,6 +637,23 @@ async function main() {
       await press("v", "paste")
       await sleep(200)
       console.log(JSON.stringify(await b.evaluate("document.activeElement?.value ?? null")))
+    } else if (cmd === "upload") {
+      const file = path.resolve(args[1] ?? die("upload needs a selector and a file"))
+      if (!fs.existsSync(file)) die(`no file at ${file}`)
+      const { root } = await b.send("DOM.getDocument")
+      const { nodeId } = await b.send("DOM.querySelector", { nodeId: root.nodeId, selector: args[0] })
+      if (!nodeId) die(`no element matches ${args[0]} on ${await b.evaluate("location.href")}`)
+      await b.send("DOM.setFileInputFiles", { files: [file], nodeId })
+      await b.settle()
+      console.log(await b.evaluate("location.href"))
+    } else if (cmd === "drop") {
+      const file = path.resolve(args[1] ?? die("drop needs a selector and a file"))
+      if (!fs.existsSync(file)) die(`no file at ${file}`)
+      const box = await b.hover(args[0])
+      const data = { items: [], files: [file], dragOperationsMask: 1 }
+      for (const type of ["dragEnter", "dragOver", "drop"]) await b.send("Input.dispatchDragEvent", { type, ...box, data })
+      await b.settle()
+      console.log(await b.evaluate("location.href"))
     } else if (cmd === "key") {
       if (!args.length) die("key needs at least one key")
       for (const k of args) await b.key(k)
