@@ -8,6 +8,7 @@ module ImportsHelper
     "Amount" => "amount",
     "Spent or income" => "spent_or_income",
     "Category" => "category",
+    "Transfer" => "transfer",
     "Excluded from totals" => "excluded",
     "Note" => "note"
   }
@@ -85,6 +86,24 @@ module ImportsHelper
       choices
     else
       [ [ "New category", category_word.word ] ] + choices
+    end
+  end
+
+  def tally_counts(tally)
+    counts = { "Spent" => tally.spent, "Income" => tally.income }
+
+    if tally.transfers.positive?
+      counts["Transfers"] = tally.transfers
+    end
+
+    counts.merge("Excluded" => tally.excluded)
+  end
+
+  def tally_grid_classes(tally)
+    if tally.already_here.zero? && tally.transfers.positive?
+      "grid-cols-3 @lg:grid-cols-5"
+    else
+      "grid-cols-4"
     end
   end
 

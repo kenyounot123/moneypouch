@@ -71,13 +71,15 @@ class Import < ApplicationRecord
 
   def tally
     names = category_words.to_h { |category_word| [ category_word.word, category_word.name ] }
-    counted = new_rows.reject(&:excluded?)
+    counted = new_rows.select(&:counted?)
     spent = counted.count { |row| Transaction.spending?(row.amount_in_cents, categorized: names[row.category_word].present?) }
+    transfers = new_rows.count(&:transfer?)
 
     Import::Tally.new(
       spent:,
       income: counted.size - spent,
-      excluded: new_rows.size - counted.size,
+      transfers:,
+      excluded: new_rows.size - counted.size - transfers,
       unreadable: unreadable_rows.size,
       already_here: rows.size - new_rows.size
     )
@@ -117,10 +119,7 @@ class Import < ApplicationRecord
     end
 
     def new_rows
-      @new_rows ||= begin
-        taken = Transaction.taken_keys(rows.map(&:key), user:)
-        rows.reject { |row| taken.include?(row.key) }
-      end
+      @new_rows ||= rows - Transaction.already_here(rows, user:)
     end
 
     def user_categories
@@ -140,7 +139,7 @@ class Import < ApplicationRecord
     def add_transactions
       categories = category_words.to_h { |category_word| [ category_word.word, category_named(category_word.name) ] }
 
-      if user.transactions.import(rows, import: self, categories:).zero?
+      if user.transactions.import(new_rows, import: self, categories:).zero?
         destroy!
       else
         update!(completed_at: Time.current, sheet: nil)
