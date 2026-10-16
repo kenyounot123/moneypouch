@@ -1,5 +1,4 @@
 class Import::DateFormat
-  # Read after #normalize turns separators between digits into "/" and every other separator into a space.
   CANDIDATES = {
     "iso" => [ %r{\A\d{4}/\d{1,2}/\d{1,2}\z}, [ "%Y/%m/%d" ] ],
     "month_first" => [ %r{\A\d{1,2}/\d{1,2}/\d{2,4}\z}, [ "%m/%d/%Y", "%m/%d/%y" ] ],
@@ -25,8 +24,6 @@ class Import::DateFormat
     end
   end
 
-  # The candidate that reads the most text cells. Ties go to the earlier candidate, so a column where every
-  # date could be either way reads month first.
   def self.for(cells)
     texts = cells.grep(String)
     CANDIDATES.keys.map { |name| new(name) }.max_by { |format| texts.count { |text| format.read(text) } }

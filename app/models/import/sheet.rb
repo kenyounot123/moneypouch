@@ -119,7 +119,6 @@ class Import::Sheet
         end
       end
 
-      # -> [row number, cells] or nil for a row with nothing in it
       def xlsx_line(roo_cells)
         cells = []
         number = nil
@@ -219,7 +218,6 @@ class Import::Sheet
         )
       end
 
-      # -> { name:, header:, rows: } for a tab with anything in it; header is nil when none was found
       def split_at_header(name, lines)
         filled = lines.select { |_, cells| cells.any? }.map { |number, cells| [ number, trimmed(cells) ] }
 
@@ -249,7 +247,6 @@ class Import::Sheet
         cells
       end
 
-      # Most filled cells are words: text with a letter and no digit. A title row above the header has one cell.
       def header?(cells)
         filled = cells.compact
         words = filled.count { |cell| cell.is_a?(String) && cell.match?(/\p{L}/) && !cell.match?(/\d/) }

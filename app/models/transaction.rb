@@ -29,7 +29,6 @@ class Transaction < ApplicationRecord
   scope :in_category, ->(category) { where(category:) }
   scope :from_bank_account, ->(bank_account) { merge(bank_account.transactions) }
 
-  # The spending scope's twin, for counted rows not saved yet. Change the two together.
   def self.spending?(amount_in_cents, categorized:)
     amount_in_cents.negative? || categorized
   end
@@ -77,8 +76,6 @@ class Transaction < ApplicationRecord
     )
   end
 
-  # Call through user.transactions: the user comes from the scope. ON CONFLICT DO NOTHING skips a key the user
-  # already has, kept or deleted, so a deleted row never comes back. Returns how many rows went in.
   def self.import(rows, import:, categories:)
     rows.each_slice(500).sum do |slice|
       attributes = slice.map do |row|

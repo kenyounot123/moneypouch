@@ -20,7 +20,6 @@ class User < ApplicationRecord
     end
   end
 
-  # A new upload replaces the draft in progress. A file that can't be read leaves that draft alone.
   def start_import(file)
     import = imports.new(file:)
 

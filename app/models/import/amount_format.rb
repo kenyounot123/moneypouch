@@ -5,7 +5,6 @@ class Import::AmountFormat
 
   attr_reader :decimal_mark
 
-  # "1.234,56" and "12,50" vote for ","; "1,234" votes for neither.
   def self.for(cells)
     marks = cells.grep(String).filter_map { |text| text[DECIMAL] }
 
@@ -58,7 +57,6 @@ class Import::AmountFormat
       end
     end
 
-    # Rounds as Simplefin::Client#cents does, so a bank sync can match the row to the cent.
     def cents(number)
       (number * 100).round(0, half: :even).to_i
     end

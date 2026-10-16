@@ -54,7 +54,6 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
     end
 
     private
-      # -> { [kind, column index] => score }
       def evidence(sheet)
         cells = sheet.headers.each_index.map { |index| sheet.column(index).compact }
         dates = cells.map { |column| reads_as?(Import::DateFormat, column) }
@@ -74,7 +73,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
             scores[[ "amount", index ]] += cents?(cells[index]) ? 1 : 0.5
           end
 
-          if direction?(cells[index])
+          if spent_or_income_values?(cells[index])
             scores[[ "spent_or_income", index ]] += 2
           else
             scores.delete([ "spent_or_income", index ])
@@ -118,9 +117,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
         cells.count { |cell| cell.is_a?(String) && cell.match?(/\p{L}/) } * 2 > cells.size
       end
 
-      # Every value says spent or income, as a "Type" column does. A header alone isn't enough: a bank's
-      # "Type" column often holds "ACH_DEBIT" or "Sale".
-      def direction?(cells)
+      def spent_or_income_values?(cells)
         values = cells.map { |cell| Import::Sheet.text(cell).downcase.squish }.uniq
         values.size.between?(1, 4) && values.all? { |value| SPENT_WORDS.include?(value) || INCOME_WORDS.include?(value) }
       end
@@ -165,8 +162,6 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
     kinds.exclude?("spent_or_income")
   end
 
-  # -> [Import::Row | Import::UnreadableRow] in file order. Rows with no date at all are left out: totals,
-  # subtotals, blank lines, a repeated header.
   def read(sheet)
     if errors.any?
       return []
@@ -259,7 +254,6 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
       end
     end
 
-    # A negative "Expense" turns positive: a refund that keeps its category.
     def spent?(direction)
       if needs_positive_amounts?
         positive_amounts == "spent"
@@ -268,7 +262,6 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
       end
     end
 
-    # Income drops its category, or the row would count as a refund. Other casings take the first spelling.
     def category_word(category_text, direction:, spellings:)
       if category_text && direction != :income
         spellings[category_text.downcase] ||= category_text

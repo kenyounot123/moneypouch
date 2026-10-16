@@ -61,7 +61,6 @@ class Import < ApplicationRecord
     end.sort_by { |category_word| [ -category_word.count, category_word.word.downcase ] }
   end
 
-  # choices: [{ word: "Food", name: "Groceries" }, ...] from the Categories step. A blank name means no category.
   def choose_categories(choices)
     update!(category_names: category_names.merge(choices.to_h { |choice| [ choice[:word], choice[:name].to_s.squish ] }))
   end
@@ -80,7 +79,6 @@ class Import < ApplicationRecord
     )
   end
 
-  # Safe to run twice: the lock rereads completed_at, and rows whose key is taken are skipped.
   def complete
     Transaction.broadcasting_once_for(user) do
       with_lock do
@@ -91,8 +89,6 @@ class Import < ApplicationRecord
     end
   end
 
-  # Undo, and Start over on a draft. A row a bank sync matched since stays as an ordinary transaction, since the
-  # bank vouches for it. Deleting rather than discarding frees the keys, so the same file imports in full again.
   def undo
     Transaction.broadcasting_once_for(user) do
       transaction do
@@ -119,7 +115,6 @@ class Import < ApplicationRecord
       end
     end
 
-    # A word only on money coming in defaults to no category, since a categorized positive row counts as a refund.
     def default_name(word, match:, rows:)
       if match
         match.name
@@ -130,7 +125,6 @@ class Import < ApplicationRecord
       end
     end
 
-    # Nothing new leaves no import behind, so an "Imported 0" can't hide the previous import's Undo.
     def add_transactions
       categories = category_words.to_h { |category_word| [ category_word.word, category_named(category_word.name) ] }
 
