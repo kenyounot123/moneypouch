@@ -18,6 +18,13 @@ Rails.application.routes.draw do
   end
   resources :bank_accounts, only: :update
   resources :rules, only: :destroy
+  resources :imports, only: %i[ new create destroy ] do
+    scope module: :imports do
+      resource :columns, only: %i[ edit update ]
+      resource :categories, only: %i[ edit update ]
+      resource :transactions, only: :create
+    end
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
