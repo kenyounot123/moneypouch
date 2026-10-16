@@ -5,7 +5,7 @@
     <div class="flex flex-col gap-1">
       <div class="flex items-baseline justify-between gap-4">
         <h2 class="truncate text-lg font-semibold"><%= @transaction.name %></h2>
-        <p class="shrink-0 font-mono text-md <%= "text-tertiary" unless @transaction.counted? %>"><%= money @transaction.amount_in_cents %></p>
+        <p class="shrink-0 font-mono text-md <%= amount_color @transaction %>"><%= money @transaction.amount_in_cents %></p>
       </div>
       <p class="text-sm text-tertiary"><%= [ day_heading(@transaction.occurred_on), @transaction.bank_account_name, ("Excluded" if @transaction.excluded?) ].compact.join(" · ") %></p>
     </div>

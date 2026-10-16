@@ -38,8 +38,8 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "p", text: "Spent in October"
     assert_select ".text-display", text: "$5.50"
-    assert_equal [ "$2,000.00", "$1,994.50", "2" ], css_select("dl dd").map(&:text)
-    assert_select "p", text: "Income $2,000.00 · Net $1,994.50 · 2 transactions"
+    assert_equal [ "$2,000.00", "+$1,994.50", "2" ], css_select("dl dd").map(&:text)
+    assert_select "p", text: "Income $2,000.00 · Net +$1,994.50 · 2 transactions"
     assert_select "main section p.font-mono", text: "+$1,994.50", count: 2
   end
 

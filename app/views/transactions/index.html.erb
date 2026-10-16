@@ -42,14 +42,14 @@
           <p class="text-display"><%= spent @spent %></p>
         </div>
         <dl class="hidden gap-8 pb-1.5 @xl:flex">
-          <% { "Income" => spent(@income), "Net" => spent(@net), "Transactions" => number_with_delimiter(@count) }.each do |term, value| %>
+          <% { "Income" => [ spent(@income) ], "Net" => [ exact_net(@net), money_color(@net) ], "Transactions" => [ number_with_delimiter(@count) ] }.each do |term, (value, color)| %>
             <div class="flex flex-col gap-1">
               <dt class="text-sm text-tertiary"><%= term %></dt>
-              <dd class="font-mono text-md"><%= value %></dd>
+              <dd class="font-mono text-md <%= color %>"><%= value %></dd>
             </div>
           <% end %>
         </dl>
-        <p class="text-sm text-tertiary @xl:hidden">Income <%= spent @income %> · Net <%= spent @net %> · <%= pluralize @count, "transaction" %></p>
+        <p class="text-sm text-tertiary @xl:hidden">Income <%= spent @income %> · Net <%= tag.span exact_net(@net), class: money_color(@net) %> · <%= pluralize @count, "transaction" %></p>
       </div>
 
       <nav class="hidden gap-1 rounded-[10px] bg-level-3 p-1 md:flex" aria-label="Month">

@@ -22,7 +22,7 @@
         <% end %>
       </p>
     </div>
-    <p class="w-[90px] shrink-0 text-right font-mono <%= "text-tertiary" unless transaction.counted? %>"><%= money transaction.amount_in_cents %></p>
+    <p class="w-[90px] shrink-0 text-right font-mono <%= amount_color transaction %>"><%= money transaction.amount_in_cents %></p>
   </div>
 
   <div class="hidden h-10 items-center gap-4 @xl:flex">
@@ -60,7 +60,7 @@
       <% end %>
     </div>
     <p class="hidden w-47.5 shrink-0 truncate text-sm text-tertiary @4xl:block"><%= transaction.bank_account_name %></p>
-    <p class="w-25 shrink-0 text-right font-mono <%= "text-tertiary" unless transaction.counted? %>"><%= money transaction.amount_in_cents %></p>
+    <p class="w-25 shrink-0 text-right font-mono <%= amount_color transaction %>"><%= money transaction.amount_in_cents %></p>
   </div>
 
   <% if offering_rule %>
