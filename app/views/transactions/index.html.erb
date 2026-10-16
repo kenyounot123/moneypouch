@@ -4,14 +4,14 @@
 <div class="flex min-h-dvh">
   <%= render "shared/sidebar" %>
 
-  <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14">
+  <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14" data-composer="docked">
     <div class="sticky bottom-4 z-20 order-last mt-auto md:contents">
       <%= render "shared/palette", voucher: @voucher, added: @added, category_names: @category_names %>
     </div>
 
     <% if @import %>
       <%= render layout: "shared/toast", locals: { id: dom_id(@import, :toast) } do %>
-        <span class="min-w-0 truncate text-sm">Imported <span class="font-medium"><%= imported_transactions @import %></span> from <%= @import.filename %></span>
+        <span class="min-w-0 text-sm wrap-break-word">Imported <span class="font-medium"><%= imported_transactions @import %></span> from <%= @import.filename %></span>
         <%= button_to "Undo", import_path(@import), method: :delete, form: { class: "shrink-0", data: { turbo_confirm: undo_import_question(@import) } },
           class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" %>
       <% end %>
