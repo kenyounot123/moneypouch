@@ -60,6 +60,7 @@
   --background-color-level-2: light-dark(var(--white), var(--slate-900));
   --background-color-level-3: light-dark(var(--slate-100), var(--slate-800));
   --background-color-scrim: light-dark(color-mix(in oklch, var(--slate-900) 40%, transparent), color-mix(in oklch, var(--slate-975) 60%, transparent));
+  --background-color-level-0-scrimmed: light-dark(color-mix(in srgb, var(--slate-900) 40%, var(--white)), var(--slate-975));
   --background-color-action: var(--gold-300);
   --background-color-highlight: var(--gold-300);
   --background-color-data: light-dark(var(--slate-500), var(--slate-400));
@@ -206,6 +207,11 @@
   :root {
     color-scheme: light dark;
     scrollbar-gutter: stable;
+  }
+
+  :root:has(dialog:modal) {
+    overflow: hidden;
+    background-color: var(--background-color-level-0-scrimmed);
   }
 
   :root[data-sidebar="collapsed"] {
