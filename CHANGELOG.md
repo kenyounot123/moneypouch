@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.6.0](https://github.com/kenyounot123/moneypouch/compare/v0.5.0...v0.6.0) (2026-10-16)
+
+
+### Features
+
+* **settings:** download every transaction as a CSV file ([#95](https://github.com/kenyounot123/moneypouch/issues/95)) ([d63baf7](https://github.com/kenyounot123/moneypouch/commit/d63baf73fb6579c02c6e2efdc58f46dc011c50ff))
+* **transactions:** hand-drawn row action icons and a clearer filter bar ([#100](https://github.com/kenyounot123/moneypouch/issues/100)) ([b4eeeb8](https://github.com/kenyounot123/moneypouch/commit/b4eeeb8e41e9d7f3dc9bb7a52c071c2fa45a8e41))
+
+
+### Bug Fixes
+
+* **import:** bring in transfers and multi-line notes, and skip rows already in the account ([#96](https://github.com/kenyounot123/moneypouch/issues/96)) ([8fc9de0](https://github.com/kenyounot123/moneypouch/commit/8fc9de0592cfb7ed33a028a24a7d5b517db6577d))
+* **palette:** cover the scrollbar gutter with the scrim while a dialog is open ([#99](https://github.com/kenyounot123/moneypouch/issues/99)) ([39b5ff3](https://github.com/kenyounot123/moneypouch/commit/39b5ff307e87ddcad713ed38cf1e6544fc27af44))
+
+
+### Performance Improvements
+
+* **transactions:** refresh other screens when a change commits ([#102](https://github.com/kenyounot123/moneypouch/issues/102)) ([aa076e9](https://github.com/kenyounot123/moneypouch/commit/aa076e9f66418ed1364bbe9d31413df4bde4aeaf))
+* **transactions:** render a busy month in pages of whole days ([#101](https://github.com/kenyounot123/moneypouch/issues/101)) ([113e30b](https://github.com/kenyounot123/moneypouch/commit/113e30b3afb711118712aef87ba055619cf31f17))
+
 ## [0.5.0](https://github.com/kenyounot123/moneypouch/compare/v0.4.0...v0.5.0) (2026-10-16)
 
 
