@@ -16,7 +16,10 @@ class TransactionsController < ApplicationController
     narrowed = narrow(transactions.occurred_in(@month.range))
     shown = only_needing_category(narrowed)
     @needing_category_count = narrowed.needing_category.count
-    @transactions = shown.listed.includes(bank_transaction: :bank_account)
+    @count = shown.count
+    @page = Transaction::Page.new(shown, before:)
+    @transactions = @page.transactions.listed.includes(bank_transaction: :bank_account)
+    keep_categorized_for_later_page
     @spent = shown.spent
     @net = shown.net
     @income = shown.income
@@ -67,6 +70,20 @@ class TransactionsController < ApplicationController
 
     def filters
       params.permit(:query, :account, :category, :needs).to_h.compact_blank.symbolize_keys
+    end
+
+    def before
+      Date.iso8601(params[:before].to_s)
+    rescue Date::Error
+      nil
+    end
+
+    def keep_categorized_for_later_page
+      id = flash[:categorized_id]
+
+      if id && @page.next_before && @transactions.none? { |transaction| transaction.id == id }
+        flash.keep(:categorized_id)
+      end
     end
 
     def narrow(transactions)
