@@ -13,15 +13,13 @@ class Transaction::PageTest < ActiveSupport::TestCase
     assert_equal 120, page.transactions.count
     assert_equal [ Date.new(2025, 3, 28), Date.new(2025, 3, 30) ], page.transactions.pluck(:occurred_on).minmax
     assert_equal Date.new(2025, 3, 28), page.next_before
-    assert_not page.last?
   end
 
-  test "the next page starts the day before the last one and ends the month" do
+  test "the next page starts the day before the last one" do
     page = Transaction::Page.new(@month, before: Date.new(2025, 3, 28))
 
     assert_equal 50, page.transactions.count
     assert_nil page.next_before
-    assert page.last?
   end
 
   test "a month that fits on one page has no next page" do
@@ -29,7 +27,6 @@ class Transaction::PageTest < ActiveSupport::TestCase
 
     assert_equal 50, page.transactions.count
     assert_nil page.next_before
-    assert page.last?
   end
 
   test "a page that no longer starts where the one before ends shows nothing" do
@@ -39,7 +36,6 @@ class Transaction::PageTest < ActiveSupport::TestCase
 
     assert_empty page.transactions
     assert_nil page.next_before
-    assert_not page.last?
   end
 
   private

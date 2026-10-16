@@ -182,6 +182,7 @@
 
   .icon--alert { --svg: url("icons/alert.svg"); }
   .icon--arrow-right { --svg: url("icons/arrow-right.svg"); }
+  .icon--arrow-up { --svg: url("icons/arrow-up.svg"); }
   .icon--bank { --svg: url("icons/bank.svg"); }
   .icon--categories { --svg: url("icons/categories.svg"); }
   .icon--check { --svg: url("icons/check.svg"); }
