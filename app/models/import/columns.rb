@@ -1,5 +1,5 @@
 class Import::Columns < Data.define(:kinds, :positive_amounts)
-  KINDS = %w[ skip date name amount spent_or_income category excluded note ]
+  KINDS = %w[ skip date name amount spent_or_income category transfer excluded note ]
   POSITIVE_AMOUNTS = %w[ spent income ]
 
   SPENT_WORDS = %w[ spent spending expense expenses debit withdrawal out outflow payment - ]
@@ -12,6 +12,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
     "amount" => %w[ amount cost price total spent value sum ],
     "spent_or_income" => %w[ type kind direction flow ],
     "category" => %w[ category categories cat group tag bucket ],
+    "transfer" => %w[ transfer transfers ],
     "excluded" => %w[ excluded exclude ignore ignored hidden ],
     "note" => %w[ note notes memo comment comments ]
   }
@@ -189,6 +190,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
       else
         identity = [ occurred_on, cents.abs, name.downcase.squish ]
         ordinals[identity] += 1
+        transfer = yes?(cell(sheet_row, "transfer"))
 
         Import::Row.new(
           tab: sheet_row.tab,
@@ -196,9 +198,10 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
           occurred_on:,
           name:,
           amount_in_cents: spent?(direction) ? -cents : cents,
-          category_word: category_word(category_text, direction:, spellings:),
-          excluded: excluded?(cell(sheet_row, "excluded")),
-          note: text(cell(sheet_row, "note")),
+          category_word: category_word(category_text, direction:, transfer:, spellings:),
+          transfer:,
+          excluded: yes?(cell(sheet_row, "excluded")),
+          note: note(cell(sheet_row, "note")),
           key: Import::Row.key(*identity, ordinals[identity])
         )
       end
@@ -220,6 +223,10 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
 
     def text(cell)
       Import::Sheet.text(cell)&.squish.presence
+    end
+
+    def note(cell)
+      Import::Sheet.text(cell)&.strip.presence
     end
 
     def quoted(cell)
@@ -262,13 +269,13 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
       end
     end
 
-    def category_word(category_text, direction:, spellings:)
-      if category_text && direction != :income
+    def category_word(category_text, direction:, transfer:, spellings:)
+      if category_text && direction != :income && !transfer
         spellings[category_text.downcase] ||= category_text
       end
     end
 
-    def excluded?(cell)
+    def yes?(cell)
       case cell
       when nil, false
         false

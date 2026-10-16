@@ -86,6 +86,7 @@ class Transaction < ApplicationRecord
           occurred_on: row.occurred_on,
           amount_in_cents: row.amount_in_cents,
           category_id: categories[row.category_word]&.id,
+          transfer: row.transfer?,
           excluded: row.excluded?,
           note: normalize_value_for(:note, row.note)
         }
@@ -105,9 +106,30 @@ class Transaction < ApplicationRecord
     end
   end
 
-  def self.taken_keys(keys, user:)
-    keys.each_slice(1_000).flat_map { |slice| where(user:, idempotency_key: slice).pluck(:idempotency_key) }.to_set
+  def self.already_here(rows, user:)
+    if rows.none?
+      return []
+    end
+
+    imported_before = imported_keys(rows, user:)
+    kept_alike = kept_counts_by_identity(rows, user:)
+    copies_so_far = Hash.new(0)
+
+    rows.select do |row|
+      copies_so_far[row.identity] += 1
+      imported_before.include?(row.key) || copies_so_far[row.identity] <= kept_alike.fetch(row.identity, 0)
+    end
   end
+
+  def self.imported_keys(rows, user:)
+    rows.map(&:key).each_slice(1_000).flat_map { |keys| where(user:, idempotency_key: keys).pluck(:idempotency_key) }.to_set
+  end
+
+  def self.kept_counts_by_identity(rows, user:)
+    kept = where(user:).kept.occurred_in(Range.new(*rows.map(&:occurred_on).minmax)).pluck(:occurred_on, :amount_in_cents, :name)
+    kept.map { |occurred_on, amount_in_cents, name| Import::Row.identity(occurred_on:, amount_in_cents:, name:) }.tally
+  end
+  private_class_method :imported_keys, :kept_counts_by_identity
 
   def self.last_category_for(name)
     eager_load(:category)

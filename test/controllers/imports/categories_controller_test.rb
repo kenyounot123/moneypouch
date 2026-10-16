@@ -34,6 +34,15 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?] button:not([disabled])", import_transactions_path(import), text: "Import 11 ↵"
   end
 
+  test "a file with transfers counts them on their own, five to a row" do
+    import = @user.start_import(upload("moves.csv", "Date,Name,Amount,Transfer\n2024-10-01,To savings,500,yes\n2024-10-02,Blue Bottle,5.50,\n"))
+
+    get edit_import_categories_url(import)
+
+    assert_equal [ [ "1", "Spent" ], [ "0", "Income" ], [ "1", "Transfers" ], [ "0", "Excluded" ] ], tally
+    assert_select "dl.grid-cols-3.\\@lg\\:grid-cols-5"
+  end
+
   test "a choice saves and the tally follows it" do
     import = @user.start_import(import_file("personal.csv"))
 

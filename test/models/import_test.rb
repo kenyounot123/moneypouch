@@ -25,7 +25,7 @@ class ImportTest < ActiveSupport::TestCase
   test "the tally counts what Import would add" do
     import = @user.imports.create!(file: import_file("personal.csv"))
 
-    assert_equal Import::Tally.new(spent: 10, income: 0, excluded: 1, unreadable: 1, already_here: 0), import.tally
+    assert_equal Import::Tally.new(spent: 10, income: 0, transfers: 0, excluded: 1, unreadable: 1, already_here: 0), import.tally
     assert_equal 11, import.tally.adding
   end
 
@@ -130,6 +130,25 @@ class ImportTest < ActiveSupport::TestCase
     assert_equal [ 2, 11 ], [ newer.tally.adding, newer.tally.already_here ]
     newer.complete
     assert_equal [ [ "2024-10-11", -550 ], [ "2024-10-11", -550 ] ], newer.transactions.map { |transaction| [ transaction.occurred_on.iso8601, transaction.amount_in_cents ] }
+  end
+
+  test "a row typed in with the same date, amount, and name is already here, once for each one kept" do
+    @user.transactions.create!(name: "blue bottle", amount_in_cents: -550, occurred_on: "2024-10-01")
+    @user.transactions.create!(name: "Blue Bottle", amount_in_cents: -550, occurred_on: "2024-10-02").discard
+    import = @user.imports.create!(file: upload("coffee.csv", "Date,Name,Amount\n2024-10-01,Blue Bottle,-5.50\n2024-10-01,Blue  Bottle,-5.50\n2024-10-01,Blue Bottle,5.50\n2024-10-02,Blue Bottle,-5.50\n"))
+
+    assert_equal [ 3, 1 ], [ import.tally.adding, import.tally.already_here ]
+    import.complete
+    assert_equal [ [ 1, -550 ], [ 1, 550 ], [ 2, -550 ] ], import.transactions.order(:occurred_on, :amount_in_cents).map { |transaction| [ transaction.occurred_on.day, transaction.amount_in_cents ] }
+  end
+
+  test "a transfer is neither spending nor income and needs no category" do
+    import = @user.imports.create!(file: upload("moves.csv", "Date,Name,Amount,Category,Transfer\n2024-10-01,To savings,500,Savings,yes\n2024-10-02,Blue Bottle,5.50,Coffee,\n"))
+
+    assert_equal Import::Tally.new(spent: 1, income: 0, transfers: 1, excluded: 0, unreadable: 0, already_here: 0), import.tally
+    assert_equal [ "Coffee" ], import.category_words.map(&:word)
+    import.complete
+    assert_equal [ [ "To savings", true, nil ], [ "Blue Bottle", false, "Coffee" ] ], import.transactions.order(:occurred_on).map { |transaction| [ transaction.name, transaction.transfer?, transaction.category&.name ] }
   end
 
   test "a row the user deleted stays deleted when the file is imported again" do

@@ -124,6 +124,20 @@ class Import::ColumnsTest < ActiveSupport::TestCase
     assert_equal [ true, true, true, true, false, false, false, false, false, false ], rows.map(&:excluded?)
   end
 
+  test "a Transfer column is guessed from its header, and a transfer row keeps no category" do
+    file = Import::Sheet.read(upload("download.csv", "Date,Name,Amount,Category,Transfer,Excluded\n2024-10-01,To savings,-500.00,Savings,yes,\n2024-10-02,Blue Bottle,-5.50,Coffee,,\n2024-10-03,Ramen,-18.25,Food,,\n"))
+    columns = Import::Columns.guess(file)
+
+    assert_equal %w[ date name amount category transfer excluded ], columns.kinds
+    assert_equal [ [ true, nil ], [ false, "Coffee" ], [ false, "Food" ] ], columns.read(file).map { |row| [ row.transfer?, row.category_word ] }
+  end
+
+  test "a note keeps its line breaks and loses only the space around it" do
+    file = Import::Sheet.read(upload("notes.csv", "Date,Name,Amount,Note\n2024-10-01,Ramen,18.25,\"With Jo and Sam\n\n  Split   three ways \"\n"))
+
+    assert_equal "With Jo and Sam\n\n  Split   three ways", Import::Columns.guess(file).read(file).first.note
+  end
+
   test "typed xlsx cells read as their dates, amounts, and true or false" do
     file = sheet("history.xlsx")
     rows = Import::Columns.guess(file).read(file)
