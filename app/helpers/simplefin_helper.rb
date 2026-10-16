@@ -11,24 +11,8 @@ module SimplefinHelper
 
   def link_to_simplefin(label, url = SIMPLEFIN_URL)
     link_to url, target: "_blank", rel: "noopener", class: OUTLINE_BUTTON do
-      safe_join [ label, external_arrow ]
+      safe_join [ label, icon_tag("external", class: "size-3 text-secondary") ]
     end
-  end
-
-  def external_arrow
-    tag.svg(
-      tag.path(d: "M4 2h6v6M10 2L3 9"),
-      width: 12,
-      height: 12,
-      viewBox: "0 0 12 12",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": 1.4,
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-      class: "shrink-0 text-secondary",
-      aria: { hidden: true }
-    )
   end
 
   def balance(cents)

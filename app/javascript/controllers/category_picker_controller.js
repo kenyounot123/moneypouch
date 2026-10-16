@@ -13,7 +13,7 @@ const SIZES = {
     list: "mt-1 w-full text-md",
   },
 }
-const TRANSFER_ICON = `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" class="shrink-0 text-tertiary"><path d="M2 4.5h9M8.5 2l2.5 2.5L8.5 7M12 9.5H3M5.5 7L3 9.5 5.5 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+const TRANSFER_ICON = `<span class="icon icon--transfer size-3.5 text-tertiary" aria-hidden="true"></span>`
 
 export default class extends Controller {
   static targets = ["category"]

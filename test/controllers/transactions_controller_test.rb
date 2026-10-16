@@ -139,7 +139,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
       get transactions_url
     end
 
-    assert_select "li#transaction_#{@transaction.id} form[action=?] button[aria-label=Delete][title=Delete] svg", transaction_path(@transaction)
+    assert_select "li#transaction_#{@transaction.id} form[action=?] button[aria-label=Delete][title=Delete] .icon--delete", transaction_path(@transaction)
     assert_select "li#transaction_#{@transaction.id} a[data-turbo-frame=sheet][href=?]", edit_transaction_path(@transaction)
     assert_select "dialog[data-controller=sheet] turbo-frame#sheet"
   end
