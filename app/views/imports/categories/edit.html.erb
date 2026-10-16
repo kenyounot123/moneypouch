@@ -23,9 +23,7 @@
           <% if unmatched.any? %>
             <p class="flex items-start gap-2 pt-4 pb-3 text-sm text-secondary">
               <% if matched.any? %>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="mt-px shrink-0 stroke-(--text-color-success)" aria-hidden="true">
-                  <path d="M2.5 7.5l3 3 6-7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+                <%= icon_tag "check", class: "mt-px size-3.5 text-success" %>
               <% end %>
               <%= categories_lead matched, unmatched %>
             </p>
@@ -40,9 +38,7 @@
                 class="group flex cursor-pointer items-center justify-between gap-4 py-3 text-left text-sm text-tertiary hover:text-secondary <%= "border-t border-secondary" if unmatched.any? %>">
                 <span class="flex min-w-0 items-center gap-2">
                   <% if unmatched.none? %>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="shrink-0 stroke-(--text-color-success)" aria-hidden="true">
-                      <path d="M2.5 7.5l3 3 6-7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
+                    <%= icon_tag "check", class: "size-3.5 text-success" %>
                   <% end %>
                   <span class="truncate"><%= matched_summary matched, unmatched %></span>
                 </span>

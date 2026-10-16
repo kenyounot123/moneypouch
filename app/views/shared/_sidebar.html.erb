@@ -4,7 +4,7 @@
       <%= image_tag "pouch.png", alt: "", width: 34, height: 34, class: "size-[34px] shrink-0 [image-rendering:pixelated] in-data-[sidebar=collapsed]:hidden" %>
       <span class="flex-1 text-heading font-bold whitespace-nowrap in-data-[sidebar=collapsed]:hidden">MoneyPouch</span>
       <button type="button" data-sidebar-target="toggle" data-action="sidebar#toggle" aria-label="Toggle sidebar" aria-keyshortcuts="Meta+B Control+B" title="Toggle sidebar (⌘B)" aria-controls="sidebar" aria-expanded="<%= sidebar_state == "expanded" %>" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary in-data-[sidebar=collapsed]:h-[34px] in-data-[sidebar=collapsed]:w-10">
-        <%= sidebar_icon :toggle %>
+        <%= icon_tag "sidebar" %>
       </button>
     </div>
 

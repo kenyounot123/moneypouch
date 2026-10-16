@@ -2,9 +2,7 @@
   data-composer-categories-value="<%= category_names.to_json %>" data-composer-today-value="<%= Date.current.iso8601 %>"
   data-action="mousemove@window->composer#point turbo:morph@document->composer#sync turbo:frame-render->composer#refresh">
   <%= form_with url: transactions_path, data: { action: "turbo:submit-end->composer#finish" }, class: "flex h-15 shrink-0 items-center gap-3 pr-2 pl-5" do |form| %>
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" class="shrink-0 stroke-(--background-color-data)" aria-hidden="true">
-      <path d="M9 3v12M3 9h12" stroke-width="1.8" stroke-linecap="round" />
-    </svg>
+    <%= icon_tag "plus", class: "size-4.5 bg-data" %>
     <%= form.hidden_field :idempotency_key, value: SecureRandom.uuid %>
     <%= form.text_field :shorthand, value: voucher.shorthand, placeholder: "coffee 5.50 yesterday", autocomplete: "off", spellcheck: false,
       role: "combobox", aria: { label: "Add", autocomplete: "list", expanded: false, controls: "composer-popup" },

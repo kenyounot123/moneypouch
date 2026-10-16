@@ -10,10 +10,10 @@
     <div class="flex min-w-0 flex-1 flex-col gap-0.5">
       <p class="truncate font-medium <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
       <% if transaction.note %>
-        <p class="flex min-w-0 items-center gap-1.5 text-secondary"><%= pencil_icon %><span class="truncate"><%= transaction.note %></span></p>
+        <p class="flex min-w-0 items-center gap-1.5 text-secondary"><%= icon_tag("note", class: "size-3 text-tertiary") %><span class="truncate"><%= transaction.note %></span></p>
       <% end %>
       <p class="flex min-w-0 items-center gap-1 text-sm text-tertiary">
-        <span class="flex shrink-0 items-center gap-1 text-secondary underline decoration-dotted underline-offset-3"><%= transfer_icon(size: 12) if transaction.transfer? %><%= categorization_label transaction %></span>
+        <span class="flex shrink-0 items-center gap-1 text-secondary underline decoration-dotted underline-offset-3"><%= icon_tag("transfer", class: "size-3") if transaction.transfer? %><%= categorization_label transaction %></span>
         <% if transaction.excluded? %>
           <span class="shrink-0">· Excluded</span>
         <% end %>
@@ -41,14 +41,13 @@
           <button type="button" class="min-w-0 cursor-text truncate text-left text-sm text-tertiary hover:text-secondary"
             data-note-target="label" data-action="note#open" data-note-text-param="<%= transaction.note %>"><%= transaction.note %></button>
         <% else %>
-          <button type="button" class="hidden shrink-0 cursor-pointer items-center gap-1 self-center rounded-[4px] bg-level-3 px-1.5 py-px text-xs text-tertiary group-focus-within:flex group-hover:flex hover:text-secondary"
-            data-note-target="label" data-action="note#open"><%= pencil_icon %>Add a note</button>
+          <button type="button" aria-label="Add a note" title="Add a note" class="<%= TransactionsHelper::ICON_BUTTON %> -my-2 -ml-1.5 hidden self-center group-focus-within:flex group-hover:flex"
+            data-note-target="label" data-action="note#open"><%= icon_tag "note" %></button>
         <% end %>
       </div>
-      <div class="ml-auto hidden shrink-0 items-center gap-1 bg-level-0 group-focus-within:flex group-hover:flex">
-        <%= exclusion_button transaction, class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" %>
-        <%= button_to "Delete", transaction, method: :delete, data: { turbo_confirm: "Delete #{transaction.name}?" },
-          class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" %>
+      <div class="ml-auto hidden shrink-0 items-center gap-0.5 bg-level-0 group-focus-within:flex group-hover:flex">
+        <%= exclusion_button transaction, icon: true %>
+        <%= icon_button_to "Delete", :delete, transaction, method: :delete, data: { turbo_confirm: "Delete #{transaction.name}?" } %>
       </div>
     </div>
     <div class="flex w-37.5 shrink-0 text-sm">
@@ -56,7 +55,7 @@
         <span class="<%= TransactionsHelper::CATEGORY_FIELD_SLOT %>" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: "Category",
           class: TransactionsHelper::CATEGORY_FIELD %></span>
       <% else %>
-        <span class="flex min-w-0 items-center gap-1 text-tertiary" data-category-picker-target="category"><%= transfer_icon(size: 12) if transaction.transfer? %><%= render "transactions/category_button", transaction:,
+        <span class="flex min-w-0 items-center gap-1 text-tertiary" data-category-picker-target="category"><%= icon_tag("transfer", class: "size-3") if transaction.transfer? %><%= render "transactions/category_button", transaction:,
           label: categorization_label(transaction), class: "truncate #{TransactionsHelper::CATEGORY_LINK}" %></span>
       <% end %>
     </div>
