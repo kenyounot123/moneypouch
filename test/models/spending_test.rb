@@ -25,6 +25,16 @@ class SpendingTest < ActiveSupport::TestCase
     assert_equal [ 1_750, [ "Transport", "Food" ] ], [ spending.total, spending.categories.map { |category, _| category&.name } ]
   end
 
+  test "leaves excluded rows out" do
+    spend(-1_200, "2026-10-03", @transport)
+    spend(-9_000, "2026-10-04", @transport).update!(excluded: true)
+
+    spending = Spending.new(@user.transactions, Period.new("month", today: Date.new(2026, 10, 5)))
+
+    assert_equal [ 1_750, [ [ "Transport", 1_200 ], [ "Food", 550 ] ] ],
+      [ spending.total, spending.categories.map { |category, cents| [ category&.name, cents ] } ]
+  end
+
   test "money in with a category nets against that category" do
     spend(-12_000, "2026-10-03", @transport)
     spend(4_000, "2026-10-04", @transport, name: "Friend paid back")

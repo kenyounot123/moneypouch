@@ -57,6 +57,20 @@ class SummaryTest < ActiveSupport::TestCase
     assert_equal [], @summary.sources(Month.new("2026-09", today: Date.new(2026, 10, 15)))
   end
 
+  test "leaves excluded rows out of income, spent, net, and sources" do
+    add 50_000, "2026-09-02", "Payroll"
+    add(-4_000, "2026-09-03", "Lunch")
+    add 30_000, "2026-09-04", "Reimbursement"
+    @user.transactions.last.update!(excluded: true)
+    add(-20_000, "2026-09-05", "Work trip")
+    @user.transactions.last.update!(excluded: true)
+
+    september = Month.new("2026-09", today: Date.new(2026, 10, 15))
+
+    assert_equal [ 50_000, 4_000, 46_000 ], @summary.total(september).then { |total| [ total.income, total.spent, total.net ] }
+    assert_equal [ [ "Payroll", 50_000 ] ], @summary.sources(september)
+  end
+
   test "a refund with a category nets against spending instead of counting as income" do
     add(-10_000, "2026-09-02", "Shoes", categories(:food))
     add 4_000, "2026-09-05", "Shoes back", categories(:food)

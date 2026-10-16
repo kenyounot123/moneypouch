@@ -48,6 +48,17 @@ class TransactionTest < ActiveSupport::TestCase
     assert_equal [ 550, 199_450, 200_000 ], [ typed.spent, typed.net, typed.income ]
   end
 
+  test "counted leaves out transfers and excluded rows, and net ignores both" do
+    user = users(:one)
+    savings = user.transactions.create!(name: "To savings", amount_in_cents: -10_000, occurred_on: "2026-10-02", transfer: true)
+    trip = user.transactions.create!(name: "Work trip", amount_in_cents: -30_000, occurred_on: "2026-10-03", excluded: true)
+    user.transactions.create!(name: "Trip refund", amount_in_cents: 30_000, occurred_on: "2026-10-04", excluded: true)
+
+    assert_equal [ "Blue Bottle", "Paycheck" ], user.transactions.counted.order(:name).pluck(:name)
+    assert_equal [ 199_450, 550, 200_000 ], [ user.transactions.net, user.transactions.spent, user.transactions.income ]
+    assert_equal [ true, false, false ], [ transactions(:coffee).counted?, savings.counted?, trip.counted? ]
+  end
+
   test "matches a search in the name or the note, ignoring case" do
     transactions(:paycheck).update!(note: "October pay")
 
