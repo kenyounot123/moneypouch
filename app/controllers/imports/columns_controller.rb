@@ -5,10 +5,15 @@ class Imports::ColumnsController < ApplicationController
   end
 
   def update
-    if @import.update(columns: Import::Columns.from(params, sheet: @import.sheet))
+    if @import.choose_columns(columns_params)
       redirect_to edit_import_categories_path(@import), status: :see_other
     else
       render :edit, status: :unprocessable_entity
     end
   end
+
+  private
+    def columns_params
+      params.expect(import: [ :positive_amounts, columns: [] ])
+    end
 end

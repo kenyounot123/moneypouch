@@ -6,7 +6,12 @@ class Imports::CategoriesController < ApplicationController
   end
 
   def update
-    @import.choose_categories(params.expect(import: [ categories: [ [ :word, :name ] ] ])[:categories])
+    @import.choose_categories(categories_params[:categories])
     redirect_to edit_import_categories_path(@import), status: :see_other
   end
+
+  private
+    def categories_params
+      params.expect(import: [ categories: [ [ :word, :name ] ] ])
+    end
 end
