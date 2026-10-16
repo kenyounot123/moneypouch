@@ -63,8 +63,8 @@
       <% if filters[:needs] %>
         <%= hidden_field_tag :needs, filters[:needs], id: nil %>
       <% end %>
-      <label class="flex h-9 min-w-0 flex-1 basis-24 items-center gap-2 rounded-lg border border-primary px-3 focus-within:border-(--ring-color-focus) @xl:h-8.5">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" class="shrink-0 text-tertiary" aria-hidden="true">
+      <label class="flex h-9 min-w-0 flex-1 basis-24 items-center gap-2 rounded-lg border border-primary bg-level-2 px-3 shadow-control hover:border-(--ring-color-focus) focus-within:border-(--ring-color-focus) @xl:h-8.5">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" class="shrink-0 text-secondary" aria-hidden="true">
           <circle cx="6" cy="6" r="4.5" />
           <path d="M9.5 9.5l3 3" />
         </svg>
@@ -75,7 +75,7 @@
       <% if @needing_category_count.positive? || filters[:needs] %>
         <%= link_to transactions_path(filters.merge(month: @month.to_param, needs: (filters[:needs] ? nil : "1"))), aria: { pressed: filters[:needs].present? },
           class: [ "flex h-9 shrink-0 items-center gap-1.75 rounded-lg border px-3 text-sm whitespace-nowrap @xl:order-last @xl:h-8.5",
-            filters[:needs] ? "border-(--ring-color-focus) bg-level-3 font-medium text-primary" : "border-primary text-secondary hover:text-primary" ] do %>
+            filters[:needs] ? "border-(--ring-color-focus) bg-level-3 font-medium text-primary" : "border-primary bg-level-2 text-primary shadow-control hover:border-(--ring-color-focus)" ] do %>
           <span class="size-1.5 shrink-0 rounded-[1px] bg-highlight"></span>
           <span class="@xl:hidden"><%= @needing_category_count %> uncategorized</span>
           <span class="hidden @xl:inline">Needs a category · <%= @needing_category_count %></span>
@@ -83,7 +83,7 @@
       <% end %>
 
       <%= tag.input type: "checkbox", id: "filters_toggle", checked: filters[:account].present? || filters[:category].present?, class: "peer sr-only" %>
-      <label for="filters_toggle" class="flex h-9 shrink-0 cursor-pointer items-center rounded-lg border border-primary px-3 text-sm text-secondary peer-checked:bg-level-3 peer-checked:text-primary peer-focus-visible:border-(--ring-color-focus) @xl:hidden">Filters</label>
+      <label for="filters_toggle" class="flex h-9 shrink-0 cursor-pointer items-center rounded-lg border border-primary bg-level-2 px-3 text-sm text-primary shadow-control peer-checked:bg-level-3 peer-checked:text-primary peer-focus-visible:border-(--ring-color-focus) @xl:hidden">Filters</label>
 
       <div class="hidden w-full gap-2 peer-checked:flex @xl:flex @xl:w-auto">
         <% [
@@ -92,8 +92,8 @@
         ].each do |name, blank, choices| %>
           <span class="relative flex min-w-0 flex-1 @xl:flex-none">
             <%= select_tag name, options_for_select(choices, filters[name]), include_blank: blank, onchange: "this.form.requestSubmit()",
-              class: "h-9 w-full min-w-0 cursor-pointer appearance-none @xl:field-sizing-content rounded-lg border border-primary bg-level-0 pr-7 pl-3 text-md text-secondary hover:text-primary @xl:h-8.5 @xl:text-sm" %>
-            <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-tertiary" aria-hidden="true">▾</span>
+              class: "h-9 w-full min-w-0 cursor-pointer appearance-none @xl:field-sizing-content rounded-lg border border-primary bg-level-2 pr-7 pl-3 text-md text-primary shadow-control hover:border-(--ring-color-focus) @xl:h-8.5 @xl:text-sm" %>
+            <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-secondary" aria-hidden="true">▾</span>
           </span>
         <% end %>
       </div>
