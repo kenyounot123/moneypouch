@@ -1,6 +1,6 @@
 <h1 align="center"><img src="docs/images/pouch.png" width="108" height="108" alt="The MoneyPouch pouch"><br>MoneyPouch</h1>
 
-<p align="center">A free, self-hosted expense tracker with fast manual entry and optional bank syncing</p>
+<p align="center">No budgets. No net worth. Just see where your money goes.<br>Log an expense in a few seconds, on your own server, for free.</p>
 
 <p align="center">
   <a href="#getting-started">Getting started</a> ·
@@ -16,14 +16,20 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/overview.png" alt="The MoneyPouch Overview, with October spending by category and the latest transactions">
+  <img src="docs/images/demo.gif" alt="Pressing Command K, typing Chip, pressing Tab to complete Chipotle, adding 11.25 yesterday, and pressing Enter. Chipotle appears in Recent and the October total goes up">
 </p>
 
 ## Features
 - **Fast entry.** Press ⌘K (Ctrl+K), type `Chipotle 11.25 yesterday`, and press Enter.
 - **It remembers.** Tab completes names you have used, and their category comes back.
 - **Your data, your server.** One container and one SQLite file, in a volume you own.
+- **Bring your history.** Import an Excel or CSV file. Rows you already have are skipped, and you can undo the whole import.
+- **Take it with you.** Download every transaction as a CSV file, any time.
 - **Bank sync, optional.** Connect your own SimpleFIN account to pull in transactions from your bank accounts.
+
+## What MoneyPouch is not
+
+MoneyPouch is not a budgeting app. It has no envelopes, no "give every dollar a job", no net worth, and no investment tracking. Those features are good for some people, but most of us only want to know where the money went. MoneyPouch does that one job and stays fast.
 
 ## System requirements
 
