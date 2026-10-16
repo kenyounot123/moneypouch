@@ -56,9 +56,13 @@ class Import < ApplicationRecord
 
   def category_words
     @category_words ||= new_rows.select(&:category_word).group_by(&:category_word).map do |word, rows|
-      match = user.categories.named(word).first
+      match = user_categories.find { |category| category.named?(word) }
       Import::CategoryWord.new(word:, count: rows.size, match:, name: category_names.fetch(word) { default_name(word, match:, rows:) })
     end.sort_by { |category_word| [ -category_word.count, category_word.word.downcase ] }
+  end
+
+  def choose_columns(choice)
+    update(columns: Import::Columns.from(choice, sheet:))
   end
 
   def choose_categories(choices)
@@ -105,7 +109,7 @@ class Import < ApplicationRecord
     end
 
     def forget_readings
-      @readings = @new_rows = @category_words = nil
+      @readings = @new_rows = @category_words = @user_categories = nil
     end
 
     def new_rows
@@ -113,6 +117,10 @@ class Import < ApplicationRecord
         taken = Transaction.taken_keys(rows.map(&:key), user:)
         rows.reject { |row| taken.include?(row.key) }
       end
+    end
+
+    def user_categories
+      @user_categories ||= user.categories.to_a
     end
 
     def default_name(word, match:, rows:)

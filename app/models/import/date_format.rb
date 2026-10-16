@@ -12,6 +12,7 @@ class Import::DateFormat
   EARLIEST = Date.new(1970, 1, 1)
 
   attr_reader :name
+  private_constant :CANDIDATES, :TIME_OF_DAY, :EXCEL_EPOCH, :EXCEL_SERIALS, :EARLIEST
 
   def self.dateless?(cell)
     case cell

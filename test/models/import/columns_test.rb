@@ -146,12 +146,11 @@ class Import::ColumnsTest < ActiveSupport::TestCase
   end
 
   test "the Columns step's choice is fitted to the sheet's width and unknown kinds become skip" do
-    params = ActionController::Parameters.new(import: { columns: [ "date", "name", "bogus", "amount", "note", "extra" ], positive_amounts: "income" })
-    columns = Import::Columns.from(params, sheet: sheet("bank.csv"))
+    columns = Import::Columns.from({ columns: [ "date", "name", "bogus", "amount", "note", "extra" ], positive_amounts: "income" }, sheet: sheet("bank.csv"))
 
     assert_equal [ %w[ date name skip amount ], "income" ], [ columns.kinds, columns.positive_amounts ]
     assert_equal [ "amount", "skip" ], [ columns.kind_at(3), columns.kind_at(9) ]
-    assert_equal "spent", Import::Columns.from(ActionController::Parameters.new(import: { positive_amounts: "sideways" }), sheet: sheet("bank.csv")).positive_amounts
+    assert_equal "spent", Import::Columns.from({ positive_amounts: "sideways" }, sheet: sheet("bank.csv")).positive_amounts
   end
 
   test "the positive amounts choice matters only without a spent or income column" do

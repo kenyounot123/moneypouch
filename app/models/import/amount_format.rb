@@ -4,6 +4,7 @@ class Import::AmountFormat
   DECIMAL = /[.,](?=\d{1,2}\D*\z)/
 
   attr_reader :decimal_mark
+  private_constant :NUMBER, :CURRENCY, :DECIMAL
 
   def self.for(cells)
     marks = cells.grep(String).filter_map { |text| text[DECIMAL] }

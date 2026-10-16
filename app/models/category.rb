@@ -12,4 +12,8 @@ class Category < ApplicationRecord
   scope :unused, -> { where.missing(:transactions, :rules) }
 
   validates :name, presence: true
+
+  def named?(other_name)
+    name.downcase(:ascii) == other_name.downcase(:ascii)
+  end
 end

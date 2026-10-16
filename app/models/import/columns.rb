@@ -18,6 +18,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
 
   READS_AS = 0.8
   MOSTLY_SPENT = 0.9
+  private_constant :KINDS, :POSITIVE_AMOUNTS, :SPENT_WORDS, :INCOME_WORDS, :NO_WORDS, :HEADER_WORDS, :READS_AS, :MOSTLY_SPENT
 
   class << self
     def guess(sheet)
@@ -33,8 +34,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
       new(kinds:, positive_amounts: positive_amounts_in(amount_index ? sheet.column(amount_index) : []))
     end
 
-    def from(params, sheet:)
-      choice = params.expect(import: [ :positive_amounts, columns: [] ])
+    def from(choice, sheet:)
       chosen = Array(choice[:columns])
 
       new(

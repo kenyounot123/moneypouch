@@ -23,6 +23,7 @@ class Import::Sheet
   DELIMITERS = [ ",", ";", "\t" ]
 
   attr_reader :headers, :rows, :tabs, :skipped_tabs
+  private_constant :MAX_BYTES, :MAX_UNZIPPED_BYTES, :MAX_ZIP_ENTRIES, :MAX_LINES, :MAX_WIDTH, :HEADER_SEARCH_ROWS, :PREVIEW_ROWS, :TOO_LARGE, :TOO_MANY_ROWS, :TOO_MANY_COLUMNS, :NOT_A_SPREADSHEET, :OLD_EXCEL, :NO_HEADER, :NO_ROWS, :BOMS, :DELIMITERS
 
   class << self
     def read(file)
