@@ -133,30 +133,69 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-chart-label-param^='Oct 1']"
   end
 
-  test "summarizes the last six months, each linking to its detail" do
+  test "summarizes the last six months, each linking to its focus" do
     travel_to Time.utc(2026, 10, 15) do
       users(:one).transactions.create!(name: "Rent", amount_in_cents: -250_000, occurred_on: "2026-09-02")
       users(:one).transactions.create!(name: "Payroll", amount_in_cents: 789_000, occurred_on: "2026-09-01")
       users(:one).transactions.create!(name: "Repairs", amount_in_cents: -50_000, occurred_on: "2026-08-09")
 
-      get root_url(period: "week", chart: "summary")
+      get root_url(period: "month", chart: "summary")
     end
 
-    assert_select "a[href='#{root_path(period: "week", chart: "summary", month: "2026-05")}']"
-    assert_select "a[href='#{root_path(period: "week", chart: "summary", month: "2026-10")}']"
-    assert_select "a[href='#{root_path(period: "week", chart: "summary", month: "2026-09")}'][aria-label='Sep · income $7,890 · spent $2,500']" do
+    assert_select "a[href='#{root_path(period: "month", chart: "summary", focus: "2026-05-01")}']"
+    assert_select "a[href='#{root_path(period: "month", chart: "summary", focus: "2026-10-01")}']"
+    assert_select "a[href='#{root_path(period: "month", chart: "summary", focus: "2026-09-01")}'][aria-label='Sep · income $7,890 · spent $2,500']" do
       assert_select "span", text: "Sep"
       assert_select "span.text-tertiary", text: "+$5,390"
       assert_select ".bg-data-soft"
     end
-    assert_select "a[href*='month=2026-10'][aria-label^='Oct so far · income']"
-    assert_select "a[href*='month=2026-10'] span.text-tertiary", text: "+$1,995"
+    assert_select "a[href*='focus=2026-10-01'][aria-label^='Oct so far · income']"
+    assert_select "a[href*='focus=2026-10-01'] span.text-tertiary", text: "+$1,995"
     assert_select "[data-chart-target=readout]", text: ""
     assert_equal [ "Income", "Spent", "±Net" ], css_select("[data-chart-target=key] > span").map { |span| span.text.strip }
-    assert_select "a[href*='month=2026-08'] span.text-tertiary", text: "−$500"
+    assert_select "a[href*='focus=2026-08-01'] span.text-tertiary", text: "−$500"
+    assert_select "div.flex.gap-1\\.5 > a[aria-current]", count: 0
+    assert_select "a .opacity-40", count: 0
+    assert_select "p.font-semibold", count: 0
   end
 
-  test "details one month with its sources and categories" do
+  test "summarizes the last six weeks, each linking to its focus" do
+    travel_to Time.utc(2026, 10, 15) do
+      users(:one).transactions.create!(name: "Rent", amount_in_cents: -250_000, occurred_on: "2026-10-05")
+      users(:one).transactions.create!(name: "Payroll", amount_in_cents: 789_000, occurred_on: "2026-10-11")
+
+      get root_url(period: "week", chart: "summary")
+    end
+
+    assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-09-07")}']", text: /Sep 7/
+    assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-10-12")}'][aria-label='Oct 12 so far · income $0 · spent $0']"
+    assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-10-05")}'][aria-label='Oct 5 · income $7,890 · spent $2,500']" do
+      assert_select "span", text: "Oct 5"
+      assert_select "span.text-tertiary", text: "+$5,390"
+    end
+    assert_select "a[href*='month=']", count: 0
+    assert_select "a[href*='focus=2026-09-01']", count: 0
+    assert_select "div.flex.gap-1\\.5 > a", count: 6
+  end
+
+  test "summarizes the last six years, each linking to its focus" do
+    travel_to Time.utc(2026, 10, 15) do
+      users(:one).transactions.create!(name: "Rent", amount_in_cents: -250_000, occurred_on: "2024-09-02")
+      users(:one).transactions.create!(name: "Payroll", amount_in_cents: 789_000, occurred_on: "2024-03-01")
+
+      get root_url(period: "year", chart: "summary")
+    end
+
+    assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2021-01-01")}']", text: /2021/
+    assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2026-01-01")}'][aria-label='2026 so far · income $2,000 · spent $6']"
+    assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2024-01-01")}'][aria-label='2024 · income $7,890 · spent $2,500']" do
+      assert_select "span", text: "2024"
+      assert_select "span.text-tertiary", text: "+$5,390"
+    end
+    assert_select "a[href*='focus=2020-01-01']", count: 0
+  end
+
+  test "focuses one month under the chart with its sources and categories" do
     travel_to Time.utc(2026, 10, 15) do
       users(:one).transactions.create!(name: "Payroll", amount_in_cents: 789_000, occurred_on: "2026-09-01")
       users(:one).transactions.create!(name: "Bonus", amount_in_cents: 100_000, occurred_on: "2026-09-02")
@@ -164,45 +203,77 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
       users(:one).transactions.create!(name: "Rent", amount_in_cents: -165_000, occurred_on: "2026-09-04")
       users(:one).transactions.create!(name: "Soda", amount_in_cents: -250, occurred_on: "2026-09-05", category: categories(:food))
 
-      get root_url(chart: "summary", month: "2026-09")
+      get root_url(chart: "summary", focus: "2026-09-01")
     end
 
-    assert_select "a[href='#{root_path(period: "month", chart: "summary")}']", text: "← All months"
-    assert_select "[data-chart-target=key]", count: 0
+    unfocused = root_path(period: "month", chart: "summary")
+    assert_select "a[href='#{unfocused}'][aria-current=true][aria-label='Sep · income $8,903 · spent $1,653'].bg-level-3" do
+      assert_select "span.font-medium.text-primary", text: "Sep"
+      assert_select "span.text-secondary", text: "+$7,250"
+      assert_select ".opacity-40", count: 0
+    end
+    assert_select "div.flex.gap-1\\.5 > a[aria-current]", count: 1
+    assert_select "a[href*='focus=2026-08-01'] .opacity-40"
+    assert_select "a[href*='focus=2026-08-01'] span.text-secondary", text: "Aug"
+    assert_select "[data-chart-target=key]"
+    assert_select "[data-chart-target=readout]"
     assert_select "p.font-semibold", text: "September"
+    assert_select "p", text: "Income"
     assert_select "p", text: "$8,902.88"
+    assert_select "p", text: "Spent"
     assert_select "p", text: "$1,652.50"
-    assert_select "p", text: "+$7,250.38"
-    assert_select "h3", text: "Where it came from"
-    assert_select "h3 ~ div p", text: "Payroll"
-    assert_select "h3 ~ div p", text: "$7,890.00"
-    assert_select "h3 ~ div p", text: "1 more"
-    assert_select "h3 ~ div p", text: "$12.88"
-    assert_select "h3 ~ div p", text: "Uncategorized"
-    assert_select "h3 ~ div p", text: "Food"
-    assert_select "[data-chart-target=readout]", count: 0
+    assert_select "span.truncate", text: "Payroll"
+    assert_select "span", text: "$7,890.00"
+    assert_select "span.truncate", text: "Bonus"
+    assert_select "span.truncate", text: "1 more"
+    assert_select "span", text: "$12.88"
+    assert_select "span", text: "Uncategorized"
+    assert_select "span", text: "Food"
+    assert_select "div.h-2\\.5[style='width: 100.0%']", count: 1
+    assert_select "div.h-2\\.5[style='width: 18.6%']", count: 1
+    assert_select "p", text: "Nothing came in.", count: 0
+    assert_select "p", text: "Nothing spent.", count: 0
   end
 
-  test "says nothing came in or went out of an empty month" do
+  test "focuses a week and a year by their own names" do
     travel_to Time.utc(2026, 10, 15) do
-      get root_url(chart: "summary", month: "2026-03")
+      users(:one).transactions.create!(name: "Rent", amount_in_cents: -250_000, occurred_on: "2026-10-06")
+
+      get root_url(period: "week", chart: "summary", focus: "2026-10-05")
+      assert_select "p.font-semibold", text: "Oct 5–11"
+      assert_select "p", text: "$2,500.00"
+      assert_select "span", text: "Uncategorized"
+      assert_select "p", text: "Income", count: 0
+
+      get root_url(period: "year", chart: "summary", focus: "2025-01-01")
+      assert_select "p.font-semibold", text: "2025"
+      assert_select "p", text: "Nothing spent."
+    end
+  end
+
+  test "says nothing was spent in an empty focused period" do
+    travel_to Time.utc(2026, 10, 15) do
+      get root_url(chart: "summary", focus: "2026-03-01")
     end
 
-    assert_select "p", text: "Nothing came in."
+    assert_select "p.font-semibold", text: "March"
     assert_select "p", text: "Nothing spent."
-    assert_select "p", text: "$0.00"
+    assert_select "p", text: "Nothing came in.", count: 0
+    assert_select "p", text: "Income", count: 0
+    assert_select "p", text: "Spent", count: 0
   end
 
-  test "clamps a future month to the current one" do
+  test "clamps a future focus to the current period" do
     travel_to Time.utc(2026, 10, 15) do
-      get root_url(chart: "summary", month: "2030-01")
+      get root_url(chart: "summary", focus: "2030-01-01")
     end
 
     assert_select "p.font-semibold", text: "October"
+    assert_select "a[aria-current=true][aria-label^='Oct so far']"
   end
 
-  test "ignores a month outside the summary chart" do
-    get root_url(month: "2026-09")
+  test "ignores a focus outside the summary chart" do
+    get root_url(focus: "2026-09-01")
 
     assert_select "p.font-semibold", count: 0
     assert_select "[data-chart-target=readout]"

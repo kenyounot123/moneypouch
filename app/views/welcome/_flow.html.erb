@@ -1,0 +1,21 @@
+<% segments = flow_segments rows %>
+<div class="flex flex-col gap-2">
+  <div class="flex items-baseline justify-between text-sm">
+    <p class="text-tertiary"><%= label %></p>
+    <p class="font-mono text-md text-primary"><%= spent amount %></p>
+  </div>
+  <div class="flex h-2.5 gap-0.5" style="width: <%= (amount * 100.0 / peak).round(1) %>%">
+    <% segments.each_with_index do |(_, cents), index| %>
+      <div class="h-full rounded-bar <%= segment_color index %>" style="flex: <%= cents %> 1 0; min-width: 3px"></div>
+    <% end %>
+  </div>
+  <div class="flex flex-wrap gap-x-4.5 gap-y-1 text-sm text-secondary">
+    <% segments.each_with_index do |(name, cents), index| %>
+      <p class="flex min-w-0 items-center gap-1.5">
+        <span class="size-2 shrink-0 rounded-[2px] <%= segment_color index %>"></span>
+        <span class="truncate"><%= name %></span>
+        <span class="font-mono text-tertiary"><%= spent cents %></span>
+      </p>
+    <% end %>
+  </div>
+</div>

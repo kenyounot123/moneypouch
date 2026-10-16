@@ -121,7 +121,41 @@ module WelcomeHelper
   end
 
   def total_readout(total)
-    "#{month_abbreviation(total.month)}#{" so far" if total.month.current?} · income #{whole_spent total.income} · spent #{whole_spent total.spent}"
+    "#{period_abbreviation(total.period)}#{" so far" if total.period.current?} · income #{whole_spent total.income} · spent #{whole_spent total.spent}"
+  end
+
+  def period_abbreviation(period)
+    case period.kind
+    when "week" then short_date(period.first_day)
+    when "month" then period.first_day.strftime("%b")
+    when "year" then period.first_day.strftime("%Y")
+    end
+  end
+
+  def period_name(period)
+    case period.kind
+    when "week" then span(period.range)
+    when "month" then period.first_day.strftime("%B")
+    when "year" then period.first_day.strftime("%Y")
+    end
+  end
+
+  def segment_color(index)
+    case index
+    when 0 then "bg-data-strong"
+    when 1 then "bg-data"
+    else "bg-data-soft"
+    end
+  end
+
+  def flow_segments(rows)
+    rest = rows.drop(2)
+
+    if rest.empty?
+      rows
+    else
+      rows.first(2) + [ [ "#{rest.size} more", rest.sum(&:last) ] ]
+    end
   end
 
   private

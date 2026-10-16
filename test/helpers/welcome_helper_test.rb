@@ -80,18 +80,55 @@ class WelcomeHelperTest < ActionView::TestCase
     assert_equal [ "+$3,912.88", "−$310.00", "$0.00" ], [ exact_net(391_288), exact_net(-31_000), exact_net(0) ]
   end
 
+  test "abbreviates a period by its kind" do
+    today = Date.current
+
+    assert_equal "Sep 7", period_abbreviation(Period.new("week", today:, on: "2026-09-09"))
+    assert_equal "Sep", period_abbreviation(Period.new("month", today:, on: "2026-09-09"))
+    assert_equal "2025", period_abbreviation(Period.new("year", today:, on: "2025-09-09"))
+    assert_equal "Dec 29, 2025", period_abbreviation(Period.new("week", today:, on: "2026-01-01"))
+  end
+
+  test "names a period by its kind" do
+    today = Date.current
+
+    assert_equal "Sep 7–13", period_name(Period.new("week", today:, on: "2026-09-09"))
+    assert_equal "Sep 28–Oct 4", period_name(Period.new("week", today:, on: "2026-10-01"))
+    assert_equal "September", period_name(Period.new("month", today:, on: "2026-09-09"))
+    assert_equal "2025", period_name(Period.new("year", today:, on: "2025-09-09"))
+  end
 
   test "reads a month's totals out loud" do
-    total = Summary::Total.new(month: Month.new("2026-09", today: Date.current), income: 789_000, spent: 397_712)
+    total = Summary::Total.new(period: Period.new("month", today: Date.current, on: "2026-09-01"), income: 789_000, spent: 397_712)
 
     assert_equal "Sep · income $7,890 · spent $3,977", total_readout(total)
   end
 
   test "says the current month is only so far" do
-    travel_to Time.utc(2026, 10, 15) do
-      total = Summary::Total.new(month: Month.new(nil, today: Date.current), income: 199_500, spent: 119_412)
+    total = Summary::Total.new(period: Period.new("month", today: Date.current), income: 199_500, spent: 119_412)
 
-      assert_equal "Oct so far · income $1,995 · spent $1,194", total_readout(total)
-    end
+    assert_equal "Oct so far · income $1,995 · spent $1,194", total_readout(total)
+  end
+
+  test "reads a week's and a year's totals out loud" do
+    week = Summary::Total.new(period: Period.new("week", today: Date.current, on: "2026-10-01"), income: 5_000, spent: 1_250)
+    this_week = Summary::Total.new(period: Period.new("week", today: Date.current), income: 0, spent: 4_000)
+    year = Summary::Total.new(period: Period.new("year", today: Date.current, on: "2025-05-05"), income: 9_000_000, spent: 6_500_000)
+    this_year = Summary::Total.new(period: Period.new("year", today: Date.current), income: 100, spent: 0)
+
+    assert_equal "Sep 28 · income $50 · spent $13", total_readout(week)
+    assert_equal "Oct 12 so far · income $0 · spent $40", total_readout(this_week)
+    assert_equal "2025 · income $90,000 · spent $65,000", total_readout(year)
+    assert_equal "2026 so far · income $1 · spent $0", total_readout(this_year)
+  end
+
+  test "colors flow segments dark, medium, then soft" do
+    assert_equal [ "bg-data-strong", "bg-data", "bg-data-soft" ], [ segment_color(0), segment_color(1), segment_color(2) ]
+  end
+
+  test "folds all but the first two flow rows into one more segment" do
+    assert_equal [ [ "Rent", 500 ] ], flow_segments([ [ "Rent", 500 ] ])
+    assert_equal [ [ "Rent", 500 ], [ "Food", 300 ] ], flow_segments([ [ "Rent", 500 ], [ "Food", 300 ] ])
+    assert_equal [ [ "Rent", 500 ], [ "Food", 300 ], [ "2 more", 150 ] ], flow_segments([ [ "Rent", 500 ], [ "Food", 300 ], [ "Gum", 100 ], [ "Bus", 50 ] ])
   end
 end

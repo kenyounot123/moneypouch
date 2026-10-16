@@ -4,17 +4,18 @@ class SummaryTest < ActiveSupport::TestCase
   setup do
     @user = users(:one)
     @user.transactions.destroy_all
-    @summary = Summary.new(@user.transactions, today: Date.new(2026, 10, 15))
+    @today = Date.new(2026, 10, 15)
+    @summary = Summary.new(@user.transactions, Period.new("month", today: Date.new(2026, 10, 15)))
   end
 
   test "lists the current month and the five before it, oldest first" do
-    assert_equal %w[ 2026-05 2026-06 2026-07 2026-08 2026-09 2026-10 ], @summary.months.map(&:to_param)
+    assert_equal %w[ 2026-05 2026-06 2026-07 2026-08 2026-09 2026-10 ], @summary.periods.map { |period| period.first_day.strftime("%Y-%m") }
   end
 
   test "crosses a year boundary" do
-    summary = Summary.new(@user.transactions, today: Date.new(2026, 2, 3))
+    summary = Summary.new(@user.transactions, Period.new("month", today: Date.new(2026, 2, 3)))
 
-    assert_equal %w[ 2025-09 2025-10 2025-11 2025-12 2026-01 2026-02 ], summary.months.map(&:to_param)
+    assert_equal %w[ 2025-09 2025-10 2025-11 2025-12 2026-01 2026-02 ], summary.periods.map { |period| period.first_day.strftime("%Y-%m") }
   end
 
   test "totals income and spent per month in cents, and a month can end below zero" do
@@ -24,7 +25,7 @@ class SummaryTest < ActiveSupport::TestCase
     add(-131_000, "2026-07-01", "Rent")
     add(-500, "2026-10-14", "Coffee")
 
-    totals = @summary.totals.map { |total| [ total.month.to_param, total.income, total.spent, total.net ] }
+    totals = @summary.totals.map { |total| [ total.period.first_day.strftime("%Y-%m"), total.income, total.spent, total.net ] }
 
     assert_equal [
       [ "2026-05", 0, 0, 0 ],
@@ -40,9 +41,9 @@ class SummaryTest < ActiveSupport::TestCase
     add 12_300, "2026-01-10", "Gig"
     add(-4_500, "2026-01-11", "Lunch")
 
-    total = @summary.total(Month.new("2026-01", today: Date.new(2026, 10, 15)))
+    total = @summary.total(Period.new("month", today: @today, on: "2026-01-01"))
 
-    assert_equal [ "2026-01", 12_300, 4_500, 7_800 ], [ total.month.to_param, total.income, total.spent, total.net ]
+    assert_equal [ "2026-01", 12_300, 4_500, 7_800 ], [ total.period.first_day.strftime("%Y-%m"), total.income, total.spent, total.net ]
   end
 
   test "leaves transfers, discarded rows, older months, and other users out" do
@@ -54,7 +55,7 @@ class SummaryTest < ActiveSupport::TestCase
     users(:two).transactions.create!(name: "Theirs", amount_in_cents: 8_888, occurred_on: "2026-09-04")
 
     assert_equal [ 0, 0 ], @summary.totals[4].then { |total| [ total.income, total.spent ] }
-    assert_equal [], @summary.sources(Month.new("2026-09", today: Date.new(2026, 10, 15)))
+    assert_equal [], @summary.sources(Period.new("month", today: @today, on: "2026-09-01"))
   end
 
   test "leaves excluded rows out of income, spent, net, and sources" do
@@ -65,7 +66,7 @@ class SummaryTest < ActiveSupport::TestCase
     add(-20_000, "2026-09-05", "Work trip")
     @user.transactions.last.update!(excluded: true)
 
-    september = Month.new("2026-09", today: Date.new(2026, 10, 15))
+    september = Period.new("month", today: @today, on: "2026-09-01")
 
     assert_equal [ 50_000, 4_000, 46_000 ], @summary.total(september).then { |total| [ total.income, total.spent, total.net ] }
     assert_equal [ [ "Payroll", 50_000 ] ], @summary.sources(september)
@@ -87,7 +88,7 @@ class SummaryTest < ActiveSupport::TestCase
     add 15_000, "2026-09-20", "Interest"
     add 99_000, "2026-08-31", "Last month"
 
-    sources = @summary.sources(Month.new("2026-09", today: Date.new(2026, 10, 15)))
+    sources = @summary.sources(Period.new("month", today: @today, on: "2026-09-01"))
 
     assert_equal [ [ "Acme payroll", 500_000 ], [ "Acme bonus", 250_000 ], [ "Interest", 30_000 ] ], sources
   end
@@ -97,9 +98,53 @@ class SummaryTest < ActiveSupport::TestCase
     add(-300, "2026-09-04", "Gum")
     add(-9_000, "2026-10-01", "Other month", categories(:food))
 
-    categories = @summary.categories(Month.new("2026-09", today: Date.new(2026, 10, 15)))
+    categories = @summary.categories(Period.new("month", today: @today, on: "2026-09-01"))
 
     assert_equal [ [ "Food", 1_200 ], [ nil, 300 ] ], categories.map { |category, cents| [ category&.name, cents ] }
+  end
+
+  test "lists the current week and the five before it, oldest first, starting on Mondays" do
+    summary = Summary.new(@user.transactions, Period.new("week", today: @today))
+
+    assert_equal %w[ 2026-09-07 2026-09-14 2026-09-21 2026-09-28 2026-10-05 2026-10-12 ], summary.periods.map { |period| period.first_day.to_param }
+  end
+
+  test "buckets dates into weeks that start on Monday" do
+    add 1_000, "2026-10-11", "Sunday gig"
+    add 2_000, "2026-10-12", "Monday gig"
+    add(-300, "2026-10-18", "Sunday coffee")
+    add(-700, "2026-10-12", "Monday coffee")
+    add(-900, "2026-09-06", "Too old")
+
+    summary = Summary.new(@user.transactions, Period.new("week", today: @today))
+
+    assert_equal [
+      [ "2026-09-07", 0, 0 ],
+      [ "2026-09-14", 0, 0 ],
+      [ "2026-09-21", 0, 0 ],
+      [ "2026-09-28", 0, 0 ],
+      [ "2026-10-05", 1_000, 0 ],
+      [ "2026-10-12", 2_000, 1_000 ]
+    ], summary.totals.map { |total| [ total.period.first_day.to_param, total.income, total.spent ] }
+  end
+
+  test "buckets dates into years" do
+    add 5_000, "2026-01-01", "This year"
+    add(-1_200, "2026-12-31", "Late")
+    add 4_000, "2025-12-31", "Last year"
+    add(-800, "2021-06-01", "Sixth year back")
+    add(-100, "2020-12-31", "Too old")
+
+    summary = Summary.new(@user.transactions, Period.new("year", today: @today))
+
+    assert_equal [
+      [ "2021-01-01", 0, 800 ],
+      [ "2022-01-01", 0, 0 ],
+      [ "2023-01-01", 0, 0 ],
+      [ "2024-01-01", 0, 0 ],
+      [ "2025-01-01", 4_000, 0 ],
+      [ "2026-01-01", 5_000, 1_200 ]
+    ], summary.totals.map { |total| [ total.period.first_day.to_param, total.income, total.spent ] }
   end
 
   private

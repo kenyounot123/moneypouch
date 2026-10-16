@@ -32,4 +32,58 @@ class PeriodTest < ActiveSupport::TestCase
 
     assert_equal [ 278, 365 ], [ period.day, period.days ]
   end
+
+  test "steps back to a past period by an ISO date or a Date" do
+    today = Date.new(2026, 10, 15)
+
+    assert_equal Date.new(2026, 9, 1)..Date.new(2026, 9, 30), Period.new("month", today:, on: "2026-09-17").range
+    assert_equal Date.new(2026, 9, 7)..Date.new(2026, 9, 13), Period.new("week", today:, on: Date.new(2026, 9, 9)).range
+    assert_equal Date.new(2025, 1, 1)..Date.new(2025, 12, 31), Period.new("year", today:, on: "2025-06-01").range
+    assert_equal Date.new(2026, 9, 1), Period.new("month", today:, on: "2026-09-17").first_day
+  end
+
+  test "clamps a future date to today and falls back to today for an unparsable one" do
+    today = Date.new(2026, 10, 15)
+
+    assert_equal Date.new(2026, 10, 1), Period.new("month", today:, on: "2030-01-01").first_day
+    assert_equal Date.new(2026, 10, 12), Period.new("week", today:, on: "2026-12-25").first_day
+    assert_equal Date.new(2026, 10, 1), Period.new("month", today:, on: "soon").first_day
+    assert_equal Date.new(2026, 10, 1), Period.new("month", today:, on: "2026-13-01").first_day
+    assert_equal Date.new(2026, 10, 1), Period.new("month", today:, on: "").first_day
+  end
+
+  test "keeps counting the day from today inside a past period" do
+    period = Period.new("month", today: Date.new(2026, 10, 15), on: "2026-09-01")
+
+    assert_equal [ 45, 30 ], [ period.day, period.days ]
+  end
+
+  test "steps to the previous period across a year boundary" do
+    today = Date.new(2026, 1, 6)
+
+    assert_equal Date.new(2025, 12, 29), Period.new("week", today:).previous.first_day
+    assert_equal Date.new(2025, 12, 1), Period.new("month", today:).previous.first_day
+    assert_equal Date.new(2025, 1, 1), Period.new("year", today:).previous.first_day
+    assert_equal Date.new(2025, 12, 22), Period.new("week", today:).previous.previous.first_day
+  end
+
+  test "is current only while its range covers today" do
+    today = Date.new(2026, 10, 15)
+
+    assert Period.new("month", today:).current?
+    assert Period.new("week", today:, on: "2026-10-12").current?
+    assert_not Period.new("month", today:).previous.current?
+    assert_not Period.new("year", today:).previous.current?
+  end
+
+  test "equals a period of the same kind and range" do
+    today = Date.new(2026, 10, 15)
+
+    assert_equal Period.new("month", today:, on: "2026-09-01"), Period.new("month", today:, on: "2026-09-20")
+    assert_equal Period.new("month", today:).previous, Period.new("month", today:, on: "2026-09-30")
+    assert_equal Period.new("month", today:, on: "2026-09-01").hash, Period.new("month", today:, on: "2026-09-20").hash
+    assert_not_equal Period.new("month", today:), Period.new("month", today:).previous
+    assert_not_equal Period.new("week", today:, on: "2026-10-01"), Period.new("month", today:, on: "2026-10-01")
+    assert_not_equal Period.new("month", today:), nil
+  end
 end
