@@ -10,6 +10,7 @@ class User < ApplicationRecord
   has_many :bank_accounts, dependent: :destroy
   has_many :bank_transactions, through: :bank_accounts
   has_many :rules, dependent: :destroy
+  has_many :imports, dependent: :destroy
 
   has_one :simplefin_access, class_name: "Simplefin::Access", dependent: :destroy
 
@@ -17,6 +18,23 @@ class User < ApplicationRecord
     (simplefin_access || build_simplefin_access).tap do |access|
       access.connect(setup_token)
     end
+  end
+
+  def start_import(file)
+    import = imports.new(file:)
+
+    if import.valid?
+      transaction do
+        imports.drafts.destroy_all
+        import.save!
+      end
+    end
+
+    import
+  end
+
+  def latest_import
+    imports.completed.order(:completed_at).last
   end
 
   def remember(name, categorization)
