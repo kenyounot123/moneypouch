@@ -10,6 +10,7 @@ class Import::Sheet
   MAX_WIDTH = 40
   HEADER_SEARCH_ROWS = 20
   PREVIEW_ROWS = 8
+  SHOWN_DIGITS = 15
 
   TOO_LARGE = "That file is over 10 MB. Split it or save fewer tabs."
   TOO_MANY_ROWS = "That file has over #{MAX_LINES.to_fs(:delimited)} rows. Split it into smaller files."
@@ -43,10 +44,12 @@ class Import::Sheet
       end
     end
 
+    # Excel shows a number to 15 significant digits, so the 1234.5599999999999 it stored reads 1234.56.
     def text(cell)
       case cell
       when BigDecimal
-        cell.frac.zero? ? cell.to_i.to_s : cell.to_s("F")
+        shown = cell.mult(1, SHOWN_DIGITS)
+        shown.frac.zero? ? shown.to_i.to_s : shown.to_s("F")
       when Date
         cell.iso8601
       when nil
