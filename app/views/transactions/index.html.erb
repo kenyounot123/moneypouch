@@ -5,6 +5,11 @@
   <%= render "shared/sidebar" %>
 
   <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14" data-composer="docked">
+    <button type="button" aria-label="Back to top" data-controller="back-to-top" data-action="scroll@window->back-to-top#toggle:passive back-to-top#scroll"
+      class="invisible sticky bottom-20 z-20 order-last -mb-4 flex size-9 cursor-pointer items-center justify-center self-end rounded-full border border-primary bg-level-2 text-secondary opacity-0 shadow-control transition-[opacity,visibility] hover:border-(--ring-color-focus) hover:text-primary data-shown:visible data-shown:opacity-100 md:bottom-8 md:mb-0 lg:mt-2 lg:-mb-18">
+      <%= icon_tag "arrow-up" %>
+    </button>
+
     <div class="sticky bottom-4 z-20 order-last mt-auto md:contents">
       <%= render "shared/palette", voucher: @voucher, added: @added, category_names: @category_names %>
     </div>
@@ -115,20 +120,6 @@
           <% if @page.next_before %>
             <%= turbo_frame_tag :days, @page.next_before, src: transactions_path(filters.merge(month: @month.to_param, before: @page.next_before)),
               loading: :lazy, refresh: :morph, target: "_top" %>
-          <% elsif @page.last? %>
-            <div class="flex flex-wrap items-center justify-between gap-4 pt-12">
-              <div class="flex flex-col gap-1">
-                <p class="font-semibold">That's all of <%= @month.name %></p>
-                <p class="text-sm text-tertiary"><%= pluralize @count, "transaction" %> · <%= spent @spent %> spent</p>
-              </div>
-              <% if @earlier %>
-                <%= link_to transactions_path(filters.merge(month: @month.previous.to_param)), class: SimplefinHelper::OUTLINE_BUTTON do %>
-                  <%= @month.previous.name %>
-                  <span class="font-normal text-tertiary"><%= pluralize @previous_count, "transaction" %></span>
-                  <span class="text-tertiary" aria-hidden="true">↓</span>
-                <% end %>
-              <% end %>
-            </div>
           <% end %>
         <% end %>
       <% elsif filters.any? %>

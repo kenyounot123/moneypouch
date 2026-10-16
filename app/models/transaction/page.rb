@@ -22,10 +22,6 @@ class Transaction::Page
     end
   end
 
-  def last?
-    index.present? && index == runs.size - 1
-  end
-
   private
     def days
       if index
