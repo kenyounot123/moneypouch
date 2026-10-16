@@ -82,6 +82,13 @@ class ImportTest < ActiveSupport::TestCase
     assert_equal [ 10, 336_606 ], [ import.transactions.spending.count, import.transactions.spent ]
   end
 
+  test "an import knows the day of the newest row it added" do
+    import = @user.imports.create!(file: import_file("personal.csv"))
+    import.complete
+
+    assert_equal Date.new(2024, 10, 10), import.latest_occurred_on
+  end
+
   test "Import tells the user's open pages to refresh once" do
     import = @user.imports.create!(file: import_file("personal.csv"))
 

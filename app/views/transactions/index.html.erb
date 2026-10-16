@@ -9,6 +9,14 @@
       <%= render "shared/palette", voucher: @voucher, added: @added, category_names: @category_names %>
     </div>
 
+    <% if @import %>
+      <%= render layout: "shared/toast", locals: { id: dom_id(@import, :toast) } do %>
+        <span class="min-w-0 truncate text-sm">Imported <span class="font-medium"><%= imported_transactions @import %></span> from <%= @import.filename %></span>
+        <%= button_to "Undo", import_path(@import), method: :delete, form: { class: "shrink-0", data: { turbo_confirm: undo_import_question(@import) } },
+          class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" %>
+      <% end %>
+    <% end %>
+
     <div class="flex items-center justify-between gap-4 md:hidden">
       <%= link_to "‹ Overview", root_path, class: "text-secondary hover:text-primary" %>
       <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Month">

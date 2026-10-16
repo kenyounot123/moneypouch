@@ -83,6 +83,10 @@ class Import < ApplicationRecord
     )
   end
 
+  def latest_occurred_on
+    transactions.maximum(:occurred_on)
+  end
+
   def complete
     Transaction.broadcasting_once_for(user) do
       with_lock do
