@@ -36,8 +36,8 @@ class Transactions::ExclusionsControllerTest < ActionDispatch::IntegrationTest
     get transactions_url(month: "2026-10")
 
     assert_select "li#transaction_#{transactions(:coffee).id} span", text: "Excluded"
-    assert_select "li#transaction_#{transactions(:coffee).id} form[action=?] button", transaction_exclusion_path(transactions(:coffee)), text: "Include"
-    assert_select "li#transaction_#{transactions(:paycheck).id} form[action=?] button", transaction_exclusion_path(transactions(:paycheck)), text: "Exclude"
+    assert_select "li#transaction_#{transactions(:coffee).id} form[action=?] button[aria-label=Include][title=Include] svg", transaction_exclusion_path(transactions(:coffee))
+    assert_select "li#transaction_#{transactions(:paycheck).id} form[action=?] button[aria-label=Exclude][title=Exclude] svg", transaction_exclusion_path(transactions(:paycheck))
     assert_select "p.text-display", text: "$0.00"
   end
 

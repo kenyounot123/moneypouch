@@ -13,8 +13,8 @@
         <%= excluded_tag %>
       <% end %>
       <% if transaction.note.nil? %>
-        <button type="button" class="hidden shrink-0 cursor-pointer items-center gap-1 rounded-[4px] bg-level-3 px-1.5 py-px text-xs text-tertiary group-focus-within:flex group-hover:flex hover:text-secondary"
-          data-note-target="label" data-action="note#open"><%= pencil_icon %>Add a note</button>
+        <button type="button" aria-label="Add a note" title="Add a note" class="<%= TransactionsHelper::ICON_BUTTON %> -my-2 -ml-1.5 hidden group-focus-within:flex group-hover:flex"
+          data-note-target="label" data-action="note#open"><%= action_icon :note %></button>
       <% end %>
     </div>
     <% if transaction.note %>
