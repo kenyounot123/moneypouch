@@ -24,8 +24,6 @@ class TransactionsController < ApplicationController
     @net = shown.net
     @income = shown.income
     @day_totals = shown.group(:occurred_on).sum(:amount_in_cents)
-    @previous_count = only_needing_category(narrow(transactions.occurred_in(@month.previous.range))).count
-    @earlier = transactions.occurred_in(...@month.range.begin).exists?
   end
 
   def edit

@@ -103,18 +103,12 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "main section li", 2
   end
 
-  test "ends the month with its count and a link to the month before" do
+  test "offers a way back to the top" do
     travel_to Time.utc(2026, 10, 13, 12) do
-      users(:one).transactions.create!(name: "Rent", amount_in_cents: -150_000, occurred_on: "2026-09-30")
-
       get transactions_url
-      assert_select "p", text: "That's all of October"
-      assert_select "p", text: "2 transactions · $5.50 spent"
-      assert_select "a[href=?]", transactions_path(month: "2026-09"), text: /September\s+1 transaction/
-
-      get transactions_url(month: "2026-09")
-      assert_select "a", text: /August/, count: 0
     end
+
+    assert_select "button[aria-label='Back to top'][data-controller=back-to-top]"
   end
 
   test "a busy month shows its newest days first and loads the rest as the list scrolls" do
@@ -127,16 +121,14 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
       get transactions_url(month: "2026-09")
       assert_select "main section li", 180
       assert_select "turbo-frame#days_2026-09-29[loading=lazy][refresh=morph][src=?]", transactions_path(month: "2026-09", before: "2026-09-29")
-      assert_select "p", text: "That's all of September", count: 0
       assert_equal [ "185" ], css_select("dl dd").map(&:text).last(1)
 
       get transactions_url(month: "2026-09", before: "2026-09-29")
       assert_select "turbo-frame#days_2026-09-29 section li", 5
-      assert_select "p", text: "That's all of September"
+      assert_select "turbo-frame#days_2026-09-29 turbo-frame", 0
 
       get transactions_url(month: "2026-09", before: "2026-09-30")
       assert_select "turbo-frame#days_2026-09-30 section", 0
-      assert_select "p", text: "That's all of September", count: 0
     end
   end
 
