@@ -25,4 +25,4 @@ Sidebar, top right of the brand row, desktop width (`md`, 768px) and up. Below `
 
 - The state is a cookie on the host, so it carries across ports and runs. Expand it again when done.
 - A mouse click on the toggle after any key press shows a focus ring on it, because Chrome treats the page as keyboard driven. That is not a bug.
-- Transactions, Categories, and Trends link to `#`, so clicking them changes the URL hash only.
+- Categories and Trends link to `#`, so clicking them changes the URL hash only. Import links to `/imports/new` and stays marked on every import step.

@@ -1,0 +1,122 @@
+<% content_for :title, "Import" %>
+<% category_words, tally, unreadable_rows = @import.category_words, @import.tally, @import.unreadable_rows %>
+<% matched, unmatched = category_words.partition(&:matched?) %>
+
+<div class="flex min-h-dvh">
+  <%= render "shared/sidebar" %>
+
+  <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
+    <h1 class="text-title">Import</h1>
+
+    <section class="flex max-w-[560px] flex-col gap-4">
+      <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+        <h2 class="text-heading">Categories</h2>
+        <div class="flex items-baseline gap-4">
+          <%= link_to "Back", edit_import_columns_path(@import), class: SimplefinHelper::HEADER_BUTTON %>
+          <%= button_to "Cancel", import_path(@import), method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+        </div>
+      </div>
+
+      <div class="flex flex-col overflow-hidden rounded-lg border border-secondary bg-level-2 shadow-control">
+        <% if category_words.any? %>
+          <%= form_with url: import_categories_path(@import), method: :patch, class: "flex flex-col px-5" do %>
+            <% if unmatched.any? %>
+              <p class="flex items-start gap-2 pt-4 pb-3 text-sm text-secondary">
+                <% if matched.any? %>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="mt-px shrink-0 stroke-(--text-color-success)" aria-hidden="true">
+                    <path d="M2.5 7.5l3 3 6-7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                <% end %>
+                <%= categories_lead matched, unmatched %>
+              </p>
+              <% unmatched.each do |category_word| %>
+                <%= render "imports/categories/category_word", category_word:, category_names: @category_names %>
+              <% end %>
+            <% end %>
+
+            <% if matched.any? %>
+              <div class="flex flex-col" data-controller="disclosure" data-action="turbo:before-morph-attribute->disclosure#keepOpenThroughMorph">
+                <button type="button" aria-expanded="false" aria-controls="matched_categories" data-disclosure-target="button" data-action="disclosure#toggle"
+                  class="group flex cursor-pointer items-center justify-between gap-4 py-3 text-left text-sm text-tertiary hover:text-secondary <%= "border-t border-secondary" if unmatched.any? %>">
+                  <span class="flex min-w-0 items-center gap-2">
+                    <% if unmatched.none? %>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="shrink-0 stroke-(--text-color-success)" aria-hidden="true">
+                        <path d="M2.5 7.5l3 3 6-7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    <% end %>
+                    <span class="truncate"><%= matched_summary matched, unmatched %></span>
+                  </span>
+                  <span class="shrink-0 font-medium text-secondary group-hover:text-primary group-aria-expanded:hidden">Show</span>
+                  <span class="hidden shrink-0 font-medium text-secondary group-hover:text-primary group-aria-expanded:inline">Hide</span>
+                </button>
+                <div id="matched_categories" hidden data-disclosure-target="panel">
+                  <% matched.each do |category_word| %>
+                    <%= render "imports/categories/category_word", category_word:, category_names: @category_names %>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <div class="flex flex-col" data-controller="disclosure" data-action="turbo:before-morph-attribute->disclosure#keepOpenThroughMorph">
+          <div class="flex flex-col gap-3 bg-level-1 px-5 py-4 <%= "border-t border-secondary" if category_words.any? %>">
+            <dl class="grid grid-cols-4 gap-4">
+              <% if tally.already_here.positive? %>
+                <div class="flex flex-col-reverse gap-1">
+                  <dt class="text-sm text-tertiary">New</dt>
+                  <dd class="font-mono text-md"><%= number_with_delimiter tally.adding %></dd>
+                </div>
+                <div class="col-span-2 flex flex-col-reverse gap-1">
+                  <dt class="text-sm text-tertiary">Already here</dt>
+                  <dd class="font-mono text-md text-tertiary"><%= number_with_delimiter tally.already_here %></dd>
+                </div>
+              <% else %>
+                <% { "Spent" => tally.spent, "Income" => tally.income, "Excluded" => tally.excluded }.each do |term, count| %>
+                  <div class="flex flex-col-reverse gap-1">
+                    <dt class="text-sm text-tertiary"><%= term %></dt>
+                    <dd class="font-mono text-md"><%= number_with_delimiter count %></dd>
+                  </div>
+                <% end %>
+              <% end %>
+              <% if unreadable_rows.any? %>
+                <div class="col-start-4 flex flex-col-reverse gap-1">
+                  <dt>
+                    <button type="button" aria-expanded="false" aria-controls="unreadable_rows" data-disclosure-target="button" data-action="disclosure#toggle"
+                      class="<%= TransactionsHelper::CATEGORY_LINK %> block text-sm">Can't read</button>
+                  </dt>
+                  <dd class="font-mono text-md text-danger"><%= number_with_delimiter unreadable_rows.size %></dd>
+                </div>
+              <% end %>
+            </dl>
+            <% if tally_note(tally) %>
+              <p class="text-sm text-tertiary"><%= tally_note tally %></p>
+            <% end %>
+          </div>
+
+          <% if unreadable_rows.any? %>
+            <div id="unreadable_rows" hidden data-disclosure-target="panel" class="border-t border-secondary px-5 py-3">
+              <ul class="flex flex-col gap-1.5 text-sm">
+                <% unreadable_rows.first(ImportsHelper::UNREADABLE_SHOWN).each do |row| %>
+                  <li class="flex gap-4">
+                    <span class="w-28 shrink-0 text-tertiary"><%= unreadable_place row %></span>
+                    <span class="min-w-0 text-secondary"><%= row.reason.upcase_first %></span>
+                  </li>
+                <% end %>
+              </ul>
+              <% if unreadable_rows.size > ImportsHelper::UNREADABLE_SHOWN %>
+                <p class="pt-2 text-sm text-tertiary">And <%= number_with_delimiter unreadable_rows.size - ImportsHelper::UNREADABLE_SHOWN %> more.</p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="flex items-center justify-between gap-4 border-t border-secondary px-5 py-4">
+          <p class="text-sm text-tertiary"><%= import_footer_note tally %></p>
+          <%= button_to "Import #{number_with_delimiter tally.adding} ↵", import_transactions_path(@import), disabled: tally.adding.zero?, form: { class: "shrink-0" },
+            class: "shrink-0 cursor-pointer rounded-md bg-action px-4 py-2.5 text-button whitespace-nowrap text-on-action hover:brightness-95 disabled:cursor-default disabled:opacity-50 disabled:hover:brightness-100" %>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

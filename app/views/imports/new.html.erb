@@ -1,0 +1,45 @@
+<% content_for :title, "Import" %>
+
+<div class="flex min-h-dvh">
+  <%= render "shared/sidebar" %>
+
+  <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-title">Import</h1>
+      <p class="text-secondary">Import your previous expense history that you already keep in a file.</p>
+    </div>
+
+    <div class="flex flex-col gap-9">
+      <%= form_with url: imports_path, multipart: true, class: "group" do %>
+        <% error = @import.errors[:file].first %>
+        <label class="relative flex flex-col items-center gap-1 rounded-lg border border-dashed bg-level-1 px-5 py-20 text-center has-focus-visible:ring-3 has-focus-visible:ring-focus/22 <%= error ? "border-(--text-color-danger)" : "border-primary hover:border-(--ring-color-focus)" %>">
+          <span class="pb-2 text-secondary"><%= sidebar_icon :import, size: 20 %></span>
+          <span class="text-md font-medium group-aria-busy:hidden">Drop a file here</span>
+          <span class="hidden text-md font-medium group-aria-busy:inline">Reading the file…</span>
+          <span class="text-sm <%= error ? "text-danger" : "text-tertiary" %>"><%= error || "Excel (.xlsx) or CSV" %></span>
+          <span class="<%= SimplefinHelper::OUTLINE_BUTTON %> mt-3 mr-auto">Choose file</span>
+          <%= file_field_tag "import[file]", accept: ImportsHelper::FILE_TYPES, onchange: "this.form.requestSubmit()",
+            aria: { invalid: error.present? }, class: "absolute inset-0 cursor-pointer opacity-0" %>
+        </label>
+      <% end %>
+
+      <div class="flex max-w-[560px] flex-col gap-1">
+        <p class="font-medium">What works</p>
+        <p class="text-sm text-tertiary">One row per transaction, with at least a date and an amount. Names, categories and notes come along if you have them.</p>
+      </div>
+
+      <% if @latest %>
+        <div class="flex items-center justify-between gap-4 border-t border-secondary pt-4">
+          <p class="flex min-w-0 items-start gap-2 text-sm text-secondary">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="mt-px shrink-0 stroke-(--text-color-success)" aria-hidden="true">
+              <path d="M2.5 7.5l3 3 6-7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <%= latest_import_sentence @latest %>
+          </p>
+          <%= button_to "Undo", import_path(@latest), method: :delete, form: { class: "shrink-0", data: { turbo_confirm: undo_import_question(@latest) } },
+            class: SimplefinHelper::HEADER_BUTTON %>
+        </div>
+      <% end %>
+    </div>
+  </main>
+</div>

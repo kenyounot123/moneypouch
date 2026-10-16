@@ -75,8 +75,8 @@ class Import::SheetTest < ActiveSupport::TestCase
   end
 
   test "a cell reads as text the way a spreadsheet shows it" do
-    assert_equal [ "12", "12.5", "2024-10-02", "Coffee", "true", nil ],
-      [ BigDecimal("12"), BigDecimal("12.50"), Date.new(2024, 10, 2), "Coffee", true, nil ].map { |cell| Import::Sheet.text(cell) }
+    assert_equal [ "12", "12.5", "1234.56", "2024-10-02", "Coffee", "true", nil ],
+      [ BigDecimal("12"), BigDecimal("12.50"), BigDecimal("1234.5599999999999"), Date.new(2024, 10, 2), "Coffee", true, nil ].map { |cell| Import::Sheet.text(cell) }
   end
 
   test "files it can't use say why" do
