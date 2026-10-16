@@ -106,22 +106,30 @@ class Transaction < ApplicationRecord
     end
   end
 
-  # A row is here when an earlier import added it, or when as many kept transactions share its date, amount, and name.
   def self.already_here(rows, user:)
     if rows.none?
       return []
     end
 
-    taken = rows.map(&:key).each_slice(1_000).flat_map { |keys| where(user:, idempotency_key: keys).pluck(:idempotency_key) }.to_set
-    kept = where(user:).kept.occurred_in(Range.new(*rows.map(&:occurred_on).minmax)).pluck(:occurred_on, :amount_in_cents, :name)
-    kept_counts = kept.map { |occurred_on, amount_in_cents, name| Import::Row.identity(occurred_on:, amount_in_cents:, name:) }.tally
-    seen = Hash.new(0)
+    imported_before = imported_keys(rows, user:)
+    kept_alike = kept_counts_by_identity(rows, user:)
+    copies_so_far = Hash.new(0)
 
     rows.select do |row|
-      seen[row.identity] += 1
-      taken.include?(row.key) || seen[row.identity] <= kept_counts.fetch(row.identity, 0)
+      copies_so_far[row.identity] += 1
+      imported_before.include?(row.key) || copies_so_far[row.identity] <= kept_alike.fetch(row.identity, 0)
     end
   end
+
+  def self.imported_keys(rows, user:)
+    rows.map(&:key).each_slice(1_000).flat_map { |keys| where(user:, idempotency_key: keys).pluck(:idempotency_key) }.to_set
+  end
+
+  def self.kept_counts_by_identity(rows, user:)
+    kept = where(user:).kept.occurred_in(Range.new(*rows.map(&:occurred_on).minmax)).pluck(:occurred_on, :amount_in_cents, :name)
+    kept.map { |occurred_on, amount_in_cents, name| Import::Row.identity(occurred_on:, amount_in_cents:, name:) }.tally
+  end
+  private_class_method :imported_keys, :kept_counts_by_identity
 
   def self.last_category_for(name)
     eager_load(:category)
