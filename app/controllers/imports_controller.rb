@@ -15,7 +15,6 @@ class ImportsController < ApplicationController
     end
   end
 
-  # Undo on the Import page and Cancel on a step. A second click finds nothing and lands on the Import page too.
   def destroy
     import = Current.user.imports.find_by(id: params.expect(:id))
 

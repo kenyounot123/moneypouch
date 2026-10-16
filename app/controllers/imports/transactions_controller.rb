@@ -1,7 +1,6 @@
 class Imports::TransactionsController < ApplicationController
   include ImportScoped
 
-  # Lands on the newest month the file added to, since a history import may end long before this month.
   def create
     @import.complete
 

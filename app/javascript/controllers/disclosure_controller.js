@@ -8,8 +8,7 @@ export default class extends Controller {
     this.buttonTarget.setAttribute("aria-expanded", !this.panelTarget.hidden)
   }
 
-  // An auto-submit refreshes the page with a morph, which would close the panel again.
-  keep(event) {
+  keepOpenThroughMorph(event) {
     if ([...this.buttonTargets, ...this.panelTargets].includes(event.target)) event.preventDefault()
   }
 }

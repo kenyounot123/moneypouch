@@ -6,7 +6,6 @@ module ImportScoped
   end
 
   private
-    # A finished import has no steps left, so Back into a step or a second Import lands on the Import page.
     def set_import
       @import = Current.user.imports.find(params.expect(:import_id))
 
