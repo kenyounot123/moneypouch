@@ -1,66 +1,56 @@
 class Summary
-  MONTHS = 6
+  PERIODS = 6
 
-  Total = Data.define(:month, :income, :spent) do
+  Total = Data.define(:period, :income, :spent) do
     def net
       income - spent
     end
   end
 
-  def initialize(transactions, today:)
+  def initialize(transactions, period)
     @transactions = transactions
-    @today = today
+    @period = period
   end
 
-  def months
-    @months ||= (0...MONTHS).map { |ago| month_ago(ago) }.reverse
+  def periods
+    @periods ||= (1...PERIODS).each_with_object([ @period ]) { |_, periods| periods.unshift(periods.first.previous) }
   end
 
   def totals
-    totals_for(months)
+    totals_for(periods)
   end
 
-  def total(month)
-    totals_for([ month ]).first
+  def total(period)
+    totals_for([ period ]).first
   end
 
-  def sources(month)
-    @transactions.incoming.occurred_in(month.range)
+  def sources(period)
+    @transactions.incoming.occurred_in(period.range)
       .group(:name)
       .sum(:amount_in_cents)
       .select { |_, cents| cents.positive? }
       .sort_by { |name, cents| [ -cents, name.downcase ] }
   end
 
-  def categories(month)
-    Spending.new(@transactions, month).categories
+  def categories(period)
+    Spending.new(@transactions, period).categories
   end
 
   private
-    def month_ago(ago)
-      month = Month.new(nil, today: @today)
+    def totals_for(periods)
+      range = periods.first.first_day..periods.last.range.end
+      income = by_period(@transactions.incoming, periods, range)
+      spent = by_period(@transactions.spending, periods, range).transform_values(&:-@)
 
-      ago.times do
-        month = month.previous
-      end
-
-      month
-    end
-
-    def totals_for(months)
-      range = months.first.first_day..months.last.range.end
-      income = by_month(@transactions.incoming, range)
-      spent = by_month(@transactions.spending, range).transform_values(&:-@)
-
-      months.map do |month|
-        Total.new(month:, income: income.fetch(month.first_day, 0), spent: spent.fetch(month.first_day, 0))
+      periods.map do |period|
+        Total.new(period:, income: income.fetch(period, 0), spent: spent.fetch(period, 0))
       end
     end
 
-    def by_month(scope, range)
+    def by_period(scope, periods, range)
       scope.occurred_in(range)
         .group(:occurred_on)
         .sum(:amount_in_cents)
-        .each_with_object(Hash.new(0)) { |(date, cents), memo| memo[date.beginning_of_month] += cents }
+        .each_with_object(Hash.new(0)) { |(date, cents), memo| memo[periods.find { |period| period.range.cover?(date) }] += cents }
     end
 end

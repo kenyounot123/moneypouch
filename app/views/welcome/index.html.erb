@@ -51,7 +51,7 @@
             <p class="text-sm text-tertiary"><%= nothing_spent @period %></p>
           <% end %>
 
-          <%= render "welcome/chart", period: @period, chart: @chart, spending: @spending, summary: @summary, month: @month %>
+          <%= render "welcome/chart", period: @period, chart: @chart, spending: @spending, summary: @summary, focus: @focus %>
         </section>
 
         <div class="flex min-w-0 flex-1 flex-col gap-10">

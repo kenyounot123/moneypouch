@@ -3,17 +3,39 @@ class Period
 
   attr_reader :kind, :today
 
-  def initialize(kind, today:)
+  def initialize(kind, today:, on: nil)
     @kind = kind.presence_in(KINDS) || "month"
     @today = today
+    @date = [ parse(on) || today, today ].min
   end
 
   def range
     case kind
-    when "week" then today.all_week
-    when "month" then today.all_month
-    when "year" then today.all_year
+    when "week" then @date.all_week
+    when "month" then @date.all_month
+    when "year" then @date.all_year
     end
+  end
+
+  def first_day
+    range.begin
+  end
+
+  def previous
+    Period.new(kind, today:, on: first_day - 1)
+  end
+
+  def current?
+    range.cover?(today)
+  end
+
+  def ==(other)
+    other.is_a?(Period) && kind == other.kind && range == other.range
+  end
+  alias_method :eql?, :==
+
+  def hash
+    [ kind, range ].hash
   end
 
   def unit
@@ -47,4 +69,15 @@ class Period
   def days
     range.count
   end
+
+  private
+    def parse(on)
+      if on.is_a?(Date)
+        on
+      else
+        Date.iso8601(on.to_s)
+      end
+    rescue Date::Error
+      nil
+    end
 end

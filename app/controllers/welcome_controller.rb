@@ -8,8 +8,8 @@ class WelcomeController < ApplicationController
     @period = Period.new(params[:period], today: Date.current)
     @spending = Spending.new(transactions, @period)
     @chart = Chart.new(params[:chart])
-    @summary = Summary.new(transactions, today: Date.current) if @chart.summary?
-    @month = Month.new(params[:month], today: Date.current) if @chart.summary? && params[:month].present?
+    @summary = Summary.new(transactions, @period) if @chart.summary?
+    @focus = Period.new(@period.kind, today: Date.current, on: params[:focus]) if @chart.summary? && params[:focus].present?
     @review = Current.user.simplefin_access&.review
     @review_rows = review_rows
     @syncing = Current.user.simplefin_access&.syncing?
