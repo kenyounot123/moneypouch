@@ -10,7 +10,7 @@
       <p class="text-sm text-tertiary"><%= [ day_heading(@transaction.occurred_on), @transaction.bank_account_name, ("Excluded" if @transaction.excluded?) ].compact.join(" · ") %></p>
     </div>
 
-    <div class="flex flex-col gap-2" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>" data-category-picker-size-value="large">
+    <div class="flex flex-col gap-2" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>" data-category-picker-size-value="large">
       <p class="text-sm text-secondary">Category</p>
       <span class="flex" data-category-picker-target="category"><%= render "transactions/category_button", transaction: @transaction,
         label: (@transaction.categorization.none? ? "Category" : categorization_label(@transaction)),

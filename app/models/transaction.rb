@@ -17,8 +17,10 @@ class Transaction < ApplicationRecord
   scope :latest, -> { order(occurred_on: :desc, id: :desc) }
   scope :occurred_in, ->(dates) { where(occurred_on: dates) }
   scope :counted, -> { where(transfer: false, excluded: false) }
-  scope :spending, -> { counted.and(where(amount_in_cents: ...0).or(where.not(category_id: nil))) }
-  scope :incoming, -> { counted.where(category_id: nil, amount_in_cents: 0..) }
+  scope :money_in, -> { where(amount_in_cents: 0..) }
+  scope :money_out, -> { where(amount_in_cents: ...0) }
+  scope :spending, -> { counted.and(where(category: Category.spending).or(uncategorized.money_out)) }
+  scope :incoming, -> { counted.and(where(category: Category.income).or(uncategorized.money_in)) }
   scope :listed, -> { latest.includes(:category, :bank_transaction) }
   scope :matchable, -> { where.missing(:bank_transaction) }
   scope :typed_in, -> { where.not(id: BankTransaction.select(:transaction_id)) }
@@ -29,10 +31,6 @@ class Transaction < ApplicationRecord
   scope :transfers, -> { where(transfer: true) }
   scope :in_category, ->(category) { where(category:) }
   scope :from_bank_account, ->(bank_account) { merge(bank_account.transactions) }
-
-  def self.spending?(amount_in_cents, categorized:)
-    amount_in_cents.negative? || categorized
-  end
 
   def self.broadcasting_once_for(user)
     suppressing_turbo_broadcasts { yield }
@@ -77,7 +75,7 @@ class Transaction < ApplicationRecord
     )
   end
 
-  def self.import(rows, import:, categories:)
+  def self.import(rows, import:, categories:, income_category:)
     rows.each_slice(500).sum do |slice|
       attributes = slice.map do |row|
         {
@@ -86,7 +84,7 @@ class Transaction < ApplicationRecord
           name: row.name,
           occurred_on: row.occurred_on,
           amount_in_cents: row.amount_in_cents,
-          category_id: categories[row.category_word]&.id,
+          category_id: (categories[row.category_word] || (income_category if row.money_in? && !row.transfer?))&.id,
           transfer: row.transfer?,
           excluded: row.excluded?,
           note: normalize_value_for(:note, row.note)
@@ -169,6 +167,10 @@ class Transaction < ApplicationRecord
 
   def needs_category?
     added_by_bank? && category_id.nil? && !transfer?
+  end
+
+  def money_in?
+    !amount_in_cents.negative?
   end
 
   def categorization

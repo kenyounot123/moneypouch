@@ -10,6 +10,8 @@ class Category < ApplicationRecord
   scope :named, ->(name) { where("lower(name) = ?", name.downcase(:ascii)) }
   scope :alphabetically, -> { order(Arel.sql("lower(name)")) }
   scope :unused, -> { where.missing(:transactions, :rules) }
+  scope :income, -> { where(income: true) }
+  scope :spending, -> { where(income: false) }
 
   validates :name, presence: true
 

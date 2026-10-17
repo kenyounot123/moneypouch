@@ -75,7 +75,7 @@ class Import::ColumnsTest < ActiveSupport::TestCase
     assert_equal as_written.map(&:key), flipped.map(&:key)
   end
 
-  test "a spent or income column signs each row, and income drops its category" do
+  test "a spent or income column signs each row and keeps its category" do
     file = Import::Sheet.read(upload("typed.csv", <<~CSV))
       Date,What,Category,Amount,Type
       2024-10-01,Coffee,Food,5.50,Expense
@@ -86,7 +86,7 @@ class Import::ColumnsTest < ActiveSupport::TestCase
     CSV
     rows = Import::Columns.new(kinds: %w[ date name category amount spent_or_income ], positive_amounts: "spent").read(file)
 
-    assert_equal [ [ "Coffee", -550, "Food" ], [ "Coffee refund", 550, "Food" ], [ "Pay", 200_000, nil ] ],
+    assert_equal [ [ "Coffee", -550, "Food" ], [ "Coffee refund", 550, "Food" ], [ "Pay", 200_000, "Salary" ] ],
       rows.grep(Import::Row).map { |row| [ row.name, row.amount_in_cents, row.category_word ] }
     assert_equal [ "“Transfer” isn't spent or income", "there's no spent or income" ], rows.grep(Import::UnreadableRow).map(&:reason)
   end

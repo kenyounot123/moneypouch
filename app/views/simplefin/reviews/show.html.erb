@@ -30,7 +30,7 @@
             <% end %>
           </nav>
 
-          <ul class="flex flex-col border-t border-secondary" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>">
+          <ul class="flex flex-col border-t border-secondary" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>">
             <%= render "simplefin/reviews/page", page: @page, list: @list %>
           </ul>
         </section>

@@ -59,23 +59,27 @@ class TransactionTest < ActiveSupport::TestCase
     assert_equal [ true, false, false ], [ transactions(:coffee).counted?, savings.counted?, trip.counted? ]
   end
 
-  test "spending? counts the rows the spending scope counts" do
+  test "money in offsets its own category: a refund lowers spending, a clawback lowers income" do
     user = users(:two)
     fun = user.categories.create!(name: "Fun")
+    user.transactions.create!(name: "Movie", amount_in_cents: -2_000, occurred_on: "2026-10-01", category: fun)
+    user.transactions.create!(name: "Movie refund", amount_in_cents: 500, occurred_on: "2026-10-02", category: fun)
     user.transactions.create!(name: "Lunch", amount_in_cents: -1_200, occurred_on: "2026-10-01")
-    user.transactions.create!(name: "Refund", amount_in_cents: 500, occurred_on: "2026-10-01", category: fun)
-    user.transactions.create!(name: "Pay", amount_in_cents: 100_000, occurred_on: "2026-10-01")
+    user.transactions.create!(name: "Pay", amount_in_cents: 100_000, occurred_on: "2026-10-01", category: categories(:income_two))
+    user.transactions.create!(name: "Pay clawback", amount_in_cents: -3_000, occurred_on: "2026-10-03", category: categories(:income_two))
+    user.transactions.create!(name: "Deposit", amount_in_cents: 4_000, occurred_on: "2026-10-03")
+    user.transactions.create!(name: "To savings", amount_in_cents: -50_000, occurred_on: "2026-10-03", transfer: true)
 
-    assert_equal [ "Lunch", "Refund" ], user.transactions.spending.order(:name).pluck(:name)
-    assert_equal [ "Lunch", "Refund" ],
-      user.transactions.order(:name).select { |transaction| Transaction.spending?(transaction.amount_in_cents, categorized: transaction.category_id.present?) }.map(&:name)
+    assert_equal [ "Lunch", "Movie", "Movie refund" ], user.transactions.spending.order(:name).pluck(:name)
+    assert_equal [ "Deposit", "Pay", "Pay clawback" ], user.transactions.incoming.order(:name).pluck(:name)
+    assert_equal [ 2_700, 101_000, 98_300 ], [ user.transactions.spent, user.transactions.income, user.transactions.net ]
   end
 
   test "import adds an import's rows for its user once and says how many went in" do
     user = users(:two)
     import = user.imports.create!(file: upload("tea.csv", "Date,Name,Amount,Note\n2024-10-01,Tea,3,\n2024-10-02,Tea,3,hot\n"))
 
-    assert_equal [ 2, 0 ], 2.times.map { user.transactions.import(import.rows, import:, categories: {}) }
+    assert_equal [ 2, 0 ], 2.times.map { user.transactions.import(import.rows, import:, categories: {}, income_category: categories(:income_two)) }
     assert_equal [ [ "Tea", -300, nil, import.id ], [ "Tea", -300, "hot", import.id ] ],
       user.transactions.order(:occurred_on).map { |transaction| [ transaction.name, transaction.amount_in_cents, transaction.note, transaction.import_id ] }
   end

@@ -17,12 +17,14 @@ class Transactions::CategorizationsControllerTest < ActionDispatch::IntegrationT
     assert_equal "Food", paycheck.reload.category.name
   end
 
-  test "creates the category when the name is new" do
-    assert_difference -> { users(:one).categories.count }, 1 do
+  test "a new name on money in makes an income category, and on money out a spending one" do
+    assert_difference -> { users(:one).categories.count }, 2 do
       patch transaction_categorization_url(transactions(:paycheck)), params: { categorization: { category: "  Salary " } }
+      patch transaction_categorization_url(transactions(:coffee)), params: { categorization: { category: "Treats" } }
     end
 
-    assert_equal "Salary", transactions(:paycheck).reload.category.name
+    assert_equal [ "Salary", true ], [ transactions(:paycheck).reload.category.name, transactions(:paycheck).category.income? ]
+    assert_equal [ "Treats", false ], [ transactions(:coffee).reload.category.name, transactions(:coffee).category.income? ]
   end
 
   test "a blank name clears the category" do
@@ -53,6 +55,6 @@ class Transactions::CategorizationsControllerTest < ActionDispatch::IntegrationT
     patch transaction_categorization_url(transactions(:paycheck)), params: { categorization: { category: "Food" } }
 
     assert_response :not_found
-    assert_nil transactions(:paycheck).reload.category
+    assert_equal categories(:income), transactions(:paycheck).reload.category
   end
 end

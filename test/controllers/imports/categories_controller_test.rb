@@ -15,10 +15,10 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "form p", text: "1 category matched yours. Choose what the other 5 become."
     assert_equal [ "Coffee", "Groceries", "Fun", "Housing", "Travel", "food" ], css_select("form p.text-md").map(&:text)
     assert_select "select[aria-label='What Coffee becomes'][onchange='this.form.requestSubmit()'] option[selected][value=Coffee]", text: "New category"
-    assert_equal [ "New category", "Food", "No category" ], css_select("select[aria-label='What Coffee becomes'] option").map(&:text)
+    assert_equal [ "New category", "Food", "Income", "No category" ], css_select("select[aria-label='What Coffee becomes'] option").map(&:text)
     assert_select "button[aria-controls=matched_categories][aria-expanded=false]", text: /food matched\s+Show/
     assert_select "#matched_categories[hidden] select[aria-label='What food becomes'] option[selected]", text: "Food"
-    assert_equal [ "Food", "No category" ], css_select("select[aria-label='What food becomes'] option").map(&:text)
+    assert_equal [ "Food", "Income", "No category" ], css_select("select[aria-label='What food becomes'] option").map(&:text)
     assert_select "a[href=?]", edit_import_columns_path(import), text: "Back"
     assert_select "form[action=?] button", import_path(import), text: "Cancel"
   end

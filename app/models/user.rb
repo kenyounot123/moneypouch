@@ -14,6 +14,8 @@ class User < ApplicationRecord
 
   has_one :simplefin_access, class_name: "Simplefin::Access", dependent: :destroy
 
+  after_create :create_income_category
+
   def connect_simplefin(setup_token)
     (simplefin_access || build_simplefin_access).tap do |access|
       access.connect(setup_token)
@@ -31,6 +33,10 @@ class User < ApplicationRecord
     end
 
     import
+  end
+
+  def income_category
+    categories.income.named("Income").first
   end
 
   def latest_import
@@ -63,6 +69,10 @@ class User < ApplicationRecord
   end
 
   private
+    def create_income_category
+      categories.create!(name: "Income", income: true)
+    end
+
     def remember_once(name, categorization)
       transaction do
         rule = rules.find_or_initialize_by(name_key: name.key)

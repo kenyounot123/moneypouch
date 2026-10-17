@@ -1,5 +1,5 @@
 class Transaction::Categorization < Data.define(:category, :transfer)
-  def self.from(params, categories:)
+  def self.from(params, categories:, money_in:)
     choice = params.expect(categorization: [ :category, :transfer ])
     name = choice[:category].to_s.squish
 
@@ -8,7 +8,7 @@ class Transaction::Categorization < Data.define(:category, :transfer)
     elsif name.empty?
       none
     else
-      new(category: categories.named(name).first || categories.build(name:))
+      new(category: categories.named(name).first || categories.build(name:, income: money_in))
     end
   end
 
