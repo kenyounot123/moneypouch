@@ -47,6 +47,12 @@
   --red-300: oklch(78% 0.100 25);
   --red-600: oklch(55% 0.160 25);
 
+  --blue-300: oklch(79% 0.090 245);
+  --blue-600: oklch(53% 0.130 250);
+
+  --violet-300: oklch(79% 0.100 315);
+  --violet-600: oklch(53% 0.150 315);
+
   --white: oklch(100% 0 0);
 
   --font-pixel: "Pixelify Sans", "Geist", ui-sans-serif, sans-serif;
@@ -74,6 +80,9 @@
   --text-color-on-action: light-dark(var(--slate-900), var(--slate-975));
   --text-color-success: light-dark(var(--green-600), var(--green-300));
   --text-color-danger: light-dark(var(--red-600), var(--red-300));
+  --text-color-amount: light-dark(var(--gold-600), var(--gold-300));
+  --text-color-date: light-dark(var(--blue-600), var(--blue-300));
+  --text-color-category: light-dark(var(--violet-600), var(--violet-300));
 
   --border-color-primary: light-dark(var(--slate-300), var(--slate-700));
   --border-color-secondary: light-dark(var(--slate-200), var(--slate-850));

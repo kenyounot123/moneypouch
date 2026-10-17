@@ -365,7 +365,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
 
     assert_select "input[name=shorthand][value=?]", "Blue Bottle 5.50"
-    assert_select "turbo-frame#voucher", text: /Blue Bottle/
+    assert_select "turbo-frame#voucher [data-shorthand=?]", "Blue Bottle 5.50", text: /ok · \$5.50/
   end
 
   test "gives the bar the user's category names in name order" do
