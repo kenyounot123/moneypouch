@@ -1,7 +1,7 @@
 class Voucher
   attr_reader :shorthand
 
-  delegate :name, :amount_in_cents, :category_word, :occurred_on, :errors, to: :parts
+  delegate :name, :amount_in_cents, :category_word, :occurred_on, :tokens, :errors, to: :parts
 
   def initialize(shorthand, user:, today:, complete: false, editing: nil)
     @shorthand = shorthand.to_s

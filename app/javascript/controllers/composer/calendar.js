@@ -69,7 +69,7 @@ export function calendarMarkup(cursor, today, max) {
       ${weeks(cursor).map((week) => `<div role="row" class="grid grid-cols-7 gap-0.5">${week.map((day) => dayCell(day, cursor, today, max)).join("")}</div>`).join("")}
     </div>
     <div class="mt-1.5 flex flex-wrap gap-x-3 gap-y-1.5 border-t border-secondary px-2 pt-2 pb-1 text-xs text-tertiary">
-      <span><span class="${KBD}">←↑↓→</span> move</span><span><span class="${KBD}">t</span> today</span><span><span class="${KBD}">y</span> yesterday</span><span><span class="${KBD}">↵</span> pick</span><span><span class="${KBD}">esc</span> cancel</span>
+      <span><span class="${KBD}">←↑↓→</span> move</span><span><span class="${KBD}">↵</span> pick</span><span><span class="${KBD}">esc</span> cancel</span>
     </div>`
 }
 
