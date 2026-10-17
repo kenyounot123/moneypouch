@@ -1,6 +1,13 @@
 require "test_helper"
 
 class UserTest < ActiveSupport::TestCase
+  test "a new user starts with the Income category" do
+    user = User.create!(username: "new", password: "password")
+
+    assert_equal [ [ "Income", true ] ], user.categories.pluck(:name, :income)
+    assert_equal user.categories.first, user.income_category
+  end
+
   test "transactions hides a discarded row" do
     user = users(:one)
     transactions(:coffee).discard

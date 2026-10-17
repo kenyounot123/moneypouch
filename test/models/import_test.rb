@@ -38,11 +38,27 @@ class ImportTest < ActiveSupport::TestCase
     assert_equal categories(:food), import.category_words.third.match
   end
 
-  test "a word only on money coming in starts as no category, so it counts as income" do
+  test "a new word only on money coming in becomes an income category" do
     import = @user.imports.create!(file: upload("pay.csv", "Date,Name,Category,Amount\n2024-10-01,Coffee,Coffee,-5.50\n2024-10-02,Pay,Salary,2000\n"))
 
-    assert_equal [ [ "Coffee", "Coffee" ], [ "Salary", "" ] ], import.category_words.map { |category_word| [ category_word.word, category_word.name ] }
+    assert_equal [ [ "Coffee", "Coffee", false ], [ "Salary", "Salary", true ] ],
+      import.category_words.map { |category_word| [ category_word.word, category_word.name, category_word.income? ] }
     assert_equal [ 1, 1 ], [ import.tally.spent, import.tally.income ]
+
+    import.complete
+
+    assert_equal [ "Salary", true ], [ import.transactions.find_by!(name: "Pay").category.name, @user.categories.named("Salary").first.income? ]
+  end
+
+  test "money in with no category lands in Income, and money in a spending category is a refund" do
+    import = @user.imports.create!(file: upload("in.csv", "Date,Name,Category,Amount\n2024-10-01,Pay,,2000\n2024-10-02,Lunch,Food,-12\n2024-10-03,Lunch refund,Food,12\n"))
+
+    assert_equal [ 2, 1 ], [ import.tally.spent, import.tally.income ]
+
+    import.complete
+
+    assert_equal [ [ "Lunch", "Food" ], [ "Lunch refund", "Food" ], [ "Pay", "Income" ] ],
+      import.transactions.order(:name).map { |transaction| [ transaction.name, transaction.category.name ] }
   end
 
   test "category choices are kept and change the tally: a refund with no category counts as income" do
@@ -189,8 +205,8 @@ class ImportTest < ActiveSupport::TestCase
 
     import.undo
 
-    assert_equal [ [ "Blue Bottle", "Paycheck" ], [ "Food" ], false ],
-      [ @user.transactions.order(:name).pluck(:name), @user.categories.pluck(:name), Import.exists?(import.id) ]
+    assert_equal [ [ "Blue Bottle", "Paycheck" ], [ "Food", "Income" ], false ],
+      [ @user.transactions.order(:name).pluck(:name), @user.categories.order(:name).pluck(:name), Import.exists?(import.id) ]
     again = @user.imports.create!(file: import_file("personal.csv"))
     assert_equal [ 11, 0 ], [ again.tally.adding, again.tally.already_here ]
   end
@@ -207,7 +223,7 @@ class ImportTest < ActiveSupport::TestCase
 
     assert_equal [ nil, "Groceries", nil ], [ grocery.reload.import_id, grocery.category.name, grocery.category.import_id ]
     assert_not Transaction.exists?(name: "Cake")
-    assert_equal [ "Food", "Groceries" ], @user.categories.order(:name).pluck(:name)
+    assert_equal [ "Food", "Groceries", "Income" ], @user.categories.order(:name).pluck(:name)
   end
 
   test "Undo tells the user's open pages to refresh once" do

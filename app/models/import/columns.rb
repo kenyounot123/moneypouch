@@ -198,7 +198,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
           occurred_on:,
           name:,
           amount_in_cents: spent?(direction) ? -cents : cents,
-          category_word: category_word(category_text, direction:, transfer:, spellings:),
+          category_word: category_word(category_text, transfer:, spellings:),
           transfer:,
           excluded: yes?(cell(sheet_row, "excluded")),
           note: note(cell(sheet_row, "note")),
@@ -269,8 +269,8 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
       end
     end
 
-    def category_word(category_text, direction:, transfer:, spellings:)
-      if category_text && direction != :income && !transfer
+    def category_word(category_text, transfer:, spellings:)
+      if category_text && !transfer
         spellings[category_text.downcase] ||= category_text
       end
     end

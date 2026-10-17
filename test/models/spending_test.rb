@@ -46,6 +46,15 @@ class SpendingTest < ActiveSupport::TestCase
       [ spending.total, spending.categories.map { |category, cents| [ category&.name, cents ] } ]
   end
 
+  test "an income category stays out of spending, money in or out" do
+    spend(200_000, "2026-10-01", categories(:income), name: "Paycheck")
+    spend(-30_000, "2026-10-02", categories(:income), name: "Paycheck clawback")
+
+    spending = Spending.new(@user.transactions, Period.new("month", today: Date.new(2026, 10, 5)))
+
+    assert_equal [ 550, [ "Food" ] ], [ spending.total, spending.categories.map { |category, _| category&.name } ]
+  end
+
   test "a category that only got money back stays out of the list but still lowers the total" do
     spend(-1_200, "2026-10-03")
     spend(4_000, "2026-10-04", @transport, name: "Refund")

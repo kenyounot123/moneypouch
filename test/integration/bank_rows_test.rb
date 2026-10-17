@@ -27,6 +27,21 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     assert_select "main section div.h-10 div.bg-highlight", 9
   end
 
+  test "money in from the bank waits for a category until Income is picked" do
+    activate(connect_simplefin)
+    deposit = Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: 196_000).transaction_id)
+
+    get transactions_url
+    assert_select "li#transaction_#{deposit.id} div.h-10 div.bg-highlight"
+
+    patch transaction_categorization_url(deposit), params: { categorization: { category: "Income" } }
+    get transactions_url
+
+    assert_select "li#transaction_#{deposit.id} div.h-10 div.bg-highlight", count: 0
+    assert_select "li#transaction_#{deposit.id} button[data-action='category-picker#open']", text: "Income"
+    assert_select "a[aria-pressed=false]", text: /Needs a category · 8/
+  end
+
   test "the needs-a-category chip counts the marked rows and narrows the month to them" do
     activate(connect_simplefin)
 

@@ -375,6 +375,6 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
 
     get root_url
 
-    assert_select "[data-composer-categories-value=?]", '["Bills","Food","groceries"]'
+    assert_select "[data-composer-categories-value=?]", '["Bills","Food","groceries","Income"]'
   end
 end

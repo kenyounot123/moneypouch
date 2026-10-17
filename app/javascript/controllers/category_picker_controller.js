@@ -19,8 +19,9 @@ export default class extends Controller {
   static targets = ["category"]
   static values = { categories: Array, size: { type: String, default: "small" } }
 
-  open({ currentTarget, params: { url, category } }) {
+  open({ currentTarget, params: { url, category, moneyIn } }) {
     this.close()
+    this.moneyIn = moneyIn
     this.row = currentTarget.closest("li") ?? this.element
     this.label = this.categoryTargets.find((target) => this.row.contains(target)).querySelector("button")
     this.label.hidden = true
@@ -70,9 +71,12 @@ export default class extends Controller {
 
   render(index = 0) {
     const typed = this.field.value.trim()
-    const names = this.categoriesValue.filter((name) => name.toLowerCase().startsWith(typed.toLowerCase()))
-    const exact = names.some((name) => name.toLowerCase() === typed.toLowerCase())
-    this.items = names.map((name) => ({ name }))
+    const matching = this.categoriesValue.filter(([name]) => name.toLowerCase().startsWith(typed.toLowerCase()))
+    const exact = matching.some(([name]) => name.toLowerCase() === typed.toLowerCase())
+    const leading = matching.filter(([, income]) => income === this.moneyIn).map(([name]) => ({ name }))
+    const trailing = matching.filter(([, income]) => income !== this.moneyIn).map(([name]) => ({ name }))
+    if (trailing.length) trailing[0].heading = this.moneyIn ? "Refund to" : "Income"
+    this.items = [...leading, ...trailing]
     if (typed && !exact && typed.toLowerCase() !== "transfer") this.items.push({ name: typed, isNew: true })
     if ("transfer".startsWith(typed.toLowerCase())) this.items.push({ name: "Transfer", transfer: true })
     this.index = Math.min(index, this.items.length - 1)
@@ -89,14 +93,24 @@ export default class extends Controller {
   }
 
   entry(item, position) {
-    if (item.transfer && position > 0) {
-      const divider = document.createElement("div")
-      divider.setAttribute("role", "presentation")
-      divider.className = "mx-1 my-1 h-px bg-(--border-color-secondary)"
-      return [ divider, this.option(item, position) ]
+    if (item.heading) {
+      const heading = document.createElement("div")
+      heading.setAttribute("role", "presentation")
+      heading.className = "px-2.5 pt-1 pb-1 text-xs text-tertiary"
+      heading.textContent = item.heading
+      return [ ...(position > 0 ? [ this.divider() ] : []), heading, this.option(item, position) ]
+    } else if (item.transfer && position > 0) {
+      return [ this.divider(), this.option(item, position) ]
     } else {
       return [ this.option(item, position) ]
     }
+  }
+
+  divider() {
+    const divider = document.createElement("div")
+    divider.setAttribute("role", "presentation")
+    divider.className = "mx-1 my-1 h-px bg-(--border-color-secondary)"
+    return divider
   }
 
   option(item, position) {
@@ -113,7 +127,7 @@ export default class extends Controller {
       const name = document.createElement("span")
       name.className = "font-medium"
       name.textContent = item.name
-      label.append("New category ", name)
+      label.append(this.moneyIn ? "New income category " : "New category ", name)
     } else if (item.transfer) {
       option.classList.add("gap-2")
       option.insertAdjacentHTML("afterbegin", TRANSFER_ICON)

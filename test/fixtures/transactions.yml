@@ -8,6 +8,7 @@ coffee:
 
 paycheck:
   user: one
+  category: income
   name: Paycheck
   amount_in_cents: 200000
   occurred_on: 2026-10-01

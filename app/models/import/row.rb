@@ -14,6 +14,10 @@ class Import::Row < Data.define(:tab, :number, :occurred_on, :name, :amount_in_c
     self.class.identity(occurred_on:, amount_in_cents:, name:)
   end
 
+  def money_in?
+    amount_in_cents.positive?
+  end
+
   def transfer?
     transfer
   end

@@ -20,6 +20,6 @@ class ImportsHelperTest < ActionView::TestCase
 
   private
     def words(list)
-      list.map { |word| Import::CategoryWord.new(word:, count: 1, match: nil, name: word) }
+      list.map { |word| Import::CategoryWord.new(word:, count: 1, match: nil, name: word, income: false) }
     end
 end

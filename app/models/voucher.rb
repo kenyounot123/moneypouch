@@ -48,6 +48,12 @@ class Voucher
   end
 
   private
+    def last_category_for(name)
+      if name.present?
+        @user.transactions.excluding(@editing).last_category_for(name)
+      end
+    end
+
     def parts
       @parts ||= Transaction::Shorthand.read(shorthand, today: @today)
     end
@@ -62,9 +68,9 @@ class Voucher
 
     def resolve_category(name)
       if category_word
-        @user.categories.named(category_word).first || Category.new(user: @user, name: category_word)
-      elsif name.present?
-        @user.transactions.excluding(@editing).last_category_for(name)
+        @user.categories.named(category_word).first || Category.new(user: @user, name: category_word, income: money_in?)
+      else
+        last_category_for(name) || (@user.income_category if money_in?)
       end
     end
 end

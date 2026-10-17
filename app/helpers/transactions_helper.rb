@@ -41,6 +41,10 @@ module TransactionsHelper
     end
   end
 
+  def picker_categories(categories)
+    categories.map { |category| [ category.name, category.income? ] }.to_json
+  end
+
   def excluded_tag(**options)
     tag.span "Excluded", class: [ "shrink-0 rounded-[4px] bg-level-3 px-1.5 py-px text-xs text-tertiary", options[:class] ]
   end

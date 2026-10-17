@@ -18,6 +18,14 @@ class VouchersControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#voucher [data-inferred-category=Food]", text: /Blue Bottle\s+Food\s+· Yesterday\s+\+\$2,400.00\s+Money in/
   end
 
+  test "puts money in with no category in Income, and leaves money out Uncategorized" do
+    get voucher_url(shorthand: "Bonus +2000")
+    assert_select "turbo-frame#voucher", text: /Bonus\s+Income\s+· Today/
+
+    get voucher_url(shorthand: "Parking 8")
+    assert_select "turbo-frame#voucher", text: /Parking\s+Uncategorized\s+· Today/
+  end
+
   test "marks a category the user has not saved" do
     get voucher_url(shorthand: "lunch 12 #brandnew")
 

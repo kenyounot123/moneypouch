@@ -61,13 +61,19 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
 
   test "narrows to one category or to rows with none" do
     travel_to Time.utc(2026, 10, 13, 12) do
+      parking = users(:one).transactions.create!(name: "Parking", amount_in_cents: -800, occurred_on: "2026-10-12")
+
       get transactions_url(category: categories(:food).id)
       assert_select "main section li", 1
       assert_select "li#transaction_#{@transaction.id}"
 
-      get transactions_url(category: "none")
+      get transactions_url(category: categories(:income).id)
       assert_select "main section li", 1
       assert_select "li#transaction_#{transactions(:paycheck).id}"
+
+      get transactions_url(category: "none")
+      assert_select "main section li", 1
+      assert_select "li#transaction_#{parking.id}"
     end
   end
 
@@ -143,10 +149,11 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
       get transactions_url
     end
 
-    assert_select "[data-controller=category-picker][data-category-picker-categories-value=?]", [ "Food" ].to_json
+    assert_select "[data-controller=category-picker][data-category-picker-categories-value=?]", [ [ "Food", false ], [ "Income", true ] ].to_json
     assert_select "li##{ActionView::RecordIdentifier.dom_id(transactions(:paycheck))} button[data-category-picker-url-param=?]",
-      transaction_categorization_path(transactions(:paycheck)), text: "Uncategorized"
-    assert_select "li##{ActionView::RecordIdentifier.dom_id(@transaction)} button[data-category-picker-category-param=Food]", text: "Food"
+      transaction_categorization_path(transactions(:paycheck)), text: "Income"
+    assert_select "li##{ActionView::RecordIdentifier.dom_id(transactions(:paycheck))} button[data-category-picker-category-param=Income][data-category-picker-money-in-param=true]"
+    assert_select "li##{ActionView::RecordIdentifier.dom_id(@transaction)} button[data-category-picker-category-param=Food][data-category-picker-money-in-param=false]", text: "Food"
   end
 
   test "each row deletes from the ledger and opens its sheet on a phone" do

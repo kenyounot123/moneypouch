@@ -57,7 +57,8 @@ class Import < ApplicationRecord
   def category_words
     @category_words ||= new_rows.select(&:category_word).group_by(&:category_word).map do |word, rows|
       match = user_categories.find { |category| category.named?(word) }
-      Import::CategoryWord.new(word:, count: rows.size, match:, name: category_names.fetch(word) { default_name(word, match:, rows:) })
+      name = category_names.fetch(word) { match&.name || word }
+      Import::CategoryWord.new(word:, count: rows.size, match:, name:, income: income_name?(name, rows:))
     end.sort_by { |category_word| [ -category_word.count, category_word.word.downcase ] }
   end
 
@@ -70,9 +71,9 @@ class Import < ApplicationRecord
   end
 
   def tally
-    names = category_words.to_h { |category_word| [ category_word.word, category_word.name ] }
+    words = category_words.index_by(&:word)
     counted = new_rows.select(&:counted?)
-    spent = counted.count { |row| Transaction.spending?(row.amount_in_cents, categorized: names[row.category_word].present?) }
+    spent = counted.count { |row| spending?(row, words[row.category_word]) }
     transfers = new_rows.count(&:transfer?)
 
     Import::Tally.new(
@@ -126,29 +127,37 @@ class Import < ApplicationRecord
       @user_categories ||= user.categories.to_a
     end
 
-    def default_name(word, match:, rows:)
-      if match
-        match.name
-      elsif rows.all? { |row| row.amount_in_cents.positive? }
-        ""
+    def income_name?(name, rows:)
+      chosen = user_categories.find { |category| category.named?(name) }
+
+      if chosen
+        chosen.income?
       else
-        word
+        rows.all?(&:money_in?)
+      end
+    end
+
+    def spending?(row, category_word)
+      if category_word&.categorized?
+        !category_word.income?
+      else
+        !row.money_in?
       end
     end
 
     def add_transactions
-      categories = category_words.to_h { |category_word| [ category_word.word, category_named(category_word.name) ] }
+      categories = category_words.to_h { |category_word| [ category_word.word, category_for(category_word) ] }
 
-      if user.transactions.import(new_rows, import: self, categories:).zero?
+      if user.transactions.import(new_rows, import: self, categories:, income_category: user.income_category).zero?
         destroy!
       else
         update!(completed_at: Time.current, sheet: nil)
       end
     end
 
-    def category_named(name)
-      if name.present?
-        user.categories.named(name).first || created_categories.create!(user:, name:)
+    def category_for(category_word)
+      if category_word.categorized?
+        user.categories.named(category_word.name).first || created_categories.create!(user:, name: category_word.name, income: category_word.income?)
       end
     end
 

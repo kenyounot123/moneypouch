@@ -1,3 +1,13 @@
 food:
   user: one
   name: Food
+
+income:
+  user: one
+  name: Income
+  income: true
+
+income_two:
+  user: two
+  name: Income
+  income: true
