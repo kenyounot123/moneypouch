@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.0](https://github.com/kenyounot123/moneypouch/compare/v0.6.0...v0.7.0) (2026-10-17)
+
+
+### Features
+
+* **overview:** show money in green and add sample paychecks as income ([#106](https://github.com/kenyounot123/moneypouch/issues/106)) ([391f0bb](https://github.com/kenyounot123/moneypouch/commit/391f0bb3b8c25032e7d1f886ba3d7ec9027f69a3))
+* **overview:** summary chart follows the period and keeps bars on screen while one is in focus ([#104](https://github.com/kenyounot123/moneypouch/issues/104)) ([deda440](https://github.com/kenyounot123/moneypouch/commit/deda44063d594b4af2a5498fe4480934926b5b5b))
+* **transactions:** replace the month footer with a back-to-top button ([#103](https://github.com/kenyounot123/moneypouch/issues/103)) ([fbc6581](https://github.com/kenyounot123/moneypouch/commit/fbc658115e302bf2bdd920e97d922084f6c4c669))
+
+
+### Bug Fixes
+
+* **transactions:** clear a category by saving an empty picker ([#107](https://github.com/kenyounot123/moneypouch/issues/107)) ([be84a00](https://github.com/kenyounot123/moneypouch/commit/be84a00da54b06a05d262866c98e6b4cdcdde818))
+
 ## [0.6.0](https://github.com/kenyounot123/moneypouch/compare/v0.5.0...v0.6.0) (2026-10-16)
 
 
