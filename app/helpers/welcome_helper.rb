@@ -121,7 +121,7 @@ module WelcomeHelper
   end
 
   def total_readout(total)
-    "#{period_abbreviation(total.period)}#{" so far" if total.period.current?} · income #{whole_spent total.income} · spent #{whole_spent total.spent}"
+    "#{period_abbreviation(total.period)} · income #{whole_spent total.income} · spent #{whole_spent total.spent}"
   end
 
   def period_abbreviation(period)

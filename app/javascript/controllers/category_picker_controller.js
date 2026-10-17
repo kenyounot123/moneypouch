@@ -69,7 +69,8 @@ export default class extends Controller {
     return form
   }
 
-  render(index = 0) {
+  // An empty field highlights nothing, so Enter saves it blank and clears the category.
+  render(index = this.field.value.trim() ? 0 : -1) {
     const typed = this.field.value.trim()
     const matching = this.categoriesValue.filter(([name]) => name.toLowerCase().startsWith(typed.toLowerCase()))
     const exact = matching.some(([name]) => name.toLowerCase() === typed.toLowerCase())
@@ -152,7 +153,7 @@ export default class extends Controller {
       this.render((this.index + 1) % this.items.length)
     } else if (event.key === "ArrowUp" && this.items.length) {
       event.preventDefault()
-      this.render((this.index + this.items.length - 1) % this.items.length)
+      this.render((Math.max(this.index, 0) + this.items.length - 1) % this.items.length)
     } else if (event.key === "Tab" && this.index >= 0) {
       event.preventDefault()
       this.field.value = this.items[this.index].name

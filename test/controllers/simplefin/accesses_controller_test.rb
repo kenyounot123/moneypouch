@@ -10,8 +10,8 @@ class Simplefin::AccessesControllerTest < ActionDispatch::IntegrationTest
     get settings_url
 
     assert_select "turbo-frame#bank_sync h2", text: "Bank sync"
-    assert_select "turbo-frame#bank_sync p", text: "Pull in transactions you didn't type."
-    assert_select "turbo-frame#bank_sync a[href=?]", new_simplefin_access_path, text: "Connect a bank"
+    assert_select "turbo-frame#bank_sync p", text: "Sync transactions straight from your bank."
+    assert_select "turbo-frame#bank_sync a[href=?]", new_simplefin_access_path, text: "Connect your bank"
   end
 
   test "the connect step links to SimpleFIN and waits for a paste" do
@@ -122,7 +122,7 @@ class Simplefin::AccessesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to settings_url
     follow_redirect!
-    assert_select "a", text: "Connect a bank"
+    assert_select "a", text: "Connect your bank"
   end
 
   test "someone without a access cannot start, sync, or disconnect" do
