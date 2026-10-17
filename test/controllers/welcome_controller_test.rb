@@ -149,7 +149,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
       assert_select "span.text-success", text: "+$5,390"
       assert_select ".bg-data-soft"
     end
-    assert_select "a[href*='focus=2026-10-01'][aria-label^='Oct so far · income']"
+    assert_select "a[href*='focus=2026-10-01'][aria-label^='Oct · income']"
     assert_select "a[href*='focus=2026-10-01'] span.text-success", text: "+$1,995"
     assert_select "[data-chart-target=readout]", text: ""
     assert_equal [ "Income", "Spent", "±Net" ], css_select("[data-chart-target=key] > span").map { |span| span.text.strip }
@@ -168,7 +168,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-09-07")}']", text: /Sep 7/
-    assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-10-12")}'][aria-label='Oct 12 so far · income $0 · spent $0']"
+    assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-10-12")}'][aria-label='Oct 12 · income $0 · spent $0']"
     assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-10-05")}'][aria-label='Oct 5 · income $7,890 · spent $2,500']" do
       assert_select "span", text: "Oct 5"
       assert_select "span.text-success", text: "+$5,390"
@@ -187,7 +187,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2021-01-01")}']", text: /2021/
-    assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2026-01-01")}'][aria-label='2026 so far · income $2,000 · spent $6']"
+    assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2026-01-01")}'][aria-label='2026 · income $2,000 · spent $6']"
     assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2024-01-01")}'][aria-label='2024 · income $7,890 · spent $2,500']" do
       assert_select "span", text: "2024"
       assert_select "span.text-success", text: "+$5,390"
@@ -285,7 +285,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "p.font-semibold", text: "October"
-    assert_select "a[aria-current=true][aria-label^='Oct so far']"
+    assert_select "a[aria-current=true][aria-label^='Oct ·']"
   end
 
   test "ignores a focus outside the summary chart" do
