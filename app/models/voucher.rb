@@ -3,12 +3,11 @@ class Voucher
 
   delegate :name, :amount_in_cents, :category_word, :occurred_on, :tokens, :errors, to: :parts
 
-  def initialize(shorthand, user:, today:, complete: false, editing: nil)
+  def initialize(shorthand, user:, today:, complete: false)
     @shorthand = shorthand.to_s
     @user = user
     @today = today
     @complete = complete
-    @editing = editing
   end
 
   def completion
@@ -50,7 +49,7 @@ class Voucher
   private
     def last_category_for(name)
       if name.present?
-        @user.transactions.excluding(@editing).last_category_for(name)
+        @user.transactions.last_category_for(name)
       end
     end
 

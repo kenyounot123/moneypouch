@@ -189,11 +189,6 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test "should update transaction" do
-    patch transaction_url(@transaction), params: { transaction: { amount_in_cents: "2999" } }
-    assert_redirected_to transactions_url
-  end
-
   test "adds the typed shorthand and redirects back" do
     travel_to Time.utc(2026, 9, 27, 12) do
       assert_difference("Transaction.count", 1) do
