@@ -3,6 +3,7 @@
 ## Sub-features
 
 - Create account at `/account/new`: username and password, `Create account ↵`. A taken or blank username re-renders the form with the error in `#alert` and the typed username kept.
+- Every new user starts with one category, the built-in `Income` (`income: true`).
 - On success the new user is signed in and lands on `/first_transaction`: the heading "What did you last spend on?", the composer, the hint "Only the name and amount are required", and a "Skip for now" link to `/`.
 - Adding a transaction there lands on the Overview with the row marked and the Undo toast. Skip for now lands on the Overview with no toast.
 - `/first_transaction` redirects to `/` once the user has a kept transaction.
@@ -18,7 +19,7 @@ A fresh server: open `/`, which goes to `/session/new`, which goes to `/account/
 - `mp.mjs type '#user_username' name --port N`, `mp.mjs type '#user_password' secret --port N`, `mp.mjs key Enter --port N`. The URL is then `/first_transaction`.
 - `mp.mjs type '[aria-label="Add"]' 'tea 3' --port N`, `mp.mjs key Enter --port N`, `mp.mjs wait '[id^=toast_transaction]' --port N` prints the toast text on the Overview.
 - Duplicate username: `mp.mjs text '#alert' --port N` prints `Username has already been taken`.
-- Clean up: `bin/rails runner` to delete the test user and its rows, since `query` is read-only.
+- Clean up with `bin/rails runner`, since `query` is read-only. `User` has no `dependent:` on transactions, so delete them first, discarded ones included: `bin/rails runner 'u = User.find_by!(username: "name"); Transaction.unscoped.where(user_id: u.id).delete_all; u.destroy!'`.
 
 ## Gotchas
 
