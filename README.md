@@ -73,7 +73,7 @@ The command is the same in every terminal. The first time, Docker downloads abou
 
 Go to [localhost:8080](http://localhost:8080) in your browser and create your account.
 
-MoneyPouch starts again by itself when your computer or Docker restarts. To use a port other than 8080, change the first `8080` in the command. Your data and the app's secret key are in the Docker volume `moneypouch-data`. See [Backups and upgrades](#backups-and-upgrades).
+MoneyPouch starts again by itself when your computer or Docker restarts. To use a port other than 8080, change the first `8080` in the command. Your data and the app's secret key are in the Docker volume `moneypouch-data`. See [Backups and updates](#backups-and-updates).
 
 ### Other ways to install
 
@@ -139,9 +139,9 @@ Bank sync is optional but highly recommended. When you turn it on, MoneyPouch re
 
 The Bridge is a paid service, billed by SimpleFIN directly ([pricing](https://beta-bridge.simplefin.org/)). Read its [privacy policy](https://beta-bridge.simplefin.org/info/privacy) and [terms](https://beta-bridge.simplefin.org/info/terms) before you connect.
 
-## Backups and upgrades
+## Backups and updates
 
-If you installed with ONCE, it does backups and upgrades for you. The rest of this section is for the `docker run` and Docker Compose installs. Every command works the same in PowerShell, Command Prompt, and macOS or Linux terminals.
+If you installed with ONCE, it does backups and updates for you. The rest of this section is for the `docker run` and Docker Compose installs. Every command works the same in PowerShell, Command Prompt, and macOS or Linux terminals.
 
 Everything MoneyPouch keeps is in the `moneypouch-data` volume. That includes the secret key that MoneyPouch makes the first time it starts. The key signs the cookie that keeps you signed in, and encrypts your SimpleFIN connection. A backup of the volume holds both your data and the key, so keep your backups private.
 
@@ -175,9 +175,11 @@ docker start moneypouch
 
 The third command makes a new, empty MoneyPouch without starting it. If you use Docker Compose, run `docker compose create` in your Compose folder instead. The fifth command gives the restored files back to the user that MoneyPouch runs as.
 
-### Upgrade
+### Update
 
-Back up first. Then get the new image and start MoneyPouch from it. Your data stays in the volume.
+ONCE installs updates by itself. With `docker run` or Docker Compose, you update by hand. To hear about new versions, open the [MoneyPouch repository](https://github.com/kenyounot123/moneypouch), click **Watch**, choose **Custom**, and select **Releases**. Each release lists what changed.
+
+To update, [back up](#back-up) first. Then get the new image, remove the old container, and start MoneyPouch again with the same command you installed it with. Your data stays in the volume.
 
 ```bash
 docker pull ghcr.io/kenyounot123/moneypouch:latest
@@ -185,7 +187,12 @@ docker rm -f moneypouch
 docker run -d --name moneypouch --restart unless-stopped -p 8080:80 -v moneypouch-data:/rails/storage ghcr.io/kenyounot123/moneypouch:latest
 ```
 
-With Docker Compose, run `docker compose pull` and then `docker compose up -d` in your Compose folder.
+With Docker Compose, run these two commands in your Compose folder:
+
+```bash
+docker compose pull
+docker compose up -d
+```
 
 If you installed with Docker Compose before version 0.8.0, keep your old `compose.yaml` and `.env` files. They use a different volume name and keep the secret key in `.env`, and they still work.
 
