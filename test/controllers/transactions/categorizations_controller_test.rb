@@ -57,4 +57,11 @@ class Transactions::CategorizationsControllerTest < ActionDispatch::IntegrationT
     assert_response :not_found
     assert_equal categories(:income), transactions(:paycheck).reload.category
   end
+
+  test "a request without a categorization is a bad request" do
+    patch transaction_categorization_url(transactions(:coffee)), params: { category: "Food" }
+
+    assert_response :bad_request
+    assert_equal "Food", transactions(:coffee).reload.category.name
+  end
 end
