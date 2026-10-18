@@ -3,7 +3,7 @@
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
 # docker build -t moneypouch .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name moneypouch moneypouch
+# docker run -d -p 8080:80 -v moneypouch-data:/rails/storage --name moneypouch moneypouch
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
