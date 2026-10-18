@@ -22,7 +22,7 @@
 ## Features
 - **Fast entry.** Press ⌘K (Ctrl+K), type `Chipotle 11.25 yesterday`, and press Enter.
 - **It remembers.** Tab completes names you have used, and their category comes back.
-- **Your data, your server.** One container and one SQLite file, in a volume you own.
+- **Your data, your server.** One command starts it. Your data is in SQLite files in a volume you own.
 - **Bring your history.** Import an Excel or CSV file. Rows you already have are skipped, and you can undo the whole import.
 - **Take it with you.** Download every transaction as a CSV file, any time.
 - **Bank sync, optional.** Connect your own SimpleFIN account to pull in transactions from your bank accounts.
@@ -47,11 +47,37 @@ These numbers come from running the Docker image with Docker's memory and CPU li
 
 ## Getting started
 
-Pick one of two ways to run MoneyPouch.
+MoneyPouch runs in Docker on Windows, macOS, and Linux. You install Docker once, then start MoneyPouch with one command.
 
-### Install with ONCE
+### 1. Install Docker
 
-Use [ONCE](https://github.com/basecamp/once) on Linux or macOS. This is the recommended way.
+| Your computer | What to install |
+| :--- | :--- |
+| Windows 10 or 11 | [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/) |
+| macOS | [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/) |
+| Linux, including a Raspberry Pi | [Docker Engine](https://docs.docker.com/engine/install/) |
+
+If you use Docker Desktop, open it and wait until it shows that Docker is running.
+
+### 2. Start MoneyPouch
+
+Open a terminal. On Windows, use PowerShell or Command Prompt. On macOS, use the Terminal app. Paste this command and press Enter:
+
+```bash
+docker run -d --name moneypouch --restart unless-stopped -p 8080:80 -v moneypouch-data:/rails/storage ghcr.io/kenyounot123/moneypouch:latest
+```
+
+The command is the same in every terminal. The first time, Docker downloads about 250 MB. After that, MoneyPouch is ready in about 2 seconds.
+
+### 3. Open MoneyPouch
+
+Go to [localhost:8080](http://localhost:8080) in your browser and create your account.
+
+MoneyPouch starts again by itself when your computer or Docker restarts. To use a port other than 8080, change the first `8080` in the command. Your data and the app's secret key are in the Docker volume `moneypouch-data`. See [Backups and upgrades](#backups-and-upgrades).
+
+### Other ways to install
+
+**ONCE.** Use [ONCE](https://github.com/basecamp/once) on a Linux or macOS server that you want to reach by a domain name. ONCE sets up HTTPS for the domain, backs up your data daily, keeps 30 days of backups, and installs updates.
 
 1. Install ONCE.
 
@@ -61,21 +87,25 @@ Use [ONCE](https://github.com/basecamp/once) on Linux or macOS. This is the reco
 
 2. In the ONCE dashboard, choose to install from a Docker image.
 3. Enter the image `ghcr.io/kenyounot123/moneypouch:latest`.
-4. Enter a hostname. If you point a domain at the machine, ONCE sets up HTTPS for it. `moneypouch.localhost` works on this machine only.
+4. Enter a hostname. `moneypouch.localhost` works on this machine only.
 
-ONCE creates and keeps the secret key for you, backs up your data daily and keeps 30 days of backups, and installs updates.
+**Docker Compose.** Use Compose if you prefer a file, or if your NAS or Portainer asks for one. Save this as `compose.yaml` in an empty folder, and run `docker compose up -d` in that folder. It uses the same container and volume names as the `docker run` command, so every command below works for both.
 
-### Install with Docker Compose
+```yaml
+services:
+  app:
+    image: ghcr.io/kenyounot123/moneypouch:latest
+    container_name: moneypouch
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - moneypouch-data:/rails/storage
 
-Use Docker Compose on any system that runs Docker, including Windows. Run these commands in an empty folder.
-
-```bash
-curl -O https://raw.githubusercontent.com/kenyounot123/moneypouch/main/compose.yaml
-echo "SECRET_KEY_BASE=$(openssl rand -hex 64)" > .env
-docker compose up -d
+volumes:
+  moneypouch-data:
+    name: moneypouch-data
 ```
-
-Then open `localhost:8080`. Keep `.env` next to `compose.yaml` and never change it. See [Backups and upgrades](#backups-and-upgrades) for why it matters and how to keep your data safe.
 
 ### First steps
 
@@ -111,29 +141,53 @@ The Bridge is a paid service, billed by SimpleFIN directly ([pricing](https://be
 
 ## Backups and upgrades
 
-If you installed with ONCE, it handles backups and upgrades for you. The rest of this section is for Docker Compose.
+If you installed with ONCE, it does backups and upgrades for you. The rest of this section is for the `docker run` and Docker Compose installs. Every command works the same in PowerShell, Command Prompt, and macOS or Linux terminals.
 
-The Docker Compose install keeps one secret in `.env`, created by the second install command. `openssl rand -hex 64` prints 64 random bytes as 128 hex characters. Rails uses `SECRET_KEY_BASE` to sign the cookie that keeps you signed in, and to derive the key that encrypts your SimpleFIN connection.
+Everything MoneyPouch keeps is in the `moneypouch-data` volume. That includes the secret key that MoneyPouch makes the first time it starts. The key signs the cookie that keeps you signed in, and encrypts your SimpleFIN connection. A backup of the volume holds both your data and the key, so keep your backups private.
 
-The value must be secret and random, so nobody can forge a sign-in. It must also stay the same. If you lose or change `.env`, everyone is signed out and you must reconnect SimpleFIN. Keep `.env` next to `compose.yaml` and back it up with your data.
+### Back up
 
-Your data lives in a Docker volume. Compose puts the folder name in front of the volume name, so in a folder called `moneypouch` the volume is `moneypouch_moneypouch-data`. Run these commands from the same folder and you never need to type the name.
-
-To back up, stop the app and save the volume to a file next to `compose.yaml`:
+Stop MoneyPouch, copy its data to a `moneypouch-backup` folder in the current folder, and start it again:
 
 ```bash
-docker compose stop
-docker compose run --rm --no-deps -T --entrypoint tar app czf - -C /rails storage > moneypouch-backup.tgz
-docker compose start
+docker stop moneypouch
+docker cp moneypouch:/rails/storage moneypouch-backup
+docker start moneypouch
 ```
 
-Keep `moneypouch-backup.tgz` and `.env` together. To restore, stop the app, then run:
+Copy the `moneypouch-backup` folder somewhere safe. To make a new backup, first delete or rename the old folder.
+
+### Restore
+
+Run these commands in the folder that holds `moneypouch-backup`.
+
+> [!WARNING]
+> The first two commands delete the data MoneyPouch has now. Do them only when you want the backup in its place.
 
 ```bash
-docker compose run --rm --no-deps -T --entrypoint tar app xzf - -C /rails < moneypouch-backup.tgz
+docker rm -f moneypouch
+docker volume rm moneypouch-data
+docker create --name moneypouch --restart unless-stopped -p 8080:80 -v moneypouch-data:/rails/storage ghcr.io/kenyounot123/moneypouch:latest
+docker cp moneypouch-backup/. moneypouch:/rails/storage
+docker run --rm --volumes-from moneypouch -u root --entrypoint chown ghcr.io/kenyounot123/moneypouch:latest -R rails:rails /rails/storage
+docker start moneypouch
 ```
 
-To upgrade, back up first. Then run `docker compose pull && docker compose up -d`.
+The third command makes a new, empty MoneyPouch without starting it. If you use Docker Compose, run `docker compose create` in your Compose folder instead. The fifth command gives the restored files back to the user that MoneyPouch runs as.
+
+### Upgrade
+
+Back up first. Then get the new image and start MoneyPouch from it. Your data stays in the volume.
+
+```bash
+docker pull ghcr.io/kenyounot123/moneypouch:latest
+docker rm -f moneypouch
+docker run -d --name moneypouch --restart unless-stopped -p 8080:80 -v moneypouch-data:/rails/storage ghcr.io/kenyounot123/moneypouch:latest
+```
+
+With Docker Compose, run `docker compose pull` and then `docker compose up -d` in your Compose folder.
+
+If you installed with Docker Compose before version 0.8.0, keep your old `compose.yaml` and `.env` files. They use a different volume name and keep the secret key in `.env`, and they still work.
 
 ## Why I built MoneyPouch
 I was first using Excel to track my expenses via a simple layout that summed up spending and income based on categories. This was bothersome to set up and the appearance/UI was also ugly (maybe I'm just bad with excel as well). So I looked into other popular finance apps, but most of them want you to budget, and that leads to bloated features that overwhelm someone who just wants to track where their money is going. YNAB makes you give every dollar a job before you spend it. Monarch and Copilot add investment tracking, net worth and bank syncing on top of budgets, and both cost about $100 a year. Rocket Money is built around subscriptions and bill negotiation, and the self-hosted options are either another envelope budgeting tool (Actual Budget) or full double-entry accounting (Firefly III). I didn’t need any of that and I also was not going to pay for something like that. I wanted a fast, good-looking way to log an expense in a few seconds and see where my money goes. So I built MoneyPouch.
