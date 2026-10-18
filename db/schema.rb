@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_18_120000) do
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -145,6 +145,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_130000) do
     t.datetime "updated_at", null: false
     t.string "background"
     t.string "time_zone", default: "UTC", null: false
+    t.string "seen_version", null: false
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
