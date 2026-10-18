@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/kenyounot123/moneypouch/compare/v0.7.0...v0.8.0) (2026-10-18)
+
+
+### Features
+
+* **docker:** install MoneyPouch with one command on any OS ([#117](https://github.com/kenyounot123/moneypouch/issues/117)) ([10c8436](https://github.com/kenyounot123/moneypouch/commit/10c8436b5e9e2fdc0a2b4138c8fb96781bab0481))
+* **releases:** show what changed after an update ([#118](https://github.com/kenyounot123/moneypouch/issues/118)) ([e13ec8b](https://github.com/kenyounot123/moneypouch/commit/e13ec8b7977292ed2b1caa5ce58eb7ad96c10b68))
+
 ## [0.7.0](https://github.com/kenyounot123/moneypouch/compare/v0.6.0...v0.7.0) (2026-10-18)
 
 
