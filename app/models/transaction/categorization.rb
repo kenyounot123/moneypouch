@@ -1,10 +1,9 @@
 class Transaction::Categorization < Data.define(:category, :transfer)
-  def self.from(params, categories:, money_in:)
-    choice = params.expect(categorization: [ :category, :transfer ])
-    name = choice[:category].to_s.squish
+  def self.from(category:, transfer:, categories:, money_in:)
+    name = category.to_s.squish
 
-    if ActiveModel::Type::Boolean.new.cast(choice[:transfer])
-      transfer
+    if ActiveModel::Type::Boolean.new.cast(transfer)
+      self.transfer
     elsif name.empty?
       none
     else

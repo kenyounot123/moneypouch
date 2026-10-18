@@ -43,12 +43,11 @@ class VoucherTest < ActiveSupport::TestCase
     assert_equal [ categories(:food), true ], [ voucher.category, voucher.inferred? ]
   end
 
-  test "infers from the latest transaction, or the one before it when that is being edited" do
+  test "infers from the latest transaction with that name" do
     cafe = users(:one).categories.create!(name: "Cafe")
-    newer = users(:one).transactions.create!(name: "Blue Bottle", amount_in_cents: -600, occurred_on: "2026-10-02", category: cafe)
+    users(:one).transactions.create!(name: "Blue Bottle", amount_in_cents: -600, occurred_on: "2026-10-02", category: cafe)
 
     assert_equal "Cafe", build("blue bottle 6").category_name
-    assert_equal "Food", build("blue bottle 6", editing: newer).category_name
   end
 
   test "infers the category for shorthand ending in a bare hash" do
@@ -62,10 +61,6 @@ class VoucherTest < ActiveSupport::TestCase
 
     transactions(:coffee).discard
     assert_nil build("blue bottle 6").category
-  end
-
-  test "leaves the edited row out of inference" do
-    assert_nil build("blue bottle 6", editing: transactions(:coffee)).category
   end
 
   test "infers the category for shorthand still missing its amount" do
@@ -158,8 +153,8 @@ class VoucherTest < ActiveSupport::TestCase
   end
 
   private
-    def build(shorthand, user: users(:one), editing: nil)
-      Voucher.new(shorthand, user:, today: SUNDAY, editing:)
+    def build(shorthand, user: users(:one))
+      Voucher.new(shorthand, user:, today: SUNDAY)
     end
 
     def complete(shorthand)

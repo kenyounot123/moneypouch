@@ -1,5 +1,5 @@
 class TransactionsController < ApplicationController
-  before_action :set_transaction, only: %i[ edit update destroy ]
+  before_action :set_transaction, only: %i[ edit destroy ]
 
   helper_method :filters
 
@@ -43,14 +43,6 @@ class TransactionsController < ApplicationController
     end
   end
 
-  def update
-    if @transaction.update(transaction_params)
-      redirect_to transactions_path, notice: "Transaction was successfully updated.", status: :see_other
-    else
-      redirect_to transactions_path, alert: @transaction.errors.full_messages.to_sentence, status: :see_other
-    end
-  end
-
   def destroy
     @transaction.discard
     redirect_back_or_to root_path, flash: { shorthand: @transaction.shorthand }, status: :see_other
@@ -59,10 +51,6 @@ class TransactionsController < ApplicationController
   private
     def set_transaction
       @transaction = Current.user.transactions.find(params.expect(:id))
-    end
-
-    def transaction_params
-      params.expect(transaction: [ :amount_in_cents, :currency ])
     end
 
     def filters

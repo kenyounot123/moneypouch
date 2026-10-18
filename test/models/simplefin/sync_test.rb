@@ -226,4 +226,55 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
 
     assert_requested :get, "https://beta-bridge.simplefin.org/simplefin/accounts?version=2&start-date=#{Time.new(2026, 7, 9, 0, 0, 0, "-07:00").to_i}"
   end
+
+  test "a disconnect while the bank is answering keeps the sync abandoned and adds nothing" do
+    access, sync = start_sync
+    answer_after { access.reload.disconnect }
+
+    assert_no_difference -> { Transaction.count } do
+      sync.run_now
+    end
+    assert_equal [ "abandoned", "disconnected" ], [ sync.reload.failure, access.reload.status ]
+  end
+
+  test "a sync abandoned as stale while the bank is answering adds nothing" do
+    _, sync = start_sync
+    answer_after { travel(16.minutes) { Simplefin::Sync.abandon_stale } }
+
+    assert_no_difference -> { Transaction.count } do
+      sync.run_now
+    end
+    assert_equal "abandoned", sync.reload.failure
+  end
+
+  test "a revoked answer after a disconnect leaves the access disconnected" do
+    access, sync = start_sync
+    stub_request(:get, ACCOUNTS_URL).to_return { access.reload.disconnect; { status: 403 } }
+
+    sync.run_now
+
+    assert_equal [ "abandoned", "disconnected" ], [ sync.reload.failure, access.reload.status ]
+  end
+
+  test "the same sync run twice at once adds its transactions once" do
+    access, sync = start_sync
+    twin = Simplefin::Sync.find(sync.id)
+    answer_after { answer_after { }; twin.run_now }
+
+    sync.run_now
+
+    assert_equal [ 9, nil ], [ access.syncs.added_transactions.count, sync.reload.failure ]
+  end
+
+  private
+    def start_sync
+      access = connect_simplefin
+      access.activate(account_ids: access.bank_accounts.where(external_id: DEMO_ACCOUNTS).ids, history: "90_days")
+      [ access, access.syncs.sole ]
+    end
+
+    def answer_after(&before_answering)
+      body = simplefin_fixture("accounts")
+      stub_request(:get, ACCOUNTS_URL).to_return { before_answering.call; { status: 200, body: } }
+    end
 end
