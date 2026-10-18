@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   resource :voucher, only: :show
   resource :session, only: %i[ new create destroy ]
   resource :settings, only: :show
+  resource :seen_release, only: :create
   resource :account, only: %i[ new create ]
   resource :first_transaction, controller: "first_transaction", only: :show
 

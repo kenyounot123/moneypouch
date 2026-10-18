@@ -39,4 +39,26 @@ class UserTest < ActiveSupport::TestCase
 
     assert_equal [ "bank.csv", 3 ], [ user.latest_import.filename, user.imports.count ]
   end
+
+  test "a new user has seen the version they signed up on" do
+    user = User.create!(username: "new", password: "password")
+
+    assert_equal [ Release.current_version, [] ], [ user.seen_version, user.unseen_releases ]
+  end
+
+  test "a user on an older version has unseen releases, newest first" do
+    user = users(:one)
+    user.update!(seen_version: "0.5.0")
+
+    assert_equal [ Release.current_version, "0.6.0" ], [ user.unseen_releases.first.version, user.unseen_releases.last.version ]
+  end
+
+  test "seeing the releases clears them" do
+    user = users(:one)
+    user.update!(seen_version: "0.5.0")
+
+    user.see_releases
+
+    assert_equal [ Release.current_version, [] ], [ user.reload.seen_version, user.unseen_releases ]
+  end
 end

@@ -22,5 +22,9 @@
 
   <body>
     <%= yield %>
+    <% unseen_releases = Current.user ? Current.user.unseen_releases : [] %>
+    <% if unseen_releases.any? %>
+      <%= render "shared/release_notes", releases: unseen_releases %>
+    <% end %>
   </body>
 </html>

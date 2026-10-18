@@ -4,8 +4,10 @@ one:
   username: one
   password_digest: <%= password_digest %>
   background: nil
+  seen_version: <%= Release.current_version %>
 
 two:
   username: two
   password_digest: <%= password_digest %>
   background: nil
+  seen_version: <%= Release.current_version %>
