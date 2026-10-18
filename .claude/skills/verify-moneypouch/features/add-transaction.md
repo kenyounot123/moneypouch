@@ -5,11 +5,11 @@
 - Composer on the Overview, inside the ⌘K palette: the `Add` input, the `Add ↵` button, and the preview frame `turbo-frame#voucher` attached under them.
 - Enter or `Add ↵` posts the shorthand to `POST /transactions`, see [composer.md](composer.md) for the toast and undo.
 - `/transactions` is the month ledger, see [transactions.md](transactions.md).
-- `bin/rails "dev:transactions[N]"` adds N realistic rows for `demo` across the last 12 months.
+- `bin/rails "dev:transactions[N]"` adds N realistic rows for `demo` across the last 12 months, about 4% of them `Paycheck` money in under `Income`.
 
 ## How to get to it (user POV)
 
-Sign in. The composer sits at the top of `/`. Type shorthand such as `coffee 5.50 yesterday`, then press Enter or click `Add ↵`. The sidebar's Transactions link opens `/transactions`.
+Sign in. On `/` press ⌘K or click `Add a transaction` (at the top below `lg`, at the bottom from `lg`) to open the composer. Type shorthand such as `coffee 5.50 yesterday`, then press Enter or click `Add ↵`. The sidebar's Transactions link opens `/transactions`.
 
 ## Driving it with mp.mjs
 
