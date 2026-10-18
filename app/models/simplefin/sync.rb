@@ -46,20 +46,28 @@ class Simplefin::Sync < ApplicationRecord
 
   private
     def fetch
-      access.client.accounts(since: access.history_start).each do |simplefin_account|
-        access.update_account(simplefin_account).add_transactions(simplefin_account.transactions, sync: self)
+      simplefin_accounts = access.client.accounts(since: access.history_start)
+
+      finish do
+        simplefin_accounts.each do |simplefin_account|
+          access.update_account(simplefin_account).add_transactions(simplefin_account.transactions, sync: self)
+        end
       end
-      finish
     rescue Simplefin::PaymentRequired
       finish("lapsed")
     rescue Simplefin::AccessRevoked, ActiveRecord::Encryption::Errors::Decryption
-      access.revoke
-      finish("revoked")
+      finish("revoked") { access.revoke }
     rescue Simplefin::Unavailable
       finish("unavailable")
     end
 
+    # A disconnect or stale abandonment can finish this sync while the bank is still answering.
     def finish(failure = nil)
-      update!(finished_at: Time.current, failure:)
+      with_lock do
+        unless finished?
+          yield if block_given?
+          update!(finished_at: Time.current, failure:)
+        end
+      end
     end
 end
