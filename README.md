@@ -31,6 +31,19 @@
 
 MoneyPouch is not a budgeting app. It has no envelopes, no "give every dollar a job", no net worth, and no investment tracking. Those features are good for some people, but most of us only want to know where the money went. MoneyPouch does that one job and stays fast.
 
+## How it compares
+
+| | Price | Budgets | Double-entry | Bank sync | Your server | Adding a purchase |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **MoneyPouch** | Free | None, tracking only | No | Optional, SimpleFIN | Yes | One line: `Chipotle 11.25 yesterday` |
+| [YNAB](https://www.ynab.com) | $109/year | Envelopes | No | Built in | No | A form |
+| [Monarch](https://www.monarchmoney.com) | $99.99/year | Category budgets | No | Built in | No | A form |
+| [Copilot](https://copilot.money) | $95/year, Apple only | Category budgets | No | Built in | No | A form |
+| [Actual Budget](https://actualbudget.org) | Free | Envelopes | No | Optional, SimpleFIN or GoCardless | Yes | A row in the register |
+| [Firefly III](https://www.firefly-iii.org) | Free | Optional | Yes | Optional, separate Data Importer | Yes | A form with source and destination accounts |
+
+Prices are for yearly plans as of October 2026. If you want a budget, Actual Budget is a good free choice. If you want real accounting, use Firefly III.
+
 ## System requirements
 
 MoneyPouch is light. The image is built for 64-bit x86 and ARM, so an old PC or a Raspberry Pi 4 or later has enough power to run it.
