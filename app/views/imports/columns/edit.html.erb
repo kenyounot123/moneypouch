@@ -5,83 +5,122 @@
   <%= render "shared/sidebar" %>
 
   <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-6">
       <div class="flex items-center justify-between gap-4">
         <h1 class="text-title">Import</h1>
         <%= button_to "Cancel", import_path(@import), method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
       </div>
-      <p class="text-secondary"><%= @import.filename %> · <%= sheet_extent sheet %>. Fix any column we guessed wrong.</p>
-      <% if sheet.skipped_tabs.any? %>
-        <p class="text-sm text-tertiary"><%= skipped_tabs_sentence sheet %></p>
-      <% end %>
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+          <span class="flex size-10 shrink-0 items-center justify-center rounded-md bg-level-3 text-secondary">
+            <span class="icon icon--import" aria-hidden="true"></span>
+          </span>
+          <div class="flex min-w-0 flex-col">
+            <p class="truncate text-md font-medium text-primary"><%= @import.filename %></p>
+            <p class="text-sm text-tertiary"><%= sheet_extent sheet %></p>
+          </div>
+        </div>
+        <% if sheet.skipped_tabs.any? %>
+          <p class="text-sm text-tertiary"><%= skipped_tabs_sentence sheet %></p>
+        <% end %>
+      </div>
     </div>
 
-    <%= form_with url: import_columns_path(@import), method: :patch, scope: :import,
-      class: "group @container flex min-w-0 flex-col rounded-lg border border-secondary bg-level-2 shadow-control" do |form| %>
-      <div class="overflow-x-auto px-0.5">
-        <table class="w-full border-collapse text-left whitespace-nowrap">
-          <thead>
-            <tr class="border-b border-secondary">
-              <% sheet.headers.each_with_index do |header, index| %>
-                <th class="px-1.5 py-2 font-normal">
-                  <span class="relative flex">
-                    <%= select_tag "import[columns][]", options_for_select(ImportsHelper::COLUMN_KINDS, columns.kind_at(index)), id: "import_column_#{index}",
-                      aria: { label: "#{header} column" },
-                      class: "h-8.5 w-full min-w-0 cursor-pointer appearance-none field-sizing-content rounded-lg border border-primary bg-level-0 pr-7 pl-3 text-sm text-primary hover:border-(--ring-color-focus) has-[option[value=skip]:checked]:border-dashed has-[option[value=skip]:checked]:text-tertiary" %>
-                    <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-tertiary" aria-hidden="true">▾</span>
-                  </span>
-                </th>
-              <% end %>
-            </tr>
-            <tr class="border-b border-secondary">
-              <% sheet.headers.each_with_index do |header, index| %>
-                <th class="<%= class_names "px-4.5 py-2.5 text-sm font-normal text-tertiary", sheet_header_classes(columns.kind_at(index)) %>"><%= header %></th>
-              <% end %>
-            </tr>
-          </thead>
-          <tbody>
-            <% sheet.preview.each do |row| %>
-              <tr class="border-b border-secondary last:border-b-0">
-                <% sheet.headers.each_index do |index| %>
-                  <td class="<%= class_names "max-w-64 truncate px-4.5 py-2.5", sheet_cell_classes(columns.kind_at(index)) %>"><%= Import::Sheet.text(row.cells[index]) %></td>
+    <section class="flex min-w-0 flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <h2 class="text-heading">What's in each column?</h2>
+        <p class="text-secondary">We guessed from your headers. Fix any we got wrong.</p>
+      </div>
+
+      <%= form_with url: import_columns_path(@import), method: :patch, scope: :import,
+        data: { controller: "columns" }, class: "group @container flex min-w-0 flex-col rounded-lg border border-secondary bg-level-2 shadow-control" do |form| %>
+        <div class="overflow-x-auto px-0.5">
+          <table class="w-full border-collapse text-left whitespace-nowrap">
+            <thead>
+              <tr class="border-b border-secondary">
+                <% sheet.headers.each_with_index do |header, index| %>
+                  <th class="px-1.5 py-2 font-normal">
+                    <span class="relative flex">
+                      <%= select_tag "import[columns][]", options_for_select(column_options, columns.kind_at(index)), id: "import_column_#{index}",
+                        data: { columns_target: "select", header: header, action: "change->columns#match" },
+                        aria: { label: "#{header} column" },
+                        class: "h-8.5 w-full min-w-0 cursor-pointer appearance-none field-sizing-content rounded-lg border border-primary bg-level-0 pr-7 pl-3 text-sm text-primary hover:border-(--ring-color-focus) has-[option[value=skip]:checked]:border-dashed has-[option[value=skip]:checked]:text-tertiary" %>
+                      <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-tertiary" aria-hidden="true">▾</span>
+                    </span>
+                  </th>
                 <% end %>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-
-      <% if more_rows(sheet).positive? %>
-        <p class="border-t border-secondary bg-level-1 px-5 py-3 text-sm text-tertiary"><%= pluralize number_with_delimiter(more_rows(sheet)), "more row" %></p>
-      <% end %>
-
-      <div class="flex flex-col gap-3 border-t border-secondary bg-level-1 px-5 py-4 @lg:flex-row @lg:items-center @lg:justify-between @lg:gap-6 group-has-[option[value=spent\_or\_income]:checked]:hidden">
-        <div class="flex flex-col gap-1">
-          <p class="text-md">Positive amounts are</p>
-          <p class="text-sm text-tertiary">Negative ones count the other way.</p>
+              <tr class="border-b border-secondary">
+                <% sheet.headers.each_with_index do |header, index| %>
+                  <th class="<%= class_names "px-4.5 py-2.5 text-sm font-normal text-tertiary", sheet_header_classes(columns.kind_at(index)) %>"><%= header %></th>
+                <% end %>
+              </tr>
+            </thead>
+            <tbody>
+              <% sheet.preview.each do |row| %>
+                <tr class="border-b border-secondary last:border-b-0">
+                  <% sheet.headers.each_index do |index| %>
+                    <td class="<%= class_names "max-w-64 truncate px-4.5 py-2.5", sheet_cell_classes(columns.kind_at(index)) %>"><%= Import::Sheet.text(row.cells[index]) %></td>
+                  <% end %>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
         </div>
-        <div role="radiogroup" aria-label="Positive amounts are" class="flex w-full shrink-0 gap-1 rounded-md bg-level-3 p-1 @lg:w-[220px]">
-          <% ImportsHelper::POSITIVE_AMOUNTS.each do |value, title| %>
-            <label class="flex-1 cursor-pointer rounded-sm px-3 py-1.5 text-center text-sm whitespace-nowrap text-secondary has-checked:bg-level-2 has-checked:font-medium has-checked:text-primary has-checked:shadow-control has-focus-visible:ring-3 has-focus-visible:ring-focus/22">
-              <%= form.radio_button :positive_amounts, value, checked: columns.positive_amounts == value, class: "sr-only" %>
-              <%= title %>
-            </label>
-          <% end %>
-        </div>
-      </div>
 
-      <div class="flex flex-col gap-3 border-t border-secondary px-5 py-4 @lg:flex-row @lg:items-center @lg:justify-between @lg:gap-6">
-        <% if columns.errors.any? %>
-          <div class="flex flex-col gap-1 text-sm text-danger" role="alert">
-            <% columns.errors.each do |message| %>
-              <p><%= message %></p>
+        <% if more_rows(sheet).positive? %>
+          <p class="border-t border-secondary bg-level-1 px-5 py-3 text-sm text-tertiary"><%= pluralize number_with_delimiter(more_rows(sheet)), "more row" %></p>
+        <% end %>
+
+        <div class="flex flex-col gap-3 border-t border-secondary bg-level-1 px-5 py-4 @lg:flex-row @lg:items-center @lg:justify-between @lg:gap-6 group-has-[option[value=spent\_or\_income]:checked]:hidden">
+          <div class="flex flex-col gap-1">
+            <p class="text-md">Positive amounts are</p>
+            <p class="text-sm text-tertiary">Negative ones count the other way.</p>
+          </div>
+          <div role="radiogroup" aria-label="Positive amounts are" class="flex w-full shrink-0 gap-1 rounded-md bg-level-3 p-1 @lg:w-[220px]">
+            <% ImportsHelper::POSITIVE_AMOUNTS.each do |value, title| %>
+              <label class="flex-1 cursor-pointer rounded-sm px-3 py-1.5 text-center text-sm whitespace-nowrap text-secondary has-checked:bg-level-2 has-checked:font-medium has-checked:text-primary has-checked:shadow-control has-focus-visible:ring-3 has-focus-visible:ring-focus/22">
+                <%= form.radio_button :positive_amounts, value, checked: columns.positive_amounts == value, class: "sr-only" %>
+                <%= title %>
+              </label>
             <% end %>
           </div>
-        <% else %>
-          <p class="text-sm text-tertiary">Rows with no date, like totals, are left out.</p>
-        <% end %>
-        <%= form.button "Next: categories ↵", class: "w-full shrink-0 cursor-pointer rounded-md bg-action px-4 py-2.5 text-button whitespace-nowrap text-on-action hover:brightness-95 @lg:w-auto" %>
-      </div>
-    <% end %>
+        </div>
+
+        <div class="flex flex-col gap-4 border-t border-secondary px-5 py-4">
+          <% column_fields(columns).each do |group, kinds| %>
+            <div class="flex flex-col gap-3 not-first:border-t not-first:border-secondary not-first:pt-4">
+              <p class="text-xs font-medium text-tertiary"><%= group %></p>
+              <ul class="grid grid-cols-1 gap-x-6 gap-y-4 @md:grid-cols-2 @3xl:grid-cols-3">
+                <% kinds.each do |kind| %>
+                  <% source = column_source(sheet, columns, kind) %>
+                  <%= tag.li class: "group/field flex items-start gap-3", data: { columns_target: "field", kind: kind, matched: source.present? ? "" : nil } do %>
+                    <span class="mt-px flex size-4 shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-(--ring-color-focus) group-data-[matched]/field:border-solid group-data-[matched]/field:border-transparent group-data-[matched]/field:bg-current group-data-[matched]/field:text-success" aria-hidden="true">
+                      <span class="icon icon--check hidden size-2.5 text-(--background-color-level-2) group-data-[matched]/field:block"></span>
+                    </span>
+                    <div class="flex min-w-0 flex-col">
+                      <p class="text-base font-medium text-secondary group-data-[matched]/field:text-primary"><%= kind_title kind %></p>
+                      <p class="text-xs text-tertiary"><%= kind_hint kind %></p>
+                      <p class="text-xs text-tertiary group-data-[matched]/field:text-secondary" data-columns-target="source"><%= source ? "from #{source}" : "Not in this file" %></p>
+                    </div>
+                  <% end %>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="flex flex-col gap-3 border-t border-secondary px-5 py-4 @lg:flex-row @lg:items-center @lg:justify-end @lg:gap-6">
+          <% if columns.errors.any? %>
+            <div class="flex flex-col gap-1 text-sm text-danger @lg:mr-auto" role="alert">
+              <% columns.errors.each do |message| %>
+                <p><%= message %></p>
+              <% end %>
+            </div>
+          <% end %>
+          <%= form.button "Next: categories ↵", class: "w-full shrink-0 cursor-pointer rounded-md bg-action px-4 py-2.5 text-button whitespace-nowrap text-on-action hover:brightness-95 @lg:w-auto" %>
+        </div>
+      <% end %>
+    </section>
   </main>
 </div>

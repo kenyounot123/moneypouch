@@ -2,16 +2,18 @@ module ImportsHelper
   FILE_TYPES = ".xlsx,.csv,.tsv,.txt,.xls,.xlsm,.numbers,.ods"
 
   COLUMN_KINDS = {
-    "Skip" => "skip",
-    "Date" => "date",
-    "Name" => "name",
-    "Amount" => "amount",
-    "Spent or income" => "spent_or_income",
-    "Category" => "category",
-    "Transfer" => "transfer",
-    "Excluded from totals" => "excluded",
-    "Note" => "note"
+    "skip" => { title: "Skip", hint: "Leave this column out." },
+    "date" => { title: "Date", hint: "When it happened." },
+    "name" => { title: "Name", hint: "What it was, like a store." },
+    "amount" => { title: "Amount", hint: "How much." },
+    "spent_or_income" => { title: "Spent or income", hint: "Says if money went out or came in." },
+    "category" => { title: "Category", hint: "You match these to yours next." },
+    "transfer" => { title: "Transfer", hint: "Yes rows are money moved between your own accounts." },
+    "excluded" => { title: "Excluded from totals", hint: "Yes rows are kept but left out of totals." },
+    "note" => { title: "Note", hint: "Extra words saved on the transaction." }
   }
+
+  FIELD_ORDER = %w[ date amount name spent_or_income category transfer excluded note ]
 
   POSITIVE_AMOUNTS = { "spent" => "Spent", "income" => "Income" }
 
@@ -49,6 +51,32 @@ module ImportsHelper
 
   def more_rows(sheet)
     sheet.rows.size - sheet.preview.size
+  end
+
+  def column_options
+    COLUMN_KINDS.map { |kind, column| [ column[:title], kind ] }
+  end
+
+  def column_fields(columns)
+    needed, optional = FIELD_ORDER.partition { |kind| columns.needed?(kind) }
+
+    { "Needed" => needed, "If your file has them" => optional }
+  end
+
+  def kind_title(kind)
+    COLUMN_KINDS.fetch(kind)[:title]
+  end
+
+  def kind_hint(kind)
+    COLUMN_KINDS.fetch(kind)[:hint]
+  end
+
+  def column_source(sheet, columns, kind)
+    index = columns.index_of(kind)
+
+    if index
+      sheet.headers[index]
+    end
   end
 
   def sheet_header_classes(kind)
