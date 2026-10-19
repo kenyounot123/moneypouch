@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Times a brand-new install: from `docker run` on an empty volume to the first page a user sees.
+# Usage: script/first_boot [image] [runs]
+set -euo pipefail
+
+image=${1:-ghcr.io/kenyounot123/moneypouch:latest}
+runs=${2:-5}
+port=18080
+
+now_ms() {
+  perl -MTime::HiRes=time -e 'printf "%d\n", time * 1000'
+}
+
+for run in $(seq "$runs"); do
+  name=moneypouch-first-boot-$run
+  docker rm -f "$name" >/dev/null 2>&1 || true
+  docker volume rm "$name" >/dev/null 2>&1 || true
+
+  start=$(now_ms)
+  docker run -d --name "$name" -p "$port:80" -v "$name:/rails/storage" "$image" >/dev/null
+  until curl -sf -o /dev/null "http://localhost:$port/up"; do
+    sleep 0.05
+  done
+  status=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "http://localhost:$port/")
+  elapsed=$(( $(now_ms) - start ))
+
+  echo "run $run: ${elapsed} ms, GET / -> $status"
+  docker rm -f "$name" >/dev/null
+  docker volume rm "$name" >/dev/null
+done

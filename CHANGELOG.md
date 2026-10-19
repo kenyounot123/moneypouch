@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.9.0](https://github.com/kenyounot123/moneypouch/compare/v0.8.0...v0.9.0) (2026-10-19)
+
+
+### Features
+
+* **import:** explain each column choice on the Columns step ([#121](https://github.com/kenyounot123/moneypouch/issues/121)) ([1a84c6e](https://github.com/kenyounot123/moneypouch/commit/1a84c6e1d122c1c7b35149bbc66ebd572f7f0ae5))
+* **settings:** show the running version under About ([#123](https://github.com/kenyounot123/moneypouch/issues/123)) ([6a45473](https://github.com/kenyounot123/moneypouch/commit/6a4547329bbab1f0c8b27ca9233221a757c24b23))
+
+## [0.8.0](https://github.com/kenyounot123/moneypouch/compare/v0.7.0...v0.8.0) (2026-10-18)
+
+
+### Features
+
+* **docker:** install MoneyPouch with one command on any OS ([#117](https://github.com/kenyounot123/moneypouch/issues/117)) ([10c8436](https://github.com/kenyounot123/moneypouch/commit/10c8436b5e9e2fdc0a2b4138c8fb96781bab0481))
+* **releases:** show what changed after an update ([#118](https://github.com/kenyounot123/moneypouch/issues/118)) ([e13ec8b](https://github.com/kenyounot123/moneypouch/commit/e13ec8b7977292ed2b1caa5ce58eb7ad96c10b68))
+
+## [0.7.0](https://github.com/kenyounot123/moneypouch/compare/v0.6.0...v0.7.0) (2026-10-18)
+
+
+### Features
+
+* **categories:** every category is spending or income, and money in offsets its own category ([#109](https://github.com/kenyounot123/moneypouch/issues/109)) ([314cc1a](https://github.com/kenyounot123/moneypouch/commit/314cc1ab640f5ba40d6b53f1f71b39fa41c7345c))
+* **composer:** color the shorthand in the field and sum it up in one line ([#110](https://github.com/kenyounot123/moneypouch/issues/110)) ([2f1fa2a](https://github.com/kenyounot123/moneypouch/commit/2f1fa2a38f71de2c84520802b0c4d450557db0d1))
+* **overview:** show money in green and add sample paychecks as income ([#106](https://github.com/kenyounot123/moneypouch/issues/106)) ([391f0bb](https://github.com/kenyounot123/moneypouch/commit/391f0bb3b8c25032e7d1f886ba3d7ec9027f69a3))
+* **overview:** summary chart follows the period and keeps bars on screen while one is in focus ([#104](https://github.com/kenyounot123/moneypouch/issues/104)) ([deda440](https://github.com/kenyounot123/moneypouch/commit/deda44063d594b4af2a5498fe4480934926b5b5b))
+* **transactions:** replace the month footer with a back-to-top button ([#103](https://github.com/kenyounot123/moneypouch/issues/103)) ([fbc6581](https://github.com/kenyounot123/moneypouch/commit/fbc658115e302bf2bdd920e97d922084f6c4c669))
+
+
+### Bug Fixes
+
+* explain SimpleFIN in Settings and drop "so far" from the summary readout ([#108](https://github.com/kenyounot123/moneypouch/issues/108)) ([33f0fd7](https://github.com/kenyounot123/moneypouch/commit/33f0fd7cb790dc84d19f794841a37ecdcfe37ed4))
+* **simplefin:** keep a cancelled sync from saving the bank's late answer ([#115](https://github.com/kenyounot123/moneypouch/issues/115)) ([1a7042d](https://github.com/kenyounot123/moneypouch/commit/1a7042daf0699fa91a33579ef25e131039baac39))
+* **transactions:** clear a category by saving an empty picker ([#107](https://github.com/kenyounot123/moneypouch/issues/107)) ([be84a00](https://github.com/kenyounot123/moneypouch/commit/be84a00da54b06a05d262866c98e6b4cdcdde818))
+
 ## [0.6.0](https://github.com/kenyounot123/moneypouch/compare/v0.5.0...v0.6.0) (2026-10-16)
 
 

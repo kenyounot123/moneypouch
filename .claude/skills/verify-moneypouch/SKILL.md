@@ -55,7 +55,7 @@ Prints JSON with `serverAlive`, `chromeAlive`, `holderAlive`, `up` (the `/up` st
 | Resize viewport | `$M resize 375 812 --port N`. A small detached holder process per instance keeps the emulated viewport applied between commands, so the page does not see a resize until the next `resize`. Chrome headless cannot shrink its window below 500 px, which is why emulation is used. Prints `scrollWidth`; equal to the width means no horizontal scroll. |
 | Switch theme | `$M theme dark --port N`. Real mouse click on the Settings page button, going to `/settings` first when the button is not on the page. Waits for `html[data-theme]` and the `theme` cookie, and fails if the button is missing. |
 | Navigate | `$M goto /session/new --port N` |
-| Sign in or out | `$M signin demo wrong --port N`, `$M signout --port N` |
+| Sign in or out | `$M signin demo wrong --port N`, `$M signout --port N`. `signin` does nothing while the page is signed in, so `signout` first. `signout` sends `DELETE /session` with `fetch`, not the Settings button. |
 | Page text | `$M text '#alert' --port N` |
 | Run JS | `$M js 'document.documentElement.dataset.theme' --port N` |
 | Read-only query | `$M query 'Transaction.count'` |

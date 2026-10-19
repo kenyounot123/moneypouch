@@ -14,6 +14,16 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[data-theme=dark]", text: "Dark"
   end
 
+  test "shows the running version under About" do
+    get settings_url
+
+    assert_select "section h2", text: "About"
+    assert_select "section:has(h2)", text: /About/ do
+      assert_select "p.text-secondary", text: /\A\d+\.\d+\.\d+\z/
+      assert_select "p.text-secondary", text: Release.current_version
+    end
+  end
+
   test "marks Settings as the current sidebar page" do
     get settings_url
 

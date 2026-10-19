@@ -14,6 +14,8 @@ class User < ApplicationRecord
 
   has_one :simplefin_access, class_name: "Simplefin::Access", dependent: :destroy
 
+  attribute :seen_version, default: -> { Release.current_version }
+
   after_create :create_income_category
 
   def connect_simplefin(setup_token)
@@ -33,6 +35,14 @@ class User < ApplicationRecord
     end
 
     import
+  end
+
+  def unseen_releases
+    Release.newer_than(seen_version)
+  end
+
+  def see_releases
+    update!(seen_version: Release.current_version)
   end
 
   def income_category

@@ -3,6 +3,14 @@ require "active_support/core_ext/integer/time"
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
+  # Without SECRET_KEY_BASE, keep a generated key in storage/ so one volume holds everything to back up.
+  # The asset build sets SECRET_KEY_BASE_DUMMY, which keeps a key from being baked into the image.
+  unless ENV["SECRET_KEY_BASE"] || ENV["SECRET_KEY_BASE_DUMMY"]
+    secret_key_base = Rails.root.join("storage/secret_key_base")
+    secret_key_base.write(SecureRandom.hex(64), perm: 0o600) unless secret_key_base.exist?
+    config.secret_key_base = secret_key_base.read
+  end
+
   # Code is not reloaded between requests.
   config.enable_reloading = false
 

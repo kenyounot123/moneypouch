@@ -1,0 +1,37 @@
+<dialog aria-labelledby="release-notes-title" data-controller="release-notes" data-turbo-temporary
+  data-action="click->release-notes#dismiss close->release-notes#markSeen turbo:before-morph-attribute->release-notes#keepOpen"
+  class="m-auto max-h-[85dvh] w-[calc(100%-2rem)] max-w-[480px] overflow-hidden rounded-lg border-0 bg-level-2 p-0 text-primary shadow-xl backdrop:bg-scrim">
+  <div class="flex max-h-[85dvh] flex-col gap-5 p-6">
+    <div class="flex flex-col gap-1">
+      <h2 id="release-notes-title" class="text-heading">You're now on version <%= Release.current_version %></h2>
+      <% if releases.first.date %>
+        <p class="text-sm text-tertiary"><%= short_date releases.first.date %></p>
+      <% end %>
+    </div>
+
+    <div class="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
+      <% releases.each do |release| %>
+        <section class="flex flex-col gap-4">
+          <% if releases.many? %>
+            <h3 class="text-md font-medium"><%= release.version %></h3>
+          <% end %>
+          <% release.sections.each do |section| %>
+            <div class="flex flex-col gap-2">
+              <h4 class="text-sm text-tertiary"><%= section.title %></h4>
+              <ul class="flex list-disc flex-col gap-1.5 pl-5 text-md text-secondary">
+                <% section.items.each do |item| %>
+                  <li><%= item %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+        </section>
+      <% end %>
+    </div>
+
+    <%= form_with url: seen_release_path, class: "flex items-center justify-between gap-4", data: { release_notes_target: "form" } do %>
+      <%= link_to "All releases", "https://github.com/kenyounot123/moneypouch/releases", target: "_blank", rel: "noopener", class: SimplefinHelper::HEADER_BUTTON %>
+      <button type="button" data-action="release-notes#close" class="cursor-pointer rounded-md bg-action px-4 py-3 text-button text-on-action hover:brightness-95">Got it</button>
+    <% end %>
+  </div>
+</dialog>

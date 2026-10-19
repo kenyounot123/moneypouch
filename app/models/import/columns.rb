@@ -17,9 +17,11 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
     "note" => %w[ note notes memo comment comments ]
   }
 
+  NEEDED = { "date" => "Choose a Date column.", "amount" => "Choose an Amount column." }
+
   READS_AS = 0.8
   MOSTLY_SPENT = 0.9
-  private_constant :KINDS, :POSITIVE_AMOUNTS, :SPENT_WORDS, :INCOME_WORDS, :NO_WORDS, :HEADER_WORDS, :READS_AS, :MOSTLY_SPENT
+  private_constant :KINDS, :POSITIVE_AMOUNTS, :SPENT_WORDS, :INCOME_WORDS, :NO_WORDS, :HEADER_WORDS, :NEEDED, :READS_AS, :MOSTLY_SPENT
 
   class << self
     def guess(sheet)
@@ -138,12 +140,10 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
   def errors
     messages = []
 
-    if kinds.exclude?("date")
-      messages << "Choose a Date column."
-    end
-
-    if kinds.exclude?("amount")
-      messages << "Choose an Amount column."
+    NEEDED.each do |kind, message|
+      if kinds.exclude?(kind)
+        messages << message
+      end
     end
 
     (kinds - [ "skip" ]).tally.each do |kind, count|
@@ -153,6 +153,14 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
     end
 
     messages
+  end
+
+  def needed?(kind)
+    NEEDED.key?(kind)
+  end
+
+  def index_of(kind)
+    kinds.index(kind)
   end
 
   def kind_at(index)
@@ -209,10 +217,6 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
   end
 
   private
-    def index_of(kind)
-      kinds.index(kind)
-    end
-
     def cell(sheet_row, kind)
       index = index_of(kind)
 
