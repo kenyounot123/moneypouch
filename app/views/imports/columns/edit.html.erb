@@ -88,9 +88,9 @@
         </div>
 
         <div class="flex flex-col gap-4 border-t border-secondary px-5 py-4">
-          <% column_fields(columns).each do |label, kinds| %>
+          <% column_fields(columns).each do |group, kinds| %>
             <div class="flex flex-col gap-3 not-first:border-t not-first:border-secondary not-first:pt-4">
-              <p class="text-xs font-medium text-tertiary"><%= label %></p>
+              <p class="text-xs font-medium text-tertiary"><%= group %></p>
               <ul class="grid grid-cols-1 gap-x-6 gap-y-4 @md:grid-cols-2 @3xl:grid-cols-3">
                 <% kinds.each do |kind| %>
                   <% source = column_source(sheet, columns, kind) %>
