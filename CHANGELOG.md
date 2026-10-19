@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0](https://github.com/kenyounot123/moneypouch/compare/v0.8.0...v0.9.0) (2026-10-19)
+
+
+### Features
+
+* **import:** explain each column choice on the Columns step ([#121](https://github.com/kenyounot123/moneypouch/issues/121)) ([1a84c6e](https://github.com/kenyounot123/moneypouch/commit/1a84c6e1d122c1c7b35149bbc66ebd572f7f0ae5))
+* **settings:** show the running version under About ([#123](https://github.com/kenyounot123/moneypouch/issues/123)) ([6a45473](https://github.com/kenyounot123/moneypouch/commit/6a4547329bbab1f0c8b27ca9233221a757c24b23))
+
 ## [0.8.0](https://github.com/kenyounot123/moneypouch/compare/v0.7.0...v0.8.0) (2026-10-18)
 
 
