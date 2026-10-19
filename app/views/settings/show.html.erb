@@ -4,12 +4,12 @@
   <%= render "shared/sidebar" %>
 
   <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
-    <h1 class="font-pixel text-[28px] leading-[34px] font-semibold tracking-pixel">Settings</h1>
+    <h1 class="text-title">Settings</h1>
 
     <div class="flex max-w-[560px] flex-col gap-10">
       <section class="flex flex-col gap-4">
         <div class="flex items-baseline justify-between border-b border-secondary pb-3">
-          <h2 class="font-pixel text-lg font-semibold tracking-pixel">Appearance</h2>
+          <h2 class="text-heading">Appearance</h2>
         </div>
 
         <div class="flex items-center justify-between gap-6">
@@ -31,12 +31,37 @@
 
       <section class="flex flex-col gap-4">
         <div class="flex items-baseline justify-between border-b border-secondary pb-3">
-          <h2 class="font-pixel text-lg font-semibold tracking-pixel">Account</h2>
+          <h2 class="text-heading">Your data</h2>
+        </div>
+
+        <div class="flex items-center justify-between gap-6">
+          <div class="flex flex-col gap-1">
+            <p class="text-md">Download every transaction</p>
+            <p class="text-sm text-tertiary">A CSV file that opens in any spreadsheet app.</p>
+          </div>
+          <%= link_to "Download CSV", transactions_download_path(format: :csv), data: { turbo: false }, class: SimplefinHelper::OUTLINE_BUTTON %>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-4">
+        <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+          <h2 class="text-heading">Account</h2>
         </div>
 
         <div class="flex items-center justify-between gap-6">
           <p class="text-md text-secondary">Signed in as <span class="font-medium text-primary"><%= Current.user.username %></span></p>
           <%= button_to "Sign out", session_path, method: :delete, class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium text-secondary hover:bg-level-3 hover:text-primary" %>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-4">
+        <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+          <h2 class="text-heading">About</h2>
+        </div>
+
+        <div class="flex items-center justify-between gap-6">
+          <p class="text-md">Version</p>
+          <p class="text-md text-secondary"><%= Release.current_version %></p>
         </div>
       </section>
     </div>

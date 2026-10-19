@@ -1,4 +1,4 @@
-<div id="<%= id %>" data-controller="toast" <%= tag.attributes(data: local_assigns.fetch(:data, {})) %> popover="manual" class="fixed inset-auto bottom-6 left-1/2 m-0 md:left-[calc(50%+var(--container-sidebar)/2)] lg:bottom-25 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 overflow-visible border-0 bg-transparent p-0 transition-opacity duration-200">
+<div id="<%= id %>" data-controller="toast" popover="manual" class="fixed inset-auto bottom-6 left-1/2 m-0 max-md:in-data-[composer=docked]:bottom-25 md:left-[calc(50%+var(--container-sidebar)/2)] lg:bottom-27 w-max max-w-[calc(100vw-2.5rem)] -translate-x-1/2 overflow-visible border-0 bg-transparent p-0 transition-opacity duration-200">
   <div class="flex items-center gap-4 rounded-lg border border-primary bg-level-2 py-2.5 pr-2.5 pl-4 shadow-control">
     <%= yield %>
   </div>

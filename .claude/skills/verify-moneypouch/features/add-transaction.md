@@ -4,12 +4,12 @@
 
 - Composer on the Overview, inside the ⌘K palette: the `Add` input, the `Add ↵` button, and the preview frame `turbo-frame#voucher` attached under them.
 - Enter or `Add ↵` posts the shorthand to `POST /transactions`, see [composer.md](composer.md) for the toast and undo.
-- `/transactions` lists the user's kept transactions as `ul#transactions > li`, newest `occurred_on` first, each with a Delete button that discards the row.
-- `bin/rails "dev:transactions[N]"` adds N realistic rows for `demo` across the last 12 months.
+- `/transactions` is the month ledger, see [transactions.md](transactions.md).
+- `bin/rails "dev:transactions[N]"` adds N realistic rows for `demo` across the last 12 months, about 4% of them `Paycheck` money in under `Income`.
 
 ## How to get to it (user POV)
 
-Sign in. The composer sits at the top of `/`. Type shorthand such as `coffee 5.50 yesterday`, then press Enter or click `Add ↵`. The sidebar's Transactions link opens `/transactions`.
+Sign in. On `/` press ⌘K or click `Add a transaction` (at the top below `lg`, at the bottom from `lg`) to open the composer. Type shorthand such as `coffee 5.50 yesterday`, then press Enter or click `Add ↵`. The sidebar's Transactions link opens `/transactions`.
 
 ## Driving it with mp.mjs
 
@@ -26,6 +26,6 @@ Sign in. The composer sits at the top of `/`. Type shorthand such as `coffee 5.5
 
 - Invalid shorthand answers `422` and saves nothing, so a `POST /transactions` in the log is not proof of an add. Check the count.
 - `TransactionsController#create` takes `shorthand` and `idempotency_key`. A second post with the same key returns the first row.
-- `/transactions` renders each row with `transactions/_transaction.html.erb`, the same `<li>` Recent uses. Count rows with `mp.mjs js 'document.querySelectorAll("#transactions > li").length' --port N`. Delete discards the row (sets `discarded_at`), so `Transaction.count` stays the same.
-- `User#transactions` returns kept rows only. Count discarded rows with `User#discarded_transactions`.
+- `/transactions` renders each row with `transactions/_row.html.erb`, not Recent's `_transaction.html.erb`. Count a month's rows with `mp.mjs js 'document.querySelectorAll("main section li").length' --port N`. Delete discards the row (sets `discarded_at`), so `Transaction.count` stays the same.
+- `User#transactions` returns kept rows only. Count discarded rows with `Transaction.where.not(discarded_at: nil)`.
 - `dev:transactions` writes to the development database every instance shares, and repeated runs add rows. It loads the seed first, so it also resets the `demo` password.

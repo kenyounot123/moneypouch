@@ -4,6 +4,7 @@ require "rails/test_help"
 require_relative "test_helpers/session_test_helper"
 require_relative "test_helpers/simplefin_test_helper"
 require_relative "test_helpers/bank_sync_test_helper"
+require_relative "test_helpers/import_test_helper"
 
 module ActiveSupport
   class TestCase

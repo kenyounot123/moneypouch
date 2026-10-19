@@ -1,16 +1,29 @@
 import { Controller } from "@hotwired/stimulus"
 
 const OPTION = "flex cursor-pointer items-center rounded-sm px-2.5 py-1.5"
-const TRANSFER_ICON = `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" class="shrink-0 text-tertiary"><path d="M2 4.5h9M8.5 2l2.5 2.5L8.5 7M12 9.5H3M5.5 7L3 9.5 5.5 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+const SIZES = {
+  small: {
+    form: "relative w-[140px] max-w-full",
+    field: "h-7 rounded-sm px-2.5 text-sm",
+    list: "absolute top-full left-0 z-10 mt-1 w-56 text-sm",
+  },
+  large: {
+    form: "flex w-full flex-col",
+    field: "h-11 rounded-md px-3 text-md",
+    list: "mt-1 w-full text-md",
+  },
+}
+const TRANSFER_ICON = `<span class="icon icon--transfer size-3.5 text-tertiary" aria-hidden="true"></span>`
 
 export default class extends Controller {
   static targets = ["category"]
-  static values = { categories: Array }
+  static values = { categories: Array, size: { type: String, default: "small" } }
 
-  open({ currentTarget, params: { url, category } }) {
+  open({ currentTarget, params: { url, category, moneyIn } }) {
     this.close()
-    this.row = currentTarget.closest("li")
-    this.label = this.categoryTargets.find((target) => this.row.contains(target))
+    this.moneyIn = moneyIn
+    this.row = currentTarget.closest("li") ?? this.element
+    this.label = this.categoryTargets.find((target) => this.row.contains(target)).querySelector("button")
     this.label.hidden = true
     this.form = this.editor(url)
     this.label.before(this.form)
@@ -34,15 +47,16 @@ export default class extends Controller {
     const form = document.createElement("form")
     form.action = url
     form.method = "post"
-    form.className = "relative min-w-24 max-w-[140px] flex-1"
+    const size = SIZES[this.sizeValue]
+    form.className = size.form
     form.dataset.turboFrame = "_top"
     form.innerHTML = `
       <input type="hidden" name="_method" value="patch">
       <input type="hidden" name="categorization[transfer]" value="0">
       <input name="categorization[category]" role="combobox" aria-label="Category" aria-autocomplete="list" aria-expanded="true" aria-controls="category-picker-list"
         autocomplete="off" spellcheck="false" placeholder="Category"
-        class="h-7 w-full rounded-sm border border-(--ring-color-focus) bg-level-2 px-2.5 text-sm outline-none shadow-[0_0_0_3px_color-mix(in_oklab,var(--ring-color-focus)_22%,transparent)] placeholder:text-tertiary">
-      <div id="category-picker-list" role="listbox" class="absolute top-full left-0 z-10 mt-1 max-h-[250px] w-56 overflow-y-auto rounded-md border border-primary bg-level-2 p-1 text-sm shadow-control"></div>`
+        class="${size.field} w-full border border-(--ring-color-focus) bg-level-2 outline-none shadow-[0_0_0_3px_color-mix(in_oklab,var(--ring-color-focus)_22%,transparent)] placeholder:text-tertiary">
+      <div id="category-picker-list" role="listbox" class="${size.list} max-h-[250px] overflow-y-auto rounded-md border border-primary bg-level-2 p-1 shadow-control"></div>`
     this.field = form.querySelector("[role=combobox]")
     this.list = form.querySelector("[role=listbox]")
     this.transfer = form.querySelector("[name='categorization[transfer]']")
@@ -55,11 +69,15 @@ export default class extends Controller {
     return form
   }
 
-  render(index = 0) {
+  // An empty field highlights nothing, so Enter saves it blank and clears the category.
+  render(index = this.field.value.trim() ? 0 : -1) {
     const typed = this.field.value.trim()
-    const names = this.categoriesValue.filter((name) => name.toLowerCase().startsWith(typed.toLowerCase()))
-    const exact = names.some((name) => name.toLowerCase() === typed.toLowerCase())
-    this.items = names.map((name) => ({ name }))
+    const matching = this.categoriesValue.filter(([name]) => name.toLowerCase().startsWith(typed.toLowerCase()))
+    const exact = matching.some(([name]) => name.toLowerCase() === typed.toLowerCase())
+    const leading = matching.filter(([, income]) => income === this.moneyIn).map(([name]) => ({ name }))
+    const trailing = matching.filter(([, income]) => income !== this.moneyIn).map(([name]) => ({ name }))
+    if (trailing.length) trailing[0].heading = this.moneyIn ? "Refund to" : "Income"
+    this.items = [...leading, ...trailing]
     if (typed && !exact && typed.toLowerCase() !== "transfer") this.items.push({ name: typed, isNew: true })
     if ("transfer".startsWith(typed.toLowerCase())) this.items.push({ name: "Transfer", transfer: true })
     this.index = Math.min(index, this.items.length - 1)
@@ -76,14 +94,24 @@ export default class extends Controller {
   }
 
   entry(item, position) {
-    if (item.transfer && position > 0) {
-      const divider = document.createElement("div")
-      divider.setAttribute("role", "presentation")
-      divider.className = "mx-1 my-1 h-px bg-(--border-color-secondary)"
-      return [ divider, this.option(item, position) ]
+    if (item.heading) {
+      const heading = document.createElement("div")
+      heading.setAttribute("role", "presentation")
+      heading.className = "px-2.5 pt-1 pb-1 text-xs text-tertiary"
+      heading.textContent = item.heading
+      return [ ...(position > 0 ? [ this.divider() ] : []), heading, this.option(item, position) ]
+    } else if (item.transfer && position > 0) {
+      return [ this.divider(), this.option(item, position) ]
     } else {
       return [ this.option(item, position) ]
     }
+  }
+
+  divider() {
+    const divider = document.createElement("div")
+    divider.setAttribute("role", "presentation")
+    divider.className = "mx-1 my-1 h-px bg-(--border-color-secondary)"
+    return divider
   }
 
   option(item, position) {
@@ -100,7 +128,7 @@ export default class extends Controller {
       const name = document.createElement("span")
       name.className = "font-medium"
       name.textContent = item.name
-      label.append("New category ", name)
+      label.append(this.moneyIn ? "New income category " : "New category ", name)
     } else if (item.transfer) {
       option.classList.add("gap-2")
       option.insertAdjacentHTML("afterbegin", TRANSFER_ICON)
@@ -125,7 +153,7 @@ export default class extends Controller {
       this.render((this.index + 1) % this.items.length)
     } else if (event.key === "ArrowUp" && this.items.length) {
       event.preventDefault()
-      this.render((this.index + this.items.length - 1) % this.items.length)
+      this.render((Math.max(this.index, 0) + this.items.length - 1) % this.items.length)
     } else if (event.key === "Tab" && this.index >= 0) {
       event.preventDefault()
       this.field.value = this.items[this.index].name
@@ -137,7 +165,7 @@ export default class extends Controller {
       event.preventDefault()
       const label = this.label
       this.close()
-      label.querySelector("button").focus()
+      label.focus()
     }
   }
 
@@ -167,7 +195,7 @@ export default class extends Controller {
     const item = this.items[this.index]
     if (item) this.field.value = item.name
     this.transfer.value = item?.transfer ? "1" : "0"
-    this.label.querySelector("button").textContent = this.field.value.trim() || "Uncategorized"
+    this.label.textContent = this.field.value.trim() || "Uncategorized"
     this.form.requestSubmit()
   }
 }

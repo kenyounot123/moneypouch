@@ -7,7 +7,7 @@ class Simplefin::ReviewsController < ApplicationController
     set_page_and_extract_portion_from @review.transactions_in(@list, including: categorized_id), per_page: 50
     keep_categorized_for_later_page(categorized_id)
     @rules = Current.user.rules.latest.with_row_counts
-    @category_names = Current.user.categories.alphabetically.pluck(:name)
+    @categories = Current.user.categories.alphabetically
   end
 
   def update

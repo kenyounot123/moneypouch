@@ -8,13 +8,13 @@ class RuleOfferTest < ActionDispatch::IntegrationTest
   end
 
   test "a pick on a bank row asks under that row whether to make it a rule" do
-    grocery = imported(-13_550)
+    grocery = added_by_bank(-13_550)
 
     pick grocery, category: "Food"
 
-    assert_nil BankAccount::Rule.first
+    assert_nil Rule.first
     assert_select "li#transaction_#{grocery.id} p", text: "Always put transactions named “Grocery store” in the Food category?"
-    assert_select "li#transaction_#{grocery.id} p", text: "1 more waiting now, plus future syncs."
+    assert_select "li#transaction_#{grocery.id} p", text: "3 more waiting now, plus future syncs."
     assert_select "li#transaction_#{grocery.id} button[data-action='dismiss#dismiss']", text: "Just this one"
     assert_select "li#transaction_#{grocery.id} form[action=?] button", transaction_rule_path(grocery), text: "Make a rule"
     assert_select "[data-controller=dismiss]", 1
@@ -24,16 +24,16 @@ class RuleOfferTest < ActionDispatch::IntegrationTest
   end
 
   test "a transfer pick asks to mark the name as a transfer" do
-    shack = imported(-1_000)
+    shack = added_by_bank(-1_000)
 
     pick shack, transfer: "1"
 
     assert_select "li#transaction_#{shack.id} p", text: "Always mark transactions named “John's Fishin Shack” as Transfer?"
-    assert_select "li#transaction_#{shack.id} p", text: "Applies to future syncs."
+    assert_select "li#transaction_#{shack.id} p", text: "2 more waiting now, plus future syncs."
   end
 
   test "the picked row stays in its list so the question has a place" do
-    grocery = imported(-13_550)
+    grocery = added_by_bank(-13_550)
 
     pick grocery, category: "Food"
 
@@ -42,7 +42,7 @@ class RuleOfferTest < ActionDispatch::IntegrationTest
   end
 
   test "no question when the account already has that rule, after a typed row, or after clearing" do
-    grocery = imported(-13_550)
+    grocery = added_by_bank(-13_550)
     grocery.categorize(Transaction::Categorization.new(category: categories(:food)))
     grocery.make_rule
 
@@ -52,7 +52,7 @@ class RuleOfferTest < ActionDispatch::IntegrationTest
     pick transactions(:paycheck), category: "Food"
     assert_select "[data-controller=dismiss]", 0
 
-    pick imported(-17_667), category: ""
+    pick added_by_bank(-17_667), category: ""
     assert_select "[data-controller=dismiss]", 0
   end
 
@@ -61,7 +61,7 @@ class RuleOfferTest < ActionDispatch::IntegrationTest
     rows = demo_account(report, "Demo Checking")["transactions"]
     55.times { |index| rows << rows[2].merge("id" => "more-#{index}", "amount" => "-#{index + 1}.00", "payee" => "Shop #{index}") }
     sync_again(@access, report:)
-    grocery = imported(-13_550)
+    grocery = added_by_bank(-13_550)
 
     pick grocery, category: "Food"
     assert_select "li#transaction_#{grocery.id}", 0
@@ -74,7 +74,7 @@ class RuleOfferTest < ActionDispatch::IntegrationTest
   end
 
   test "on the Overview the picked row stays in the bank block and asks once" do
-    grocery = imported(-17_001)
+    grocery = added_by_bank(-17_001)
 
     patch transaction_categorization_url(grocery), params: { categorization: { category: "Food" } }, headers: { "HTTP_REFERER" => root_url }
     follow_redirect!
@@ -90,7 +90,7 @@ class RuleOfferTest < ActionDispatch::IntegrationTest
       follow_redirect!
     end
 
-    def imported(cents)
-      Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: cents).transaction_id)
+    def added_by_bank(cents)
+      Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: cents).transaction_id)
     end
 end

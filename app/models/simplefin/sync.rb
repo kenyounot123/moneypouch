@@ -10,11 +10,10 @@ class Simplefin::Sync < ApplicationRecord
   scope :succeeded, -> { finished.where(failure: nil) }
   scope :answered, -> { finished.where(failure: [ nil, "lapsed", "revoked" ]) }
   scope :recent, ->(within) { where(created_at: within.ago..) }
-  scope :with_bank_transactions, -> { where.associated(:bank_transactions).distinct }
   scope :unreviewed, -> { finished.where(reviewed_at: nil) }
 
-  def self.imported_transactions
-    Transaction.kept.where(id: BankTransaction.imported.where(simplefin_sync_id: select(:id)).select(:transaction_id))
+  def self.added_transactions
+    Transaction.kept.where(id: BankTransaction.unmatched.where(simplefin_sync_id: select(:id)).select(:transaction_id))
   end
 
   def self.abandon_stale
@@ -29,7 +28,7 @@ class Simplefin::Sync < ApplicationRecord
     return if finished?
 
     Time.use_zone(access.time_zone) do
-      Transaction.broadcasting_once_for(access.user) { import }
+      Transaction.broadcasting_once_for(access.user) { fetch }
     end
   end
 
@@ -45,30 +44,30 @@ class Simplefin::Sync < ApplicationRecord
     failure == "lapsed"
   end
 
-  def imported_count
-    bank_transactions.imported.count
-  end
-
-  def matched_count
-    bank_transactions.matched.count
-  end
-
   private
-    def import
-      access.client.accounts(since: access.history_start).each do |simplefin_account|
-        access.update_account(simplefin_account).import(simplefin_account.transactions, sync: self)
+    def fetch
+      simplefin_accounts = access.client.accounts(since: access.history_start)
+
+      finish do
+        simplefin_accounts.each do |simplefin_account|
+          access.update_account(simplefin_account).add_transactions(simplefin_account.transactions, sync: self)
+        end
       end
-      finish
     rescue Simplefin::PaymentRequired
       finish("lapsed")
     rescue Simplefin::AccessRevoked, ActiveRecord::Encryption::Errors::Decryption
-      access.revoke
-      finish("revoked")
+      finish("revoked") { access.revoke }
     rescue Simplefin::Unavailable
       finish("unavailable")
     end
 
+    # A disconnect or stale abandonment can finish this sync while the bank is still answering.
     def finish(failure = nil)
-      update!(finished_at: Time.current, failure:)
+      with_lock do
+        unless finished?
+          yield if block_given?
+          update!(finished_at: Time.current, failure:)
+        end
+      end
     end
 end

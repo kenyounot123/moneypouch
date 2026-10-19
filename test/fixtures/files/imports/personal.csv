@@ -1,0 +1,15 @@
+Date,Item,Category,Amount,Excluded,Note
+2024-10-01,Blue Bottle,Coffee,5.50,,
+2024-10-01,Blue Bottle,Coffee,5.50,,
+2024-10-01,Blue Bottle,Coffee,5.50,,
+2024-10-02,Whole Foods,Groceries,"1,234.56",,big shop
+2024-10-03,Flight to Tokyo,Travel,820.00,yes,work trip
+
+2024-10-04,Trader Joe's,groceries,42.10,,
+2024-10-05,Blue Bottle,Coffee,-5.50,,  refund  
+2024-10-06,Rent,Housing,2000.00,,
+2024-10-07,,Groceries,18.00,,
+2024-10-08,Cinema,Fun,abc,,
+2024-10-09,Bookshop,Fun,24.00,,
+2024-10-10,Sushi,food,36.40,,
+,Total,,"4,183.06",,

@@ -120,7 +120,7 @@ class Simplefin::AccessTest < ActiveSupport::TestCase
     assert access.syncable?
   end
 
-  test "disconnecting forgets the access URL and keeps every imported row" do
+  test "disconnecting forgets the access URL and keeps every row the bank added" do
     access = connect_simplefin
     activate(access)
 

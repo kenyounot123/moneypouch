@@ -21,6 +21,16 @@ class VoucherTest < ActiveSupport::TestCase
     assert_equal [ "travel", users(:one), true ], [ category.name, category.user, category.new_record? ]
   end
 
+  test "money in with nothing to infer from goes to Income, and a new word on money in is an income category" do
+    assert_equal categories(:income), build("Bonus +500").category
+    assert_nil build("Parking 8").category
+    assert_equal [ "Salary", true, true ], build("Bonus +500 #Salary").category.then { |category| [ category.name, category.income?, category.new_record? ] }
+  end
+
+  test "money in from a name last spent in a category is a refund to it" do
+    assert_equal categories(:food), build("Blue Bottle +5.50").category
+  end
+
   test "matches a hash word only among the user's own categories" do
     category = build("lunch 12 #food", user: users(:two)).category
 
@@ -33,12 +43,11 @@ class VoucherTest < ActiveSupport::TestCase
     assert_equal [ categories(:food), true ], [ voucher.category, voucher.inferred? ]
   end
 
-  test "infers from the latest transaction, or the one before it when that is being edited" do
+  test "infers from the latest transaction with that name" do
     cafe = users(:one).categories.create!(name: "Cafe")
-    newer = users(:one).transactions.create!(name: "Blue Bottle", amount_in_cents: -600, occurred_on: "2026-10-02", category: cafe)
+    users(:one).transactions.create!(name: "Blue Bottle", amount_in_cents: -600, occurred_on: "2026-10-02", category: cafe)
 
     assert_equal "Cafe", build("blue bottle 6").category_name
-    assert_equal "Food", build("blue bottle 6", editing: newer).category_name
   end
 
   test "infers the category for shorthand ending in a bare hash" do
@@ -52,10 +61,6 @@ class VoucherTest < ActiveSupport::TestCase
 
     transactions(:coffee).discard
     assert_nil build("blue bottle 6").category
-  end
-
-  test "leaves the edited row out of inference" do
-    assert_nil build("blue bottle 6", editing: transactions(:coffee)).category
   end
 
   test "infers the category for shorthand still missing its amount" do
@@ -95,7 +100,7 @@ class VoucherTest < ActiveSupport::TestCase
       assert_queries_count(1) { Voucher.new("taxi 30 #travel", user:, today: SUNDAY).category }
       assert_queries_count(1) { Voucher.new("blue bottle 6", user:, today: SUNDAY).category }
     end
-    assert_equal [ "Food" ], user.categories.map(&:name)
+    assert_equal [ "Food", "Income" ], user.categories.order(:name).map(&:name)
   end
 
   test "completes a typed prefix with the most used kept name in its stored spelling and takes its category" do
@@ -148,8 +153,8 @@ class VoucherTest < ActiveSupport::TestCase
   end
 
   private
-    def build(shorthand, user: users(:one), editing: nil)
-      Voucher.new(shorthand, user:, today: SUNDAY, editing:)
+    def build(shorthand, user: users(:one))
+      Voucher.new(shorthand, user:, today: SUNDAY)
     end
 
     def complete(shorthand)

@@ -1,14 +1,13 @@
 class Voucher
   attr_reader :shorthand
 
-  delegate :name, :amount_in_cents, :category_word, :occurred_on, :errors, to: :parts
+  delegate :name, :amount_in_cents, :category_word, :occurred_on, :tokens, :errors, to: :parts
 
-  def initialize(shorthand, user:, today:, complete: false, editing: nil)
+  def initialize(shorthand, user:, today:, complete: false)
     @shorthand = shorthand.to_s
     @user = user
     @today = today
     @complete = complete
-    @editing = editing
   end
 
   def completion
@@ -48,6 +47,12 @@ class Voucher
   end
 
   private
+    def last_category_for(name)
+      if name.present?
+        @user.transactions.last_category_for(name)
+      end
+    end
+
     def parts
       @parts ||= Transaction::Shorthand.read(shorthand, today: @today)
     end
@@ -62,9 +67,9 @@ class Voucher
 
     def resolve_category(name)
       if category_word
-        @user.categories.named(category_word).first || Category.new(user: @user, name: category_word)
-      elsif name.present?
-        @user.transactions.excluding(@editing).last_category_for(name)
+        @user.categories.named(category_word).first || Category.new(user: @user, name: category_word, income: money_in?)
+      else
+        last_category_for(name) || (@user.income_category if money_in?)
       end
     end
 end

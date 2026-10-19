@@ -1,4 +1,4 @@
-<div class="w-full pl-5" data-controller="dismiss">
+<div class="w-full <%= local_assigns.fetch(:indent, "pl-5") %>" data-controller="dismiss">
   <div class="flex flex-col gap-2 rounded-md border border-secondary bg-level-1 pt-3 pr-3 pb-2.5 pl-3.5">
     <p class="text-sm leading-5 text-secondary">
       <% if transaction.transfer? %>
@@ -11,7 +11,7 @@
       <p class="min-w-56 flex-1 text-xs text-tertiary"><%= rule_reach transaction %></p>
       <button type="button" class="<%= SimplefinHelper::HEADER_BUTTON %> shrink-0" data-action="dismiss#dismiss">Just this one</button>
       <%= button_to "Make a rule", transaction_rule_path(transaction), form: { class: "shrink-0", data: { turbo_frame: "_top" } },
-        class: "cursor-pointer rounded-sm bg-action px-3 py-1.5 font-pixel text-sm font-semibold tracking-pixel whitespace-nowrap text-on-action hover:brightness-95" %>
+        class: "cursor-pointer rounded-sm bg-action px-3 py-1.5 text-button-sm whitespace-nowrap text-on-action hover:brightness-95" %>
     </div>
   </div>
 </div>

@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+port=${1:-3290}
+out=$PWD/docs/images
+work=$(mktemp -d)
+app=$work/app
+driver=$app/.claude/skills/verify-moneypouch/mp.mjs
+mp() { "$driver" "$@" --port "$port" > /dev/null; }
+cleanup() {
+  "$driver" stop --port "$port" > /dev/null 2>&1 || true
+  git worktree remove --force "$app"
+}
+
+git worktree add --quiet --detach "$app" HEAD
+trap cleanup EXIT
+(
+  cd "$app"
+  bin/setup --skip-server > /dev/null
+  bin/rails "dev:transactions[1550]" > /dev/null
+  bin/rails runner 'transactions = User.find_by!(username: "demo").transactions
+    transactions.where(name: %w[ Paycheck Rent ]).or(transactions.where(occurred_on: Date.current)).delete_all' > /dev/null
+)
+"$driver" boot --port "$port" > /dev/null
+mkdir -p "$out"
+magick app/assets/images/pouch.png -filter point -resize 400% -strip "$out/pouch.png"
+
+mp resize 1100 687
+mp goto /
+mp key Meta+k
+mp type '[aria-label="Add"]' 'Chipotle 11.25 yesterday'
+mp wait 'turbo-frame#voucher' --text Yesterday
+mp js 'document.querySelector("[aria-label=Add]").style.caretColor = "transparent"'
+mp shot "$work/composer-raw.png" --scale 2
+palette=$("$driver" js \
+  'const r = document.getElementById("palette").getBoundingClientRect(); [r.x, r.y, r.width].join(",")' --port "$port" | tr -d '"')
+mp key Escape
+
+cat > "$work/frame.html" <<'HTML'
+<!doctype html>
+<style>
+  html, body { margin: 0; background: #fff; }
+  .backdrop { display: flex; width: 830px; box-sizing: border-box; padding: 40px 48px 0; background: #EEF0F7; border-radius: 12px; overflow: clip; }
+  .window { position: relative; flex: 1; overflow: clip; background: #fff; border-radius: 10px 10px 0 0; box-shadow: 0 0 0 1px #1E214014, 0 24px 48px -12px #1E21402E; }
+  .window img { display: block; width: 100%; }
+  .crop { padding-top: 32px; }
+  .crop .window { height: 228px; }
+  .crop .window img { position: absolute; width: var(--width); left: var(--left); top: var(--top); }
+</style>
+<div class="backdrop"><div class="window"><img></div></div>
+<script>
+  const [image, palette] = decodeURIComponent(location.search.slice(1)).split(";")
+  document.querySelector("img").src = image
+  if (palette) {
+    const [x, y, width] = palette.split(",").map(Number)
+    const scale = 0.87, windowWidth = 734, dialogTop = 40, imageWidth = 1085 * scale
+    const backdrop = document.querySelector(".backdrop")
+    backdrop.classList.add("crop")
+    backdrop.style.setProperty("--width", `${imageWidth}px`)
+    backdrop.style.setProperty("--left", `${Math.max(windowWidth - imageWidth, windowWidth / 2 - (x + width / 2) * scale)}px`)
+    backdrop.style.setProperty("--top", `${dialogTop - y * scale}px`)
+  }
+</script>
+HTML
+
+frame() {
+  local name=$1 query=$2 height
+  mp goto "file://$work/frame.html?$query"
+  mp resize 830 1000
+  mp wait img
+  height=$("$driver" js \
+    'new Promise(done => document.querySelector("img").decode().then(() => done(document.querySelector(".backdrop").offsetHeight)))' --port "$port")
+  mp resize 830 "$height"
+  mp shot "$work/$name-framed.png" --scale 2
+  magick "$work/$name-framed.png" \
+    \( +clone -alpha transparent -fill white -draw "roundrectangle 0,0 %[fx:w-1],%[fx:h-1] 24,24" \) \
+    -compose CopyOpacity -composite -strip "$out/$name.png"
+}
+
+frame composer "$work/composer-raw.png;$palette"
+
+mp resize 1200 960
+mp goto /
+mp js 'document.documentElement.style.scrollbarWidth = "none"'
+mp record start "$work/demo.mp4"
+sleep 1.5
+mp key Meta+k
+sleep 0.6
+mp type '[aria-label="Add"]' Chip --delay 140
+sleep 0.8
+mp key Tab
+sleep 0.7
+mp type '[aria-label="Add"]' '11.25 yesterday' --delay 100
+mp wait 'turbo-frame#voucher' --text Yesterday
+sleep 1.3
+mp key Enter
+mp wait '[data-controller="toast"]' --text Chipotle
+sleep 1.6
+mp key Escape
+sleep 2.5
+mp record stop
+
+ffmpeg -v error -y -i "$work/demo.mp4" -frames:v 1 "$work/demo-raw.png"
+frame demo "$work/demo-raw.png"
+mv "$out/demo.png" "$work/demo-framed.png"
+read -r x y width height <<< "$("$driver" js \
+  'const r = document.querySelector(".window").getBoundingClientRect(); [r.x, r.y, r.width, r.height].map(n => Math.round(n * 2)).join(" ")' --port "$port" | tr -d '"')"
+magick -size "${width}x${height}" xc:black -fill white -draw "roundrectangle 0,0 $((width - 1)),$((height + 40)) 20,20" "$work/window-mask.png"
+ffmpeg -v error -y -framerate 15 -loop 1 -i "$work/demo-framed.png" -i "$work/demo.mp4" -i "$work/window-mask.png" -filter_complex \
+  "[1]fps=15,scale=$width:$height:flags=lanczos[video];[video][2]alphamerge[window];[0][window]overlay=$x:$y:shortest=1,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff:reserve_transparent=1[palette];[b][palette]paletteuse=dither=none:diff_mode=rectangle:alpha_threshold=128" \
+  "$work/demo-frames.gif"
+magick "$work/demo-frames.gif" +dither -layers Optimize "$out/demo.gif"
+echo "$out/pouch.png $out/composer.png $out/demo.gif"

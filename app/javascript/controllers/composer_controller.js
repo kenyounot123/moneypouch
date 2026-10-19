@@ -21,21 +21,26 @@ const KEYMAP = {
     PageDown: "nextMonth",
     Tab: "pickCursor",
     Enter: "pickCursor",
-    t: "pickToday",
-    y: "pickYesterday",
-    Escape: "removeAt",
-    Printable: "leaveCalendar",
+    Escape: "dismiss",
   },
 }
 
 const OPTION = "flex cursor-pointer items-center rounded-sm px-2.5 py-1.5"
+const DATE_WORDS = ["today", "yesterday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+const TAB_HINT = "ml-2 inline-block rounded-sm border border-primary bg-level-2 px-1.5 align-middle font-mono text-xs leading-4 text-secondary"
+const MARKS = {
+  amount: "text-amount",
+  money_in: "text-success",
+  date: "text-date",
+  category: "text-category",
+}
 const POPUP_SIZES = {
   category: ["w-56", "max-h-[250px]", "overflow-y-auto"],
   calendar: ["w-[264px]"],
 }
 
 export default class extends Controller {
-  static targets = ["field", "row", "popup", "failure"]
+  static targets = ["field", "mirror", "row", "popup", "failure"]
   static values = { voucherUrl: String, categories: Array, today: String }
 
   connect() {
@@ -58,9 +63,30 @@ export default class extends Controller {
     this.frame.src = url
   }
 
+  rowTargetConnected() {
+    this.paintMirror()
+  }
+
   update() {
     this.popup = this.nextPopup()
     this.render()
+    this.paintMirror()
+  }
+
+  paintMirror() {
+    const field = this.fieldTarget
+    const row = this.hasRowTarget ? this.rowTarget.dataset : {}
+    const pieces = []
+    let at = 0
+    for (const [kind, start, end] of currentMarks(JSON.parse(row.marks ?? "[]"), row.shorthand ?? "", field.value)) {
+      pieces.push(field.value.slice(at, start), mark(MARKS[kind], field.value.slice(start, end)))
+      at = end
+    }
+    pieces.push(field.value.slice(at))
+    const rest = this.dayCompletion()?.rest ?? this.nameCompletion()?.slice(field.value.trimStart().length)
+    if (rest && document.activeElement === field) pieces.push(mark("text-tertiary", rest), mark(TAB_HINT, "Tab"))
+    this.mirrorTarget.replaceChildren(mark("", ...pieces))
+    this.mirrorTarget.style.translate = `${-field.scrollLeft}px 0`
   }
 
   keydown(event) {
@@ -111,10 +137,24 @@ export default class extends Controller {
   }
 
   complete() {
-    const completion = this.hasRowTarget && this.rowTarget.dataset.shorthand === this.fieldTarget.value && this.rowTarget.dataset.completion
-    if (!completion || !this.caretAtEnd) return false
+    const day = this.dayCompletion()
+    if (day) return this.replaceWord(day.word, `@${day.name}`)
+    const completion = this.nameCompletion()
+    if (!completion) return false
     this.fieldTarget.value = `${completion} `
     this.refresh()
+  }
+
+  nameCompletion() {
+    const row = this.hasRowTarget ? this.rowTarget.dataset : {}
+    if (row.shorthand === this.fieldTarget.value && this.caretAtEnd) return row.completion
+  }
+
+  dayCompletion() {
+    const word = this.caretAtEnd ? this.caretWord() : null
+    const typed = word?.text.match(/^@([a-z]+)$/i)?.[1].toLowerCase()
+    const name = typed && DATE_WORDS.find((name) => name.startsWith(typed) && name !== typed)
+    if (name) return { word, name, rest: name.slice(typed.length) }
   }
 
   nextOption() {
@@ -173,34 +213,8 @@ export default class extends Controller {
     this.pickDay(this.popup.cursor)
   }
 
-  pickToday() {
-    this.pickDay(this.today)
-  }
-
-  pickYesterday() {
-    this.pickDay(addDays(this.today, -1))
-  }
-
   pickDay(day) {
-    this.replaceWord(this.popup.word, dateWord(day, this.today))
-  }
-
-  removeAt() {
-    this.cutAt()
-    this.refresh()
-  }
-
-  leaveCalendar() {
-    this.cutAt()
-    this.popup = null
-    return false
-  }
-
-  cutAt() {
-    const field = this.fieldTarget
-    const { start } = this.popup.word
-    field.value = field.value.slice(0, start) + field.value.slice(start + 1)
-    field.setSelectionRange(start, start)
+    this.replaceWord(this.popup.word, `@${dateWord(day, this.today)}`)
   }
 
   nextPopup() {
@@ -318,25 +332,9 @@ export default class extends Controller {
   }
 
   previewUrl() {
-    const params = new URLSearchParams({ shorthand: this.previewShorthand() })
+    const params = new URLSearchParams({ shorthand: this.fieldTarget.value })
     if (!this.popup && this.caretAtEnd) params.set("complete", "1")
     return `${this.voucherUrlValue}?${params}`
-  }
-
-  previewShorthand() {
-    const { value } = this.fieldTarget
-    if (!this.popup) return value
-    const { word } = this.popup
-    return value.slice(0, word.start) + this.previewWord() + value.slice(word.end)
-  }
-
-  // While inference is unknown (undefined) or picked, a bare # keeps the row inferring, so the row stays the
-  // source of the category that leads the list. null means the row said this name has none.
-  previewWord() {
-    const { kind, word, items, index, inferred, cursor } = this.popup
-    if (kind === "calendar") return dateWord(cursor, this.today)
-    const { name } = items[index]
-    return word.text === "#" && (inferred === undefined || name === inferred) ? "#" : `#${name}`
   }
 
   get caretAtEnd() {
@@ -355,6 +353,31 @@ export default class extends Controller {
   get frame() {
     return this.element.querySelector("turbo-frame#voucher")
   }
+}
+
+function currentMarks(marks, shorthand, value) {
+  return marks
+    .filter(([, , end]) => unchangedThrough(end, shorthand, value))
+    .map(([kind, start, end]) => [kind, start, isBareMarker(start, end) ? end : end + typedOnto(end, value).length])
+}
+
+function unchangedThrough(end, shorthand, value) {
+  return value.slice(0, end) === shorthand.slice(0, end)
+}
+
+function isBareMarker(start, end) {
+  return end - start === 1
+}
+
+function typedOnto(end, value) {
+  return value.slice(end).match(/^\S*/)[0]
+}
+
+function mark(className, ...children) {
+  const span = document.createElement("span")
+  span.className = className
+  span.append(...children)
+  return span
 }
 
 function keyName(event) {

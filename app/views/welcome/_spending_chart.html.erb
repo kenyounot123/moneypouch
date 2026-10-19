@@ -1,0 +1,20 @@
+<% columns = spending.columns %>
+<% tallest = columns.values.compact.max.to_i %>
+<% today_column = period.column_for(period.today) %>
+<div class="flex h-[150px] shrink-0 items-end gap-1">
+  <% columns.each do |column, cents| %>
+    <% if cents.to_i.positive? %>
+      <div class="flex h-full flex-1 items-end rounded-[4px] hover:bg-level-3"
+        data-action="mouseenter->chart#show mouseleave->chart#clear" data-chart-label-param="<%= column_title period, column, cents %>">
+        <div class="w-full rounded-bar <%= column_color column, today_column, columns.key(tallest) %>" style="height: <%= column_height cents, tallest %>px"></div>
+      </div>
+    <% else %>
+      <div class="h-1 flex-1 rounded-[2px] <%= column == today_column ? "bg-data" : "bg-data-track" %>"></div>
+    <% end %>
+  <% end %>
+</div>
+<div class="flex gap-1">
+  <% column_labels(period, columns).each do |caption, span| %>
+    <p class="basis-0 text-xs text-tertiary" style="flex-grow: <%= span %>"><%= caption %></p>
+  <% end %>
+</div>

@@ -1,0 +1,24 @@
+<li class="pt-3.5 pb-1 text-sm text-tertiary">No transactions yet.</li>
+<li class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-secondary py-3">
+  <div class="flex min-w-0 grow basis-[200px] flex-col gap-0.5">
+    <p class="text-md font-medium">By hand</p>
+    <p class="text-sm text-tertiary">Type it the way you'd text a friend.</p>
+  </div>
+  <button type="button" aria-haspopup="dialog" onclick="document.getElementById('palette').showModal()" class="<%= SimplefinHelper::OUTLINE_BUTTON %>">
+    Add <span class="rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs font-normal text-secondary pointer-coarse:hidden"><%= shortcut("K") %></span>
+  </button>
+</li>
+<li class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-secondary py-3">
+  <div class="flex min-w-0 grow basis-[200px] flex-col gap-0.5">
+    <p class="text-md font-medium">From a file</p>
+    <p class="text-sm text-tertiary">Excel (.xlsx) or CSV you already keep.</p>
+  </div>
+  <%= link_to "Import", new_import_path, class: SimplefinHelper::OUTLINE_BUTTON, data: { turbo_frame: "_top" } %>
+</li>
+<li class="flex flex-wrap items-center gap-x-3 gap-y-2 py-3">
+  <div class="flex min-w-0 grow basis-[200px] flex-col gap-0.5">
+    <p class="text-md font-medium">From your bank</p>
+    <p class="text-sm text-tertiary">Through SimpleFIN, $1.50 a month, paid to them.</p>
+  </div>
+  <%= link_to "Connect", new_simplefin_access_path, class: SimplefinHelper::OUTLINE_BUTTON, data: { turbo_frame: "_top" } %>
+</li>

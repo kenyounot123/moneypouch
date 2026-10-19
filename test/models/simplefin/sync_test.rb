@@ -6,17 +6,17 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     @user = users(:one)
   end
 
-  test "a first sync imports every transaction and matches the one the user typed" do
+  test "a first sync adds every transaction and matches the one the user typed" do
     access = connect_simplefin
     activate(access)
 
     sync = access.syncs.sole
     assert_nil sync.failure
-    assert_equal [ 9, 1 ], [ sync.imported_count, sync.matched_count ]
+    assert_equal [ 9, 1 ], [ sync.bank_transactions.count(&:unmatched?), sync.bank_transactions.count(&:matched?) ]
     assert_equal [ [ "You", 196_000, "2026-10-01" ], [ "You", 256_448, "2026-10-01" ],
                    [ "Grocery store", -13_550, "2026-10-02" ], [ "John's Fishin Shack", -665, "2026-10-02" ], [ "Grocery store", -17_667, "2026-10-02" ],
                    [ "John's Fishin Shack", -1000, "2026-10-03" ], [ "Grocery store", -13_000, "2026-10-03" ], [ "John's Fishin Shack", -1331, "2026-10-03" ], [ "Grocery store", -17_001, "2026-10-03" ] ],
-      access.syncs.imported_transactions.order(:occurred_on, :id).map { |transaction| [ transaction.name, transaction.amount_in_cents, transaction.occurred_on.iso8601 ] }
+      access.syncs.added_transactions.order(:occurred_on, :id).map { |transaction| [ transaction.name, transaction.amount_in_cents, transaction.occurred_on.iso8601 ] }
   end
 
   test "the typed match is linked, not duplicated, and keeps what the user typed" do
@@ -28,7 +28,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert coffee.bank_transaction.matched?
     assert_equal [ "Blue Bottle", "Food", "1790926110", "Demo Savings" ],
       [ coffee.name, coffee.category.name, coffee.bank_transaction.external_id, coffee.bank_transaction.bank_account.external_id ]
-    assert_not coffee.imported?
+    assert_not coffee.added_by_bank?
     assert_not coffee.needs_category?
   end
 
@@ -41,7 +41,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
         sync_again(access)
       end
     end
-    assert_equal [ 0, 0 ], [ access.syncs.last.imported_count, access.syncs.last.matched_count ]
+    assert_empty access.syncs.last.bank_transactions
   end
 
   test "each bank transaction stores the key its cleaned name matches on" do
@@ -51,7 +51,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert_equal [ "grocery store", "johns fishin shack", "you" ], BankTransaction.distinct.pluck(:name_key).sort
   end
 
-  test "the same bank id in two accounts imports both transactions" do
+  test "the same bank id in two accounts adds both transactions" do
     access = connect_simplefin
     activate(access)
 
@@ -89,10 +89,10 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     activate(access, [ "Demo Savings" ])
 
     assert_not transactions(:coffee).reload.from_bank?
-    assert_equal 5, BankTransaction.imported.count
+    assert_equal 5, BankTransaction.unmatched.count
   end
 
-  test "an account seen for the first time imports nothing until the user picks it" do
+  test "an account seen for the first time adds nothing until the user picks it" do
     report = simplefin_report
     report["accounts"] << demo_account(report, "Demo Checking").merge("id" => "Demo Brokerage", "name" => "SimpleFIN Brokerage")
     access = connect_simplefin
@@ -104,7 +104,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
       access.bank_accounts.to_h { |account| [ account.external_id, account.bank_transactions.count ] })
   end
 
-  test "Sync it imports the account from today on the next sync" do
+  test "Sync it adds the account from today on the next sync" do
     report = simplefin_report
     access = connect_simplefin
     activate(access, [ "Demo Savings" ], report:)
@@ -140,7 +140,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     assert_equal Date.new(2026, 10, 2), elsewhere.bank_accounts.find_by!(external_id: "Demo Savings").bank_transactions.find_by!(external_id: "1790911710").occurred_on
   end
 
-  test "an imported row reuses the category the user gave that name before" do
+  test "a row added by the bank reuses the category the user gave that name before" do
     @user.transactions.create!(name: "Grocery store", amount_in_cents: -4000, occurred_on: Date.new(2026, 9, 1), category: categories(:food))
     access = connect_simplefin
     activate(access, [ "Demo Savings" ])
@@ -149,7 +149,7 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
     fishing = Transaction.find(BankTransaction.find_by!(external_id: "1791012510").transaction_id)
     assert_equal [ "Food", false ], [ grocery.category.name, grocery.needs_category? ]
     assert_equal [ nil, true ], [ fishing.category, fishing.needs_category? ]
-    assert_equal [ true, true ], [ grocery.imported?, fishing.imported? ]
+    assert_equal [ true, true ], [ grocery.added_by_bank?, fishing.added_by_bank? ]
 
     fishing.categorize(Transaction::Categorization.transfer)
     assert_not fishing.needs_category?
@@ -226,4 +226,55 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
 
     assert_requested :get, "https://beta-bridge.simplefin.org/simplefin/accounts?version=2&start-date=#{Time.new(2026, 7, 9, 0, 0, 0, "-07:00").to_i}"
   end
+
+  test "a disconnect while the bank is answering keeps the sync abandoned and adds nothing" do
+    access, sync = start_sync
+    answer_after { access.reload.disconnect }
+
+    assert_no_difference -> { Transaction.count } do
+      sync.run_now
+    end
+    assert_equal [ "abandoned", "disconnected" ], [ sync.reload.failure, access.reload.status ]
+  end
+
+  test "a sync abandoned as stale while the bank is answering adds nothing" do
+    _, sync = start_sync
+    answer_after { travel(16.minutes) { Simplefin::Sync.abandon_stale } }
+
+    assert_no_difference -> { Transaction.count } do
+      sync.run_now
+    end
+    assert_equal "abandoned", sync.reload.failure
+  end
+
+  test "a revoked answer after a disconnect leaves the access disconnected" do
+    access, sync = start_sync
+    stub_request(:get, ACCOUNTS_URL).to_return { access.reload.disconnect; { status: 403 } }
+
+    sync.run_now
+
+    assert_equal [ "abandoned", "disconnected" ], [ sync.reload.failure, access.reload.status ]
+  end
+
+  test "the same sync run twice at once adds its transactions once" do
+    access, sync = start_sync
+    twin = Simplefin::Sync.find(sync.id)
+    answer_after { answer_after { }; twin.run_now }
+
+    sync.run_now
+
+    assert_equal [ 9, nil ], [ access.syncs.added_transactions.count, sync.reload.failure ]
+  end
+
+  private
+    def start_sync
+      access = connect_simplefin
+      access.activate(account_ids: access.bank_accounts.where(external_id: DEMO_ACCOUNTS).ids, history: "90_days")
+      [ access, access.syncs.sole ]
+    end
+
+    def answer_after(&before_answering)
+      body = simplefin_fixture("accounts")
+      stub_request(:get, ACCOUNTS_URL).to_return { before_answering.call; { status: 200, body: } }
+    end
 end

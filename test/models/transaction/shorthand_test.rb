@@ -212,8 +212,30 @@ class Transaction::ShorthandTest < ActiveSupport::TestCase
       read("car 12345678"))
   end
 
+  test "reads every date the calendar writes after an at sign" do
+    assert_equal [ SUNDAY, Date.new(2026, 9, 26), Date.new(2026, 8, 27), Date.new(2025, 12, 31), Date.new(2026, 9, 25), Date.new(2026, 9, 20) ],
+      [ "Lyft 9 @today", "Lyft 9 @yesterday", "Lyft 9 @aug 27", "Lyft 9 @dec 31 2025", "Lyft 9 @friday", "Lyft 9 @2026-09-20" ].map { |shorthand| read(shorthand)[:occurred_on] }
+    assert_equal "Lyft", read("Lyft 9 @aug 27")[:name]
+  end
+
+  test "takes a bare at sign out of the name and keeps one before other words" do
+    assert_equal({ name: "lunch @work", amount_in_cents: -1200, category_word: nil, occurred_on: SUNDAY, dated: false, errors: [] },
+      read("lunch @work 12 @"))
+  end
+
+  test "marks where the amount, date, and category sit in the typed text" do
+    tokens = Transaction::Shorthand.read("Blue  Bottle 5.50 @sep 26 #food #", today: SUNDAY).tokens
+
+    assert_equal [ [ :amount, 13, 17 ], [ :date, 18, 25 ], [ :category, 26, 31 ], [ :category, 32, 33 ] ],
+      tokens.map { |token| [ token.kind, token.start, token.finish ] }
+  end
+
+  test "marks nothing a word stays in the name for" do
+    assert_empty Transaction::Shorthand.read("feb 30 thing", today: SUNDAY).tokens
+  end
+
   private
     def read(shorthand, today: SUNDAY)
-      Transaction::Shorthand.read(shorthand, today:).to_h
+      Transaction::Shorthand.read(shorthand, today:).to_h.except(:tokens)
     end
 end

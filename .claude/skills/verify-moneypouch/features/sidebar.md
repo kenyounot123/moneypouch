@@ -18,11 +18,11 @@ Sidebar, top right of the brand row, desktop width (`md`, 768px) and up. Below `
 - Toggle: `mp.mjs click 'button[aria-label="Toggle sidebar"]' --port N`. Read the state with `mp.mjs js 'document.documentElement.dataset.sidebar' --port N` and `aria-expanded` on the same button.
 - Hotkey: `mp.mjs key Meta+b --port N` (or `Ctrl+b`), then read the state as above.
 - Persistence: `mp.mjs goto / --port N` keeps the state. `mp.mjs js 'document.cookie' --port N` shows `sidebar=collapsed`.
-- Tooltip: `mp.mjs click 'aside nav a:nth-child(2)' --port N` leaves the mouse over the Transactions link (its href is `#`, so the page stays), then `shot`. There is no hover command.
-- Geometry: `mp.mjs js 'document.querySelector("aside").getBoundingClientRect().right' --port N` prints 240 or 64. With the palette open (`key Meta+k`), `#palette` is centered on `(aside right + viewport width) / 2`.
+- Tooltip: collapse, then `mp.mjs hover 'aside nav a[href="/transactions"]' --port N` and `shot`. The label shows to the right of the icon. A `click` would navigate, since Transactions is a real link.
+- Geometry: `mp.mjs js 'document.querySelector("aside").getBoundingClientRect().right' --port N` prints 240 or 64. With the palette open (`key Meta+k`), `#palette` is centered on `main`: compare its rect's center with `main`'s (752.5 expanded and 664.5 collapsed at 1280 wide). `(aside right + innerWidth) / 2` reads 7.5 px off, because `main` stops short of the scrollbar gutter, which stays reserved even while the open dialog hides the scrollbar. `key Meta+b` toggles with the palette open; a `click` on the toggle lands on the scrim and closes the palette instead.
 
 ## Gotchas
 
 - The state is a cookie on the host, so it carries across ports and runs. Expand it again when done.
 - A mouse click on the toggle after any key press shows a focus ring on it, because Chrome treats the page as keyboard driven. That is not a bug.
-- Transactions, Categories, and Trends link to `#`, so clicking them changes the URL hash only.
+- Overview, Transactions, and Settings are real routes. Categories and Trends link to `#`, so clicking them changes the URL hash only. Import links to `/imports/new` and stays marked on every import step.

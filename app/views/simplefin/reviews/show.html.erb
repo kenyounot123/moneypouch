@@ -6,13 +6,13 @@
 
   <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
     <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-      <h1 class="font-pixel text-[28px] leading-[34px] font-semibold tracking-pixel">From your bank</h1>
+      <h1 class="text-title">From your bank</h1>
 
       <% if @review.pending? %>
         <div class="flex items-center gap-4">
           <p class="text-sm text-tertiary"><%= synced_ago Current.user.simplefin_access.last_synced_at %></p>
           <%= button_to "Done", simplefin_review_path, method: :patch,
-            class: "cursor-pointer rounded-md bg-action px-4 py-2 font-pixel text-[15px] leading-[18px] font-semibold tracking-pixel text-on-action hover:brightness-95" %>
+            class: "cursor-pointer rounded-md bg-action px-4 py-2 text-button text-on-action hover:brightness-95" %>
         </div>
       <% end %>
     </div>
@@ -21,16 +21,16 @@
       <div class="flex flex-col gap-14 lg:flex-row lg:items-start">
         <section class="flex min-w-0 flex-[1.3] flex-col gap-3">
           <nav class="flex flex-wrap gap-1 self-start rounded-[10px] bg-level-3 p-1" aria-label="Lists">
-            <% SimplefinHelper::REVIEW_LISTS.each do |list, label| %>
+            <% SimplefinHelper::REVIEW_LISTS.each do |list, title| %>
               <%= link_to simplefin_review_path(show: list), aria: { current: list == @list ? "true" : nil },
                 class: [ "flex shrink-0 items-baseline gap-2 rounded-sm px-3 py-1.5 text-sm whitespace-nowrap", list == @list ? "bg-level-2 font-medium text-primary shadow-control" : "text-secondary hover:text-primary" ] do %>
-                <%= label %>
+                <%= title %>
                 <span class="font-mono text-xs font-normal text-tertiary"><%= @review.transactions_in(list).count %></span>
               <% end %>
             <% end %>
           </nav>
 
-          <ul class="flex flex-col border-t border-secondary" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>">
+          <ul class="flex flex-col border-t border-secondary" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>">
             <%= render "simplefin/reviews/page", page: @page, list: @list %>
           </ul>
         </section>

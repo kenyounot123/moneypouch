@@ -1,9 +1,8 @@
 module WelcomeHelper
-  CHART_HEIGHT = 64
-
-  def transactions_total(count, since)
-    "#{number_with_delimiter(count)} #{"transaction".pluralize(count)} since #{since.strftime("%b %Y")}"
-  end
+  CHART_HEIGHT = 136
+  SUMMARY_BAR_HEIGHT = 130
+  LABEL_SPAN = 7
+  MAX_LABELLED_COLUMNS = 12
 
   def spent_heading(period)
     case period.kind
@@ -43,30 +42,6 @@ module WelcomeHelper
     end
   end
 
-  def spending_change(spending)
-    before = spending.previous_total
-    return if before.zero?
-
-    difference = spending.elapsed_total - before
-    against = span(spending.period.previous.elapsed)
-
-    if difference.zero?
-      "Same as #{against}"
-    else
-      arrow = difference.negative? ? "↓" : "↑"
-      dollars = number_to_currency(difference.abs.to_d / 100, precision: difference.abs < 1_000 ? 2 : 0)
-      percent = number_to_percentage(difference.abs * 100.0 / before, precision: 1, delimiter: ",", strip_insignificant_zeros: true)
-      "#{arrow} #{dollars} (#{percent}) vs. #{against}"
-    end
-  end
-
-  def spending_peak(transaction)
-    cents = transaction.amount_in_cents.abs
-    amount = number_to_currency(cents.to_d / 100, precision: (cents % 100).zero? ? 0 : 2)
-
-    "#{short_date(transaction.occurred_on)} #{transaction.name} · #{amount}"
-  end
-
   def share_of(cents, total)
     percent = (cents * 100.0 / total).round
 
@@ -85,7 +60,110 @@ module WelcomeHelper
     end
   end
 
-  def column_height(cents, peak)
-    [ (cents * CHART_HEIGHT.to_f / peak).round, 4 ].max
+  def column_height(cents, peak, tallest = CHART_HEIGHT)
+    [ (cents * tallest.to_f / peak).round, 4 ].max
   end
+
+  def summary_bar_height(cents, peak)
+    column_height(cents, peak, SUMMARY_BAR_HEIGHT)
+  end
+
+  def category_color(category, index)
+    if category.nil?
+      "bg-highlight"
+    elsif index.zero?
+      "bg-data-strong"
+    else
+      "bg-data"
+    end
+  end
+
+  def column_color(column, today_column, tallest_column)
+    if column == tallest_column
+      "bg-data-strong"
+    elsif column == today_column
+      "bg-data"
+    else
+      "bg-data-soft"
+    end
+  end
+
+  def column_labels(period, columns)
+    if columns.size <= MAX_LABELLED_COLUMNS
+      columns.keys.map { |column| [ column_label(period, column), 1 ] }
+    else
+      columns.keys.each_slice(LABEL_SPAN).map { |week| [ column_label(period, week.first), week.size ] }
+    end
+  end
+
+  def whole_spent(cents)
+    number_to_currency((cents.to_d / 100).round, precision: 0)
+  end
+
+  def whole_net(cents)
+    if cents.negative?
+      "−#{whole_spent(-cents)}"
+    elsif cents.positive?
+      "+#{whole_spent(cents)}"
+    else
+      whole_spent(0)
+    end
+  end
+
+  def exact_net(cents)
+    if cents.negative?
+      "−#{spent(-cents)}"
+    elsif cents.positive?
+      "+#{spent(cents)}"
+    else
+      spent(0)
+    end
+  end
+
+  def total_readout(total)
+    "#{period_abbreviation(total.period)} · income #{whole_spent total.income} · spent #{whole_spent total.spent}"
+  end
+
+  def period_abbreviation(period)
+    case period.kind
+    when "week" then period.first_day.strftime("%b %-d")
+    when "month" then period.first_day.strftime("%b")
+    when "year" then period.first_day.strftime("%Y")
+    end
+  end
+
+  def period_name(period)
+    case period.kind
+    when "week" then span(period.range)
+    when "month" then period.first_day.strftime("%B")
+    when "year" then period.first_day.strftime("%Y")
+    end
+  end
+
+  def segment_color(index)
+    case index
+    when 0 then "bg-data-strong"
+    when 1 then "bg-data"
+    else "bg-data-soft"
+    end
+  end
+
+  def flow_segments(rows)
+    rest = rows.drop(2)
+
+    if rest.empty?
+      rows
+    else
+      rows.first(2) + [ [ "#{rest.size} more", rest.sum(&:last) ] ]
+    end
+  end
+
+  private
+    def column_label(period, column)
+      if period.unit == :month
+        column.strftime("%b")
+      else
+        short_date(column)
+      end
+    end
 end

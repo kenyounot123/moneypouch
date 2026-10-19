@@ -1,24 +1,138 @@
 <% content_for :title, "Transactions" %>
+<%= turbo_stream_from Current.user, :transactions %>
 
-<div class="w-full">
-  <% if notice.present? %>
-    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-md inline-block" id="notice"><%= notice %></p>
-  <% end %>
+<div class="flex min-h-dvh">
+  <%= render "shared/sidebar" %>
 
-  <div class="flex justify-between items-center">
-    <h1 class="font-bold text-4xl">Transactions</h1>
-  </div>
+  <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14" data-composer="docked">
+    <button type="button" aria-label="Back to top" data-controller="back-to-top" data-action="scroll@window->back-to-top#toggle:passive back-to-top#scroll"
+      class="invisible sticky bottom-20 z-20 order-last -mb-4 flex size-9 cursor-pointer items-center justify-center self-end rounded-full border border-primary bg-level-2 text-secondary opacity-0 shadow-control transition-[opacity,visibility] hover:border-(--ring-color-focus) hover:text-primary data-shown:visible data-shown:opacity-100 md:bottom-8 md:mb-0 lg:mt-2 lg:-mb-18">
+      <%= icon_tag "arrow-up" %>
+    </button>
 
-  <% if @transactions.any? %>
-    <ul id="transactions" class="flex flex-col gap-1" data-controller="category-picker" data-category-picker-categories-value="<%= @category_names.to_json %>">
-      <% @transactions.each do |transaction| %>
-        <%= render transaction do %>
-          <%= button_to "Delete", transaction, method: :delete, class: "rounded-md px-3.5 py-2.5 text-white bg-red-600 hover:bg-red-500 font-medium cursor-pointer", data: { turbo_confirm: "Delete this transaction?" } %>
+    <div class="sticky bottom-4 z-20 order-last mt-auto md:contents">
+      <%= render "shared/palette", voucher: @voucher, added: @added, category_names: @categories.map(&:name) %>
+    </div>
+
+    <% if @import %>
+      <%= render layout: "shared/toast", locals: { id: dom_id(@import, :toast) } do %>
+        <span class="min-w-0 text-sm wrap-break-word">Imported <span class="font-medium"><%= imported_transactions @import %></span> from <%= @import.filename %></span>
+        <%= button_to "Undo", import_path(@import), method: :delete, form: { class: "shrink-0", data: { turbo_confirm: undo_import_question(@import) } },
+          class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" %>
+      <% end %>
+    <% end %>
+
+    <div class="flex items-center justify-between gap-4 md:hidden">
+      <%= link_to "‹ Overview", root_path, class: "text-secondary hover:text-primary" %>
+      <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Month">
+        <%= link_to "‹", transactions_path(filters.merge(month: @month.previous.to_param)), aria: { label: month_title(@month.previous) },
+          class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
+        <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true"><%= short_month_title @month %></span>
+        <% if @month.next %>
+          <%= link_to "›", transactions_path(filters.merge(month: @month.next.to_param)), aria: { label: month_title(@month.next) },
+            class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
+        <% end %>
+      </nav>
+    </div>
+
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <div class="flex min-w-0 flex-col gap-2.5 @xl:flex-row @xl:items-end @xl:gap-12">
+        <div class="flex flex-col gap-2.5">
+          <p class="text-secondary">Spent in <%= @month.name %></p>
+          <p class="text-display"><%= spent @spent %></p>
+        </div>
+        <dl class="hidden gap-8 pb-1.5 @xl:flex">
+          <% { "Income" => [ spent(@income) ], "Net" => [ exact_net(@net), money_color(@net) ], "Transactions" => [ number_with_delimiter(@count) ] }.each do |term, (value, color)| %>
+            <div class="flex flex-col gap-1">
+              <dt class="text-sm text-tertiary"><%= term %></dt>
+              <dd class="font-mono text-md <%= color %>"><%= value %></dd>
+            </div>
+          <% end %>
+        </dl>
+        <p class="text-sm text-tertiary @xl:hidden">Income <%= spent @income %> · Net <%= tag.span exact_net(@net), class: money_color(@net) %> · <%= pluralize @count, "transaction" %></p>
+      </div>
+
+      <nav class="hidden gap-1 rounded-[10px] bg-level-3 p-1 md:flex" aria-label="Month">
+        <%= link_to "‹ #{month_abbreviation @month.previous}", transactions_path(filters.merge(month: @month.previous.to_param)),
+          class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
+        <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true"><%= month_title @month %></span>
+        <% if @month.next %>
+          <%= link_to "#{month_abbreviation @month.next} ›", transactions_path(filters.merge(month: @month.next.to_param)),
+            class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
+        <% end %>
+      </nav>
+    </div>
+
+    <%= form_with url: transactions_path, method: :get, class: "flex flex-wrap items-center gap-2" do %>
+      <%= hidden_field_tag :month, @month.to_param, id: nil %>
+      <% if filters[:needs] %>
+        <%= hidden_field_tag :needs, filters[:needs], id: nil %>
+      <% end %>
+      <label class="flex h-9 min-w-0 flex-1 basis-24 items-center gap-2 rounded-lg border border-primary bg-level-2 px-3 shadow-control hover:border-(--ring-color-focus) focus-within:border-(--ring-color-focus) @xl:h-8.5">
+        <%= icon_tag "search", class: "size-3.5 text-secondary" %>
+        <%= search_field_tag :query, filters[:query], placeholder: "Search", autocomplete: "off", aria: { label: "Search names and notes" },
+          class: "min-w-0 flex-1 bg-transparent text-md outline-none placeholder:text-tertiary @xl:text-base [&::-webkit-search-cancel-button]:hidden" %>
+      </label>
+
+      <% if @needing_category_count.positive? || filters[:needs] %>
+        <%= link_to transactions_path(filters.merge(month: @month.to_param, needs: (filters[:needs] ? nil : "1"))), aria: { pressed: filters[:needs].present? },
+          class: [ "flex h-9 shrink-0 items-center gap-1.75 rounded-lg border px-3 text-sm whitespace-nowrap @xl:order-last @xl:h-8.5",
+            filters[:needs] ? "border-(--ring-color-focus) bg-level-3 font-medium text-primary" : "border-primary bg-level-2 text-primary shadow-control hover:border-(--ring-color-focus)" ] do %>
+          <span class="size-1.5 shrink-0 rounded-[1px] bg-highlight"></span>
+          <span class="@xl:hidden"><%= @needing_category_count %> uncategorized</span>
+          <span class="hidden @xl:inline">Needs a category · <%= @needing_category_count %></span>
         <% end %>
       <% end %>
-    </ul>
-  <% else %>
-    <p class="text-center my-10">No transactions yet.</p>
-  <% end %>
-</div>
 
+      <%= tag.input type: "checkbox", id: "filters_toggle", checked: filters[:account].present? || filters[:category].present?, class: "peer sr-only" %>
+      <label for="filters_toggle" class="flex h-9 shrink-0 cursor-pointer items-center rounded-lg border border-primary bg-level-2 px-3 text-sm text-primary shadow-control peer-checked:bg-level-3 peer-checked:text-primary peer-focus-visible:border-(--ring-color-focus) @xl:hidden">Filters</label>
+
+      <div class="hidden w-full gap-2 peer-checked:flex @xl:flex @xl:w-auto">
+        <% [
+          [ :account, "All accounts", @bank_accounts.map { |account| [ account.name, account.id ] } + [ [ "Typed in", "typed" ] ] ],
+          [ :category, "All categories", @categories.map { |category| [ category.name, category.id ] } + [ [ "Uncategorized", "none" ] ] ]
+        ].each do |name, blank, choices| %>
+          <span class="relative flex min-w-0 flex-1 @xl:flex-none">
+            <%= select_tag name, options_for_select(choices, filters[name]), include_blank: blank, onchange: "this.form.requestSubmit()",
+              class: "h-9 w-full min-w-0 cursor-pointer appearance-none @xl:field-sizing-content rounded-lg border border-primary bg-level-2 pr-7 pl-3 text-md text-primary shadow-control hover:border-(--ring-color-focus) @xl:h-8.5 @xl:text-sm" %>
+            <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-secondary" aria-hidden="true">▾</span>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="flex flex-col" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>">
+      <% if @count.positive? %>
+        <div class="hidden items-center gap-4 border-b border-primary pb-2 text-xs text-tertiary @xl:flex" aria-hidden="true">
+          <p class="w-24 shrink-0">Date</p>
+          <p class="w-2 shrink-0"></p>
+          <p class="min-w-0 flex-1">Name</p>
+          <p class="w-37.5 shrink-0">Category</p>
+          <p class="hidden w-47.5 shrink-0 @4xl:block">Account</p>
+          <p class="w-25 shrink-0 text-right">Amount</p>
+        </div>
+
+        <%= turbo_frame_tag [ :days, @page.before ].compact.join("_"), target: "_top" do %>
+          <% @transactions.group_by(&:occurred_on).each do |date, transactions| %>
+            <%= render "transactions/day", date:, transactions:, total: @day_totals[date] %>
+          <% end %>
+
+          <% if @page.next_before %>
+            <%= turbo_frame_tag :days, @page.next_before, src: transactions_path(filters.merge(month: @month.to_param, before: @page.next_before)),
+              loading: :lazy, refresh: :morph, target: "_top" %>
+          <% end %>
+        <% end %>
+      <% elsif filters.any? %>
+        <p class="text-sm text-tertiary">No transactions match.</p>
+      <% else %>
+        <p class="text-sm text-tertiary">Nothing in <%= @month.name %>.</p>
+      <% end %>
+    </div>
+
+    <dialog aria-label="Transaction" data-controller="sheet"
+      data-action="turbo:frame-load->sheet#open click->sheet#dismiss turbo:submit-start->sheet#close turbo:before-morph-attribute->sheet#keepClosed close->sheet#forget"
+      class="m-0 mt-auto max-h-[85dvh] w-full max-w-none overflow-y-auto rounded-t-[16px] border-0 bg-level-2 p-0 text-primary backdrop:bg-scrim">
+      <%= turbo_frame_tag "sheet", data: { sheet_target: "frame" } %>
+    </dialog>
+  </main>
+</div>

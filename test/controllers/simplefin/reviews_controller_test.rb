@@ -8,21 +8,21 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "opens on the rows that need a category, with each list's count in its tab" do
-    imported(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
-    imported(-13_550).make_rule
-    imported(-1_000).categorize(Transaction::Categorization.transfer)
+    added_by_bank(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
+    added_by_bank(-13_550).make_rule
+    added_by_bank(-1_000).categorize(Transaction::Categorization.transfer)
 
     get simplefin_review_url
 
-    assert_equal [ "Need a category 6", "Categorized for you 2", "Transfers 1" ], css_select("nav[aria-label=Lists] a").map { _1.text.squish }
+    assert_equal [ "Need a category 4", "Categorized for you 4", "Transfers 1" ], css_select("nav[aria-label=Lists] a").map { _1.text.squish }
     assert_select "nav[aria-label=Lists] a[aria-current=true]", text: /Need a category/
-    assert_select "turbo-frame#needing_category_page_1 li", 6
+    assert_select "turbo-frame#needing_category_page_1 li", 4
     assert_select "turbo-frame#needing_category_page_1 li:first-child", text: /Category\s+· Oct 3\s+· SimpleFIN Checking/
     assert_select "li#transaction_#{transactions(:coffee).id}", count: 0
   end
 
   test "show picks a list" do
-    imported(-1_000).categorize(Transaction::Categorization.transfer)
+    added_by_bank(-1_000).categorize(Transaction::Categorization.transfer)
 
     get simplefin_review_url(show: "transfers")
 
@@ -38,7 +38,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "with nothing left to categorize it opens on the next list with rows" do
-    Simplefin::Sync.imported_transactions.update_all(category_id: categories(:food).id)
+    Simplefin::Sync.added_transactions.update_all(category_id: categories(:food).id)
 
     get simplefin_review_url(show: "anything")
 
@@ -63,17 +63,17 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#needing_category_page_3", count: 0
   end
 
-  test "lists rules newest first with the bank account and the rows they cover" do
-    imported(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
-    imported(-13_550).make_rule
+  test "lists rules newest first and the rows they cover" do
+    added_by_bank(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
+    added_by_bank(-13_550).make_rule
     travel 2.minutes
-    imported(-1_000).categorize(Transaction::Categorization.transfer)
-    imported(-1_000).make_rule
+    added_by_bank(-1_000).categorize(Transaction::Categorization.transfer)
+    added_by_bank(-1_000).make_rule
 
     get simplefin_review_url
 
     assert_select "section h2", "Rules"
-    assert_equal [ "“John's Fishin Shack” Transfer SimpleFIN Savings · 1 row · just now Forget", "“Grocery store” Food SimpleFIN Savings · 2 rows Forget" ],
+    assert_equal [ "“John's Fishin Shack” Transfer 3 rows · just now Forget", "“Grocery store” Food 4 rows Forget" ],
       css_select("section:has(h2) ul li").map { _1.text.squish }
     assert_select "li.bg-highlight\\/14", 1
   end
@@ -105,7 +105,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
-    def imported(cents)
-      Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: cents).transaction_id)
+    def added_by_bank(cents)
+      Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: cents).transaction_id)
     end
 end

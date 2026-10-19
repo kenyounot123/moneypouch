@@ -1,0 +1,24 @@
+<% totals = summary.totals %>
+<% peak = totals.flat_map { |total| [ total.income, total.spent ] }.max %>
+<div class="flex gap-1.5">
+  <% totals.each do |total| %>
+    <% readout = total_readout total %>
+    <% focused = total.period == focus %>
+    <%= link_to focused ? root_path(period: period.kind, chart: "summary") : root_path(period: period.kind, chart: "summary", focus: total.period.first_day),
+      aria: { label: readout, current: focused ? "true" : nil },
+      data: { action: "mouseenter->chart#show focus->chart#show mouseleave->chart#clear blur->chart#clear", chart_label_param: readout },
+      class: [ "group flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-sm py-1.5 hover:bg-level-3", ("bg-level-3" if focused) ] do %>
+      <div class="<%= class_names "flex h-[132px] shrink-0 items-end gap-1", "opacity-40": focus && !focused %>">
+        <% [ [ total.income, "bg-data-soft" ], [ total.spent, "bg-data" ] ].each do |cents, color| %>
+          <% if cents.positive? %>
+            <div class="w-[18px] shrink-0 rounded-bar <%= color %>" style="height: <%= summary_bar_height cents, peak %>px"></div>
+          <% end %>
+        <% end %>
+      </div>
+      <div class="flex flex-col items-center text-xs">
+        <span class="<%= focused ? "font-medium text-primary" : "text-secondary group-hover:font-medium group-hover:text-primary" %>"><%= period_abbreviation total.period %></span>
+        <span class="font-mono <%= money_color total.net, otherwise: (focused ? "text-secondary" : "text-tertiary") %>"><%= whole_net total.net %></span>
+      </div>
+    <% end %>
+  <% end %>
+</div>

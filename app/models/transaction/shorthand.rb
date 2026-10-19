@@ -2,16 +2,19 @@ module Transaction::Shorthand
   MISSING_AMOUNT = "Type an amount, like 5.50"
   MISSING_NAME = "Type a name, like coffee"
 
-  Parts = Data.define(:name, :amount_in_cents, :category_word, :occurred_on, :dated, :errors)
+  Parts = Data.define(:name, :amount_in_cents, :category_word, :occurred_on, :dated, :tokens, :errors)
+  Word = Data.define(:text, :start)
+  Token = Data.define(:kind, :start, :finish)
 
   MONTHS = Date::MONTHNAMES.compact.each.with_index(1)
     .flat_map { |month, number| [ [ month.downcase, number ], [ month[0, 3].downcase, number ] ] }
     .to_h.merge("sept" => 9).freeze
   FULL_WEEKDAYS = Date::DAYNAMES.map(&:downcase).each_with_index.to_h.freeze
+  MARKERS = { "#" => :category, "@" => :date }.freeze
   DAY = /\A(\d{1,2})(?:st|nd|rd|th)?\z/i
   YEAR = /\A\d{4}\z/
-  SLASH_DATE = %r{\A(\d{1,2})/(\d{1,2})(?:/(\d{2}|\d{4}))?\z}
-  ISO_DATE = /\A(\d{4})-(\d{1,2})-(\d{1,2})\z/
+  SLASH_DATE = %r{\A@?(\d{1,2})/(\d{1,2})(?:/(\d{2}|\d{4}))?\z}
+  ISO_DATE = /\A@?(\d{4})-(\d{1,2})-(\d{1,2})\z/
   CATEGORY = /\A#(\S*?)[[:punct:]]*\z/
   AMOUNT = /\A(?<sign>[+-])?(?<symbol>\$)?(?<dollars>\d{1,3}(?:,\d{3})+|\d+)?(?:\.(?<cents>\d{1,2}))?\z/
   MAX_DOLLAR_DIGITS = 7
@@ -19,41 +22,69 @@ module Transaction::Shorthand
 
   class << self
     def read(shorthand, today:)
-      words = shorthand.squish.split(" ")
-      dated_on = month_name_date(words, today) || numeric_date(words, today) || relative_date(words, today)
-      category_word = take(words) { |word| word[CATEGORY, 1].presence }
-      words.delete("#")
-      amount_in_cents = take_amount(words)
-      name = words.join(" ")
+      words = shorthand.to_s.enum_for(:scan, /[^[:space:]]+/).map { Word.new(text: $~[0], start: $~.begin(0)) }
+      tokens = []
+      dated_on = month_name_date(words, today, tokens) || numeric_date(words, today, tokens) || relative_date(words, today, tokens)
+      category_word = take(words, :category, tokens) { |word| word[CATEGORY, 1].presence }
+      take_markers(words, tokens)
+      amount_in_cents = take_amount(words, tokens)
+      name = words.map(&:text).join(" ")
       errors = [ (MISSING_AMOUNT unless amount_in_cents), (MISSING_NAME if name.empty?) ].compact.freeze
 
-      Parts.new(name:, amount_in_cents:, category_word:, occurred_on: dated_on || today, dated: dated_on.present?, errors:)
+      Parts.new(name:, amount_in_cents:, category_word:, occurred_on: dated_on || today, dated: dated_on.present?,
+        tokens: tokens.sort_by(&:start).freeze, errors:)
     end
 
     private
-      def take(words)
+      def take(words, kind, tokens)
         words.each_with_index do |word, index|
-          if (value = yield(word))
+          if (value = yield(word.text))
             words.delete_at(index)
+            tokens << token(kind, word, word)
             return value
           end
         end
         nil
       end
 
-      def month_name_date(words, today)
-        index = words.each_cons(2).find_index { |month, day| MONTHS.key?(month.downcase) && day.match?(DAY) } or return
+      def token(kind, first, last)
+        Token.new(kind:, start: first.start, finish: last.start + last.text.length)
+      end
+
+      def take_markers(words, tokens)
+        words.reject! do |word|
+          if (kind = MARKERS[word.text])
+            tokens << token(kind, word, word)
+          end
+        end
+      end
+
+      def month_name_date(words, today, tokens)
+        index = words.each_cons(2).find_index { |month, day| month_number(month.text) && day.text.match?(DAY) } or return
         month, day, year = words[index, 3]
-        month, day = MONTHS[month.downcase], day[DAY, 1].to_i
-        year = typed_year(year, today)
-        date = year ? dated(year, month, day, today) : latest(month, day, today)
-        width = year ? 3 : 2
-        words[index, width] = date ? [] : [ words[index, width].join(" ") ]
+        year = nil unless year && typed_year(year.text, today)
+        date = date_on(month, day, year, today)
+        taken = [ month, day, year ].compact
+        words[index, taken.size] = date ? [] : [ Word.new(text: taken.map(&:text).join(" "), start: month.start) ]
+        tokens << token(:date, taken.first, taken.last) if date
         date
       end
 
-      def numeric_date(words, today)
-        take(words) do |word|
+      def date_on(month, day, year, today)
+        month, day = month_number(month.text), day.text[DAY, 1].to_i
+        if year
+          dated(typed_year(year.text, today), month, day, today)
+        else
+          latest(month, day, today)
+        end
+      end
+
+      def month_number(word)
+        MONTHS[word.downcase.delete_prefix("@")]
+      end
+
+      def numeric_date(words, today, tokens)
+        take(words, :date, tokens) do |word|
           if (iso = ISO_DATE.match(word))
             dated(*iso.captures.map(&:to_i), today)
           elsif (slash = SLASH_DATE.match(word))
@@ -67,9 +98,9 @@ module Transaction::Shorthand
         end
       end
 
-      def relative_date(words, today)
-        take(words) do |word|
-          word = word.downcase
+      def relative_date(words, today, tokens)
+        take(words, :date, tokens) do |word|
+          word = word.downcase.delete_prefix("@")
           case word
           when "today" then today
           when "yesterday" then today.prev_day
@@ -98,13 +129,16 @@ module Transaction::Shorthand
           .find { |date| date <= today }
       end
 
-      def take_amount(words)
+      def take_amount(words, tokens)
         amounts = words.each_with_index.filter_map do |word, index|
-          cents, marked = money(word)
+          cents, marked = money(word.text)
           [ index, cents, marked ] if cents
         end
         index, cents, = amounts.find { |_, _, marked| marked } || amounts.last
-        words.delete_at(index) if index
+        if index
+          word = words.delete_at(index)
+          tokens << token(:amount, word, word)
+        end
         cents
       end
 

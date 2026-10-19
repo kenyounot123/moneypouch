@@ -14,7 +14,7 @@ class Transaction::CategorizationTest < ActiveSupport::TestCase
   end
 
   test "reads the picker's transfer choice over a name" do
-    categorization = Transaction::Categorization.from(params(category: "Food", transfer: "1"), categories: users(:one).categories)
+    categorization = Transaction::Categorization.from(category: "Food", transfer: "1", categories: users(:one).categories, money_in: false)
 
     assert_equal [ nil, true, false ], read(categorization)
   end
@@ -22,9 +22,5 @@ class Transaction::CategorizationTest < ActiveSupport::TestCase
   private
     def read(categorization)
       [ categorization.category, categorization.transfer?, categorization.none? ]
-    end
-
-    def params(**choice)
-      ActionController::Parameters.new(categorization: choice)
     end
 end

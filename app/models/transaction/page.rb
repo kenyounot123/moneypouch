@@ -1,0 +1,58 @@
+class Transaction::Page
+  ROWS = 100
+
+  attr_reader :before
+
+  def initialize(transactions, before:)
+    @transactions = transactions
+    @before = before
+  end
+
+  def transactions
+    if days.any?
+      @transactions.occurred_in(days.last..days.first)
+    else
+      @transactions.none
+    end
+  end
+
+  def next_before
+    if index && index < runs.size - 1
+      days.last
+    end
+  end
+
+  private
+    def days
+      if index
+        runs[index]
+      else
+        []
+      end
+    end
+
+    def index
+      if before
+        runs.each_cons(2).find_index { |previous, _| previous.last == before }&.next
+      elsif runs.any?
+        0
+      end
+    end
+
+    def runs
+      @runs ||= begin
+        rows = 0
+
+        counts.keys.slice_before do |date|
+          starts_a_page = rows >= ROWS
+          rows = 0 if starts_a_page
+          rows += counts[date]
+          starts_a_page
+        end.to_a
+      end
+    end
+
+    def counts
+      @counts ||= @transactions.group(:occurred_on).order(occurred_on: :desc).count
+    end
+end

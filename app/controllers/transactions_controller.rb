@@ -1,9 +1,32 @@
 class TransactionsController < ApplicationController
-  before_action :set_transaction, only: %i[ update destroy ]
+  before_action :set_transaction, only: %i[ edit destroy ]
+
+  helper_method :filters
 
   def index
-    @transactions = Current.user.transactions.listed
-    @category_names = Current.user.categories.alphabetically.pluck(:name)
+    transactions = Current.user.transactions
+    @month = Month.new(params[:month], today: Date.current)
+    @voucher = Voucher.new(flash[:shorthand], user: Current.user, today: Date.current)
+    @added = transactions.find_by(id: flash[:added_id])
+    @import = Current.user.imports.completed.find_by(id: flash[:import_id])
+    @categories = Current.user.categories.alphabetically
+    @bank_accounts = Current.user.bank_accounts.order(:name)
+
+    narrowed = narrow(transactions.occurred_in(@month.range))
+    shown = only_needing_category(narrowed)
+    @needing_category_count = narrowed.needing_category.count
+    @count = shown.count
+    @page = Transaction::Page.new(shown, before:)
+    @transactions = @page.transactions.listed.includes(bank_transaction: :bank_account)
+    keep_categorized_for_later_page
+    @spent = shown.spent
+    @net = shown.net
+    @income = shown.income
+    @day_totals = shown.group(:occurred_on).sum(:amount_in_cents)
+  end
+
+  def edit
+    @categories = Current.user.categories.alphabetically
   end
 
   def create
@@ -20,14 +43,6 @@ class TransactionsController < ApplicationController
     end
   end
 
-  def update
-    if @transaction.update(transaction_params)
-      redirect_to transactions_path, notice: "Transaction was successfully updated.", status: :see_other
-    else
-      redirect_to transactions_path, alert: @transaction.errors.full_messages.to_sentence, status: :see_other
-    end
-  end
-
   def destroy
     @transaction.discard
     redirect_back_or_to root_path, flash: { shorthand: @transaction.shorthand }, status: :see_other
@@ -38,7 +53,49 @@ class TransactionsController < ApplicationController
       @transaction = Current.user.transactions.find(params.expect(:id))
     end
 
-    def transaction_params
-      params.expect(transaction: [ :amount_in_cents, :currency ])
+    def filters
+      params.permit(:query, :account, :category, :needs).to_h.compact_blank.symbolize_keys
+    end
+
+    def before
+      Date.iso8601(params[:before].to_s)
+    rescue Date::Error
+      nil
+    end
+
+    def keep_categorized_for_later_page
+      id = flash[:categorized_id]
+
+      if id && @page.next_before && @transactions.none? { |transaction| transaction.id == id }
+        flash.keep(:categorized_id)
+      end
+    end
+
+    def narrow(transactions)
+      in_chosen_category(from_chosen_account(transactions.matching(filters[:query])))
+    end
+
+    def from_chosen_account(transactions)
+      case filters[:account]
+      when nil then transactions
+      when "typed" then transactions.typed_in
+      else transactions.from_bank_account(Current.user.bank_accounts.find(filters[:account]))
+      end
+    end
+
+    def in_chosen_category(transactions)
+      case filters[:category]
+      when nil then transactions
+      when "none" then transactions.uncategorized
+      else transactions.in_category(Current.user.categories.find(filters[:category]))
+      end
+    end
+
+    def only_needing_category(transactions)
+      if filters[:needs]
+        transactions.needing_category
+      else
+        transactions
+      end
     end
 end

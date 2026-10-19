@@ -6,27 +6,66 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     sign_in_as(users(:one))
   end
 
-  test "rows from the bank carry the bank icon and typed rows keep an empty slot" do
+  test "each row names its bank account and a typed row leaves the account blank" do
     activate(connect_simplefin)
 
     get transactions_url
 
-    assert_select "ul#transactions > li", 11
-    assert_select "ul#transactions > li > div.w-4", 11
-    assert_select "ul#transactions > li span.sr-only", text: "From your bank", count: 10
-    assert_select "li#transaction_#{transactions(:coffee).id} span.sr-only", text: "From your bank"
-    assert_select "li#transaction_#{transactions(:paycheck).id} span.sr-only", count: 0
+    assert_select "main section li", 11
+    assert_select "li#transaction_#{transactions(:coffee).id} p.w-47\\.5", text: "SimpleFIN Savings"
+    assert_select "li#transaction_#{transactions(:paycheck).id} p.w-47\\.5", text: ""
   end
 
-  test "imported rows with no category carry the marker and a matched row does not" do
+  test "rows added by the bank with no category carry the marker and a matched row does not" do
     activate(connect_simplefin)
     grocery = Transaction.find(BankTransaction.find_by!(external_id: "1790954910", amount_in_cents: -13_550).transaction_id)
 
     get transactions_url
 
-    assert_select "li#transaction_#{grocery.id} div.bg-highlight"
-    assert_select "li#transaction_#{transactions(:coffee).id} div.bg-highlight", count: 0
-    assert_select "ul#transactions div.bg-highlight", 9
+    assert_select "li#transaction_#{grocery.id} div.h-10 div.bg-highlight"
+    assert_select "li#transaction_#{transactions(:coffee).id} div.h-10 div.bg-highlight", count: 0
+    assert_select "main section div.h-10 div.bg-highlight", 9
+  end
+
+  test "money in from the bank waits for a category until Income is picked" do
+    activate(connect_simplefin)
+    deposit = Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: 196_000).transaction_id)
+
+    get transactions_url
+    assert_select "li#transaction_#{deposit.id} div.h-10 div.bg-highlight"
+
+    patch transaction_categorization_url(deposit), params: { categorization: { category: "Income" } }
+    get transactions_url
+
+    assert_select "li#transaction_#{deposit.id} div.h-10 div.bg-highlight", count: 0
+    assert_select "li#transaction_#{deposit.id} button[data-action='category-picker#open']", text: "Income"
+    assert_select "a[aria-pressed=false]", text: /Needs a category · 8/
+  end
+
+  test "the needs-a-category chip counts the marked rows and narrows the month to them" do
+    activate(connect_simplefin)
+
+    get transactions_url
+    assert_select "a[aria-pressed=false]", text: /Needs a category · 9/
+
+    get transactions_url(needs: "1")
+    assert_select "a[aria-pressed=true]", text: /Needs a category · 9/
+    assert_select "main section li", 9
+    assert_select "main section div.h-10 div.bg-highlight", 9
+  end
+
+  test "the account filter narrows to one bank account, or to rows typed in" do
+    activate(connect_simplefin)
+    savings = BankAccount.find_by!(external_id: "Demo Savings")
+
+    get transactions_url(account: savings.id)
+    assert_select "main section li", 5
+    assert_select "main section li p.w-47\\.5", text: "SimpleFIN Savings", count: 5
+    assert_select "select#account option[selected][value=?]", savings.id.to_s
+
+    get transactions_url(account: "typed")
+    assert_select "main section li", 1
+    assert_select "li#transaction_#{transactions(:paycheck).id}"
   end
 
   test "the overview holds what syncs brought in until Done" do
@@ -35,12 +74,11 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_select "#bank_review h2", "From your bank"
-    assert_select "#bank_review", text: /9 need a category/
+    assert_select "#bank_review span[aria-label='9 need a category']", text: "9"
     assert_select "#bank_review li", 3
     assert_select "#bank_review li button[data-action='category-picker#open']", text: "Category", count: 3
-    assert_select "#bank_review p", text: "9 new."
-    assert_select "#bank_review a[href=?]", simplefin_review_path, text: "Show all"
-    assert_select "#bank_review form[action=?] button", simplefin_review_path, text: "Done"
+    assert_select "#bank_review a[href=?][data-turbo-frame=_top]", simplefin_review_path, text: "Show all", count: 1
+    assert_select "#bank_review form", count: 0
 
     patch simplefin_review_url
     get root_url
@@ -59,17 +97,40 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     assert_select "section p", text: /Checking your banks/, count: 1
   end
 
-  test "the summary counts rows a rule or a pick already handled" do
+  test "the count badge follows the rows a rule or a pick already handled" do
     activate(connect_simplefin)
-    grocery = Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: -13_550).transaction_id)
+    grocery = Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: -13_550).transaction_id)
     grocery.categorize(Transaction::Categorization.new(category: categories(:food)))
     grocery.make_rule
-    Transaction.find(BankTransaction.imported.find_by!(amount_in_cents: -1_000).transaction_id).categorize(Transaction::Categorization.transfer)
+    Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: -1_000).transaction_id).categorize(Transaction::Categorization.transfer)
 
     get root_url
 
-    assert_select "#bank_review", text: /6 need a category/
-    assert_select "#bank_review p", text: "9 new. 2 categorized for you, 1 transfer."
+    assert_select "#bank_review span[aria-label='4 need a category']", text: "4"
+  end
+
+  test "the count badge says one row needs a category in the singular" do
+    activate(connect_simplefin)
+    BankTransaction.unmatched.find_each do |bank_transaction|
+      Transaction.find(bank_transaction.transaction_id).categorize(Transaction::Categorization.transfer)
+    end
+    Transaction.find(BankTransaction.unmatched.first.transaction_id).categorize(Transaction::Categorization.none)
+
+    get root_url
+
+    assert_select "#bank_review span[aria-label='1 needs a category']", text: "1"
+  end
+
+  test "the count badge is absent when nothing needs a category" do
+    activate(connect_simplefin)
+    BankTransaction.unmatched.find_each do |bank_transaction|
+      Transaction.find(bank_transaction.transaction_id).categorize(Transaction::Categorization.transfer)
+    end
+
+    get root_url
+
+    assert_select "#bank_review h2", "From your bank"
+    assert_select "#bank_review span[aria-label]", count: 0
   end
 
   test "a sync that only matched what you typed shows no block" do

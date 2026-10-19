@@ -1,12 +1,17 @@
 Rails.application.routes.draw do
-  resources :transactions, only: %i[ index create update destroy ] do
+  namespace :transactions do
+    resource :download, only: :show
+  end
+  resources :transactions, only: %i[ index create edit destroy ] do
     resource :categorization, only: :update, module: :transactions
     resource :rule, only: :create, module: :transactions
     resource :note, only: :update, module: :transactions
+    resource :exclusion, only: :update, module: :transactions
   end
   resource :voucher, only: :show
-  resource :session
+  resource :session, only: %i[ new create destroy ]
   resource :settings, only: :show
+  resource :seen_release, only: :create
   resource :account, only: %i[ new create ]
   resource :first_transaction, controller: "first_transaction", only: :show
 
@@ -15,8 +20,14 @@ Rails.application.routes.draw do
     resource :sync, only: :create
     resource :review, only: %i[ show update ]
   end
-  resources :bank_accounts, only: :update do
-    resources :rules, only: :destroy, module: :bank_accounts
+  resources :bank_accounts, only: :update
+  resources :rules, only: :destroy
+  resources :imports, only: %i[ new create destroy ] do
+    scope module: :imports do
+      resource :columns, only: %i[ edit update ]
+      resource :categories, only: %i[ edit update ]
+      resource :transactions, only: :create
+    end
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

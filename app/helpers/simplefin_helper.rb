@@ -11,24 +11,8 @@ module SimplefinHelper
 
   def link_to_simplefin(label, url = SIMPLEFIN_URL)
     link_to url, target: "_blank", rel: "noopener", class: OUTLINE_BUTTON do
-      safe_join [ label, external_arrow ]
+      safe_join [ label, icon_tag("external", class: "size-3 text-secondary") ]
     end
-  end
-
-  def external_arrow
-    tag.svg(
-      tag.path(d: "M4 2h6v6M10 2L3 9"),
-      width: 12,
-      height: 12,
-      viewBox: "0 0 12 12",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": 1.4,
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-      class: "shrink-0 text-secondary",
-      aria: { hidden: true }
-    )
   end
 
   def balance(cents)
@@ -64,19 +48,14 @@ module SimplefinHelper
   end
 
   def rule_summary(rule, rows)
-    [ rule.bank_account_name, pluralize(rows, "row"), ("just now" if rule_just_made?(rule)) ].compact.join(" · ")
+    [ pluralize(rows, "row"), ("just now" if rule_just_made?(rule)) ].compact.join(" · ")
   end
 
-  def simplefin_review_summary(review)
-    handled = [
-      ("#{review.categorized.size} categorized for you" if review.categorized.any?),
-      (pluralize(review.transfers.size, "transfer") if review.transfers.any?)
-    ].compact
-
-    if handled.any?
-      "#{review.count} new. #{handled.join(", ")}."
+  def need_a_category(count)
+    if count == 1
+      "1 needs a category"
     else
-      "#{review.count} new."
+      "#{count} need a category"
     end
   end
 end

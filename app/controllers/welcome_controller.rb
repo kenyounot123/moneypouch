@@ -4,11 +4,12 @@ class WelcomeController < ApplicationController
     @voucher = Voucher.new(flash[:shorthand], user: Current.user, today: Date.current)
     @added = transactions.find_by(id: flash[:added_id])
     @recent = transactions.listed.limit(5)
-    @total_count = transactions.count
-    @since = transactions.minimum(:occurred_on)
-    @category_names = Current.user.categories.alphabetically.pluck(:name)
+    @categories = Current.user.categories.alphabetically
     @period = Period.new(params[:period], today: Date.current)
     @spending = Spending.new(transactions, @period)
+    @chart = Chart.new(params[:chart])
+    @summary = Summary.new(transactions, @period) if @chart.summary?
+    @focus = Period.new(@period.kind, today: Date.current, on: params[:focus]) if @chart.summary? && params[:focus].present?
     @review = Current.user.simplefin_access&.review
     @review_rows = review_rows
     @syncing = Current.user.simplefin_access&.syncing?

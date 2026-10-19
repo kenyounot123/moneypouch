@@ -1,1 +1,9 @@
+version: 0.11.0
 framework: actionview
+
+linter:
+  enabled: true
+  failLevel: hint
+  rules:
+    actionview-no-implicit-partial:
+      enabled: false

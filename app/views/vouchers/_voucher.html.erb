@@ -1,58 +1,21 @@
 <% shake = local_assigns.fetch(:shake, false) %>
-<% typed = voucher.shorthand.strip.present? %>
-<%= turbo_frame_tag "voucher", class: "block rounded-b-[11px] border-t border-secondary bg-level-1 px-4" do %>
-  <% if typed %>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-3"
-      <%= tag.attributes(data: { composer_target: "row", shorthand: voucher.shorthand, completion: voucher.completion, inferred_category: (voucher.category_name if voucher.inferred?) }) %>>
-      <div class="flex w-2 shrink-0 justify-center">
-        <div class="size-1.5 rounded-[1px] border border-(--background-color-highlight)"></div>
-      </div>
-      <div class="flex min-w-0 flex-1 basis-44 flex-col gap-1">
-        <p class="flex min-w-0 items-center overflow-hidden font-medium">
-          <% if voucher.completion %>
-            <% typed_length = voucher.shorthand.lstrip.length %>
-            <span class="min-w-0 truncate"><%= voucher.completion[0, typed_length] %><span class="font-normal text-tertiary"><%= voucher.completion[typed_length..] %></span></span>
-            <span class="ml-1 shrink-0 rounded-sm border border-primary bg-level-2 px-1.5 font-mono text-xs leading-[14px] font-normal text-secondary">Tab</span>
-          <% elsif voucher.name.present? %>
-            <span class="min-w-0 truncate"><%= voucher.name %></span>
-          <% else %>
-            <%= render "vouchers/callout", message: Transaction::Shorthand::MISSING_NAME, shake: %>
-          <% end %>
-        </p>
-        <p class="text-sm text-tertiary">
-          <% if voucher.category %>
-            <% if voucher.category.new_record? %>New category <span class="font-medium text-secondary"><%= voucher.category_name %></span><% else %><%= voucher.category_name %><% end %>
-          <% else %>
-            Uncategorized
-          <% end %>
-          · <%= relative_date voucher.occurred_on %>
-        </p>
-      </div>
-      <p class="ml-auto shrink-0 text-right font-mono">
-        <% if voucher.amount_in_cents.nil? %>
-          <%= render "vouchers/callout", message: Transaction::Shorthand::MISSING_AMOUNT, shake: %>
-        <% elsif voucher.money_in? %>
-          <span class="flex flex-col items-end gap-0.5">
-            <span><%= money voucher.amount_in_cents %></span>
-            <span class="font-sans text-xs text-tertiary">Money in</span>
-          </span>
-        <% else %>
-          <%= money voucher.amount_in_cents %>
-        <% end %>
+<%= turbo_frame_tag "voucher", class: "-mt-2.5 block pr-5 pb-4 pl-[50px]" do %>
+  <div class="flex flex-col gap-3" <%= tag.attributes(data: { composer_target: "row", shorthand: voucher.shorthand, completion: voucher.completion,
+    inferred_category: (voucher.category_name if voucher.inferred?), marks: voucher_marks(voucher).to_json }) %>>
+    <% if voucher.shorthand.strip.present? %>
+      <p class="min-h-5 text-sm text-tertiary">
+        <%= safe_join [
+          (tag.span("ok") if voucher.valid?),
+          (tag.span(voucher.errors.to_sentence(two_words_connector: " · ", last_word_connector: " · "), class: "inline-block animate-shake text-danger") if shake && !voucher.valid?),
+          (tag.span(money(voucher.amount_in_cents), class: [ "font-mono", voucher.money_in? ? "text-success" : "text-secondary" ]) if voucher.amount_in_cents),
+          tag.span(voucher.category&.new_record? ? "New category #{voucher.category_name}" : voucher.category_name || "Uncategorized", class: "text-secondary"),
+          tag.span(relative_date(voucher.occurred_on), class: "text-secondary")
+        ].compact, " · " %>
       </p>
-    </div>
-  <% end %>
-
-  <div class="flex flex-wrap items-center gap-x-5 gap-y-2 py-3 <%= "border-t border-secondary" if typed %>">
-    <% [
-      [ "5.50", "amount", voucher.amount_in_cents.present?, typed && voucher.amount_in_cents.nil? ],
-      [ "@", "date", voucher.dated?, false ],
-      [ "#", "category", voucher.category_word.present?, false ]
-    ].each do |key, label, used, missing| %>
-      <span class="inline-flex items-center gap-1.5 whitespace-nowrap <%= used ? "text-primary" : missing ? "text-danger" : "text-tertiary" %>">
-        <span class="rounded-sm border px-1.5 py-0.5 font-mono text-xs <%= used ? "border-transparent bg-highlight text-on-action" : missing ? "border-(--text-color-danger)" : "border-primary bg-level-2" %> <%= "animate-shake" if missing && shake %>"><%= key %></span>
-        <span class="text-sm"><%= label %><%= " ✓" if used %></span>
-      </span>
     <% end %>
+    <p class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-xs text-tertiary">
+      <span class="whitespace-nowrap">format: <span class="text-primary">coffee</span> <span class="text-amount">5.50</span> <span class="text-date">@yesterday</span> <span class="text-category">#food</span></span>
+      <span class="whitespace-nowrap">money in: <span class="text-primary">paycheck</span> <span class="text-success">+2400</span></span>
+    </p>
   </div>
 <% end %>
