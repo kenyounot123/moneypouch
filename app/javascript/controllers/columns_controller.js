@@ -9,7 +9,7 @@ export default class extends Controller {
       const source = this.sourceTargets.find((target) => field.contains(target))
 
       field.toggleAttribute("data-matched", Boolean(select))
-      source.textContent = select ? `from ${select.dataset.header}` : "Not in this file"
+      source.textContent = select ? `Your “${select.dataset.header}” column` : "No column in your file"
     })
   }
 }
