@@ -101,7 +101,8 @@
                     <div class="flex min-w-0 flex-col">
                       <p class="text-base font-medium text-secondary group-data-[matched]/field:text-primary"><%= kind_title kind %></p>
                       <p class="text-xs text-tertiary"><%= kind_hint kind %></p>
-                      <p class="text-xs text-tertiary group-data-[matched]/field:text-secondary" data-columns-target="source"><%= source ? "Your “#{source}” column" : "No column in your file" %></p>
+                      <p class="hidden min-w-0 items-center gap-1 pt-1 text-xs text-secondary group-data-[matched]/field:flex">Your <span class="truncate rounded-sm border border-primary bg-level-2 px-1.5 py-px" data-columns-target="source"><%= source %></span> column</p>
+                      <p class="pt-1 text-xs text-tertiary group-data-[matched]/field:hidden">No column in your file</p>
                     </div>
                   <% end %>
                 <% end %>

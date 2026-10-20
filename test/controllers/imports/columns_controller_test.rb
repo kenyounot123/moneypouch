@@ -35,10 +35,12 @@ class Imports::ColumnsControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal [ "Needed", "If your file has them" ], css_select("form ul").map { |list| list.parent.at_css("p").text }
     assert_equal [ "Date", "Amount", "Name", "Spent or income", "Category", "Transfer", "Excluded from totals", "Note" ], css_select("form li p:first-child").map(&:text)
-    assert_equal [ "Your “Date” column", "Your “Amount” column", "Your “Item” column", "No column in your file", "Your “Category” column", "No column in your file", "Your “Excluded” column", "Your “Note” column" ], css_select("form li [data-columns-target=source]").map(&:text)
+    assert_equal [ "Date", "Amount", "Item", "Category", "Excluded", "Note" ], css_select("form li[data-matched] [data-columns-target=source]").map(&:text)
+    assert_select "li[data-kind=name] p", text: "Your Item column"
+    assert_select "li[data-kind=transfer] p", text: "No column in your file"
     assert_select "li[data-kind=date][data-matched]"
     assert_select "li[data-kind=transfer]:not([data-matched])"
-    assert_select "li[data-kind=name] p", text: "What it was, like a store."
+    assert_select "li[data-kind=name] p", text: "Who you paid or who paid you."
     assert_select "select[aria-label='Item column'][data-header=Item][data-columns-target=select]"
   end
 
