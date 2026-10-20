@@ -7,7 +7,7 @@ module ImportsHelper
     "name" => { title: "Name", hint: "Who you paid or who paid you." },
     "amount" => { title: "Amount", hint: "How much." },
     "spent_or_income" => { title: "Spent or income", hint: "Says if money went out or came in." },
-    "category" => { title: "Category", hint: "Matched to your categories next." },
+    "category" => { title: "Category", hint: "What it was for, like Groceries." },
     "transfer" => { title: "Transfer", hint: "Marks money moved between your own accounts." },
     "excluded" => { title: "Excluded from totals", hint: "Marks rows to keep out of totals." },
     "note" => { title: "Note", hint: "Anything else you wrote down." }
