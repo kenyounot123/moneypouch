@@ -4,8 +4,11 @@
   <%= render "shared/sidebar" %>
 
   <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
-    <div class="flex flex-col gap-2">
-      <h1 class="text-title">Import</h1>
+    <div class="flex flex-col gap-6">
+      <div class="flex flex-col gap-3">
+        <h1 class="text-title">Import</h1>
+        <%= render "imports/steps", current: 1 %>
+      </div>
       <p class="text-secondary">Import your previous expense history that you already keep in a file.</p>
     </div>
 

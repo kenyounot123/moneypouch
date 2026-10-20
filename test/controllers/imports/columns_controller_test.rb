@@ -26,6 +26,8 @@ class Imports::ColumnsControllerTest < ActionDispatch::IntegrationTest
     assert_select "form p", text: "Rows with no date, like totals, are left out.", count: 0
     assert_select "form[action=?] button", import_path(import), text: "Cancel"
     assert_select "aside a[aria-current=page]", text: "Import"
+    assert_select "ol[aria-label='Import steps'] li", count: 3
+    assert_select "ol[aria-label='Import steps'] li[aria-current=step]", text: "2 Columns"
   end
 
   test "the field list shows which fields the file has and where each comes from" do
@@ -35,10 +37,12 @@ class Imports::ColumnsControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal [ "Needed", "If your file has them" ], css_select("form ul").map { |list| list.parent.at_css("p").text }
     assert_equal [ "Date", "Amount", "Name", "Spent or income", "Category", "Transfer", "Excluded from totals", "Note" ], css_select("form li p:first-child").map(&:text)
-    assert_equal [ "from Date", "from Amount", "from Item", "Not in this file", "from Category", "Not in this file", "from Excluded", "from Note" ], css_select("form li [data-columns-target=source]").map(&:text)
+    assert_equal [ "Date", "Amount", "Item", "Category", "Excluded", "Note" ], css_select("form li[data-matched] [data-columns-target=source]").map(&:text)
+    assert_select "li[data-kind=name] p", text: "Your Item column"
+    assert_select "li[data-kind=transfer] p", text: "No column in your file"
     assert_select "li[data-kind=date][data-matched]"
     assert_select "li[data-kind=transfer]:not([data-matched])"
-    assert_select "li[data-kind=name] p", text: "What it was, like a store."
+    assert_select "li[data-kind=name] p", text: "Who you paid or who paid you."
     assert_select "select[aria-label='Item column'][data-header=Item][data-columns-target=select]"
   end
 
