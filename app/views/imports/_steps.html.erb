@@ -1,0 +1,23 @@
+<ol class="flex flex-wrap items-center gap-2 text-sm" aria-label="Import steps">
+  <% ImportsHelper::STEPS.each.with_index(1) do |step, number| %>
+    <%= tag.li class: "flex items-center gap-2", aria: { current: ("step" if number == current) } do %>
+      <% if number > 1 %>
+        <span class="w-6 border-t border-primary" aria-hidden="true"></span>
+      <% end %>
+      <% if number < current %>
+        <span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-current text-success">
+          <%= icon_tag "check", class: "size-2.5 text-(--background-color-level-0)" %>
+        </span>
+        <span class="text-secondary"><%= step %></span>
+      <% elsif number == current %>
+        <span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-current text-xs font-medium text-primary">
+          <span class="text-(--background-color-level-0)"><%= number %></span>
+        </span>
+        <span class="font-medium text-primary"><%= step %></span>
+      <% else %>
+        <span class="flex size-5 shrink-0 items-center justify-center rounded-full border border-primary text-xs text-tertiary"><%= number %></span>
+        <span class="text-tertiary"><%= step %></span>
+      <% end %>
+    <% end %>
+  <% end %>
+</ol>

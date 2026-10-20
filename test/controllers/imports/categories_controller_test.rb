@@ -21,6 +21,7 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "Food", "Income", "No category" ], css_select("select[aria-label='What food becomes'] option").map(&:text)
     assert_select "a[href=?]", edit_import_columns_path(import), text: "Back"
     assert_select "form[action=?] button", import_path(import), text: "Cancel"
+    assert_select "ol[aria-label='Import steps'] li[aria-current=step]", text: "3 Categories"
   end
 
   test "the tally counts what Import adds, and Can't read lists the rows it leaves out" do

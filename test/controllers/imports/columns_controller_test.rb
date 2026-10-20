@@ -26,6 +26,8 @@ class Imports::ColumnsControllerTest < ActionDispatch::IntegrationTest
     assert_select "form p", text: "Rows with no date, like totals, are left out.", count: 0
     assert_select "form[action=?] button", import_path(import), text: "Cancel"
     assert_select "aside a[aria-current=page]", text: "Import"
+    assert_select "ol[aria-label='Import steps'] li", count: 3
+    assert_select "ol[aria-label='Import steps'] li[aria-current=step]", text: "2 Columns"
   end
 
   test "the field list shows which fields the file has and where each comes from" do

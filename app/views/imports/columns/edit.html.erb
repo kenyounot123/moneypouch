@@ -6,9 +6,12 @@
 
   <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
     <div class="flex flex-col gap-6">
-      <div class="flex items-center justify-between gap-4">
-        <h1 class="text-title">Import</h1>
-        <%= button_to "Cancel", import_path(@import), method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-4">
+          <h1 class="text-title">Import</h1>
+          <%= button_to "Cancel", import_path(@import), method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+        </div>
+        <%= render "imports/steps", current: 2 %>
       </div>
       <div class="flex flex-col gap-3">
         <div class="flex items-center gap-3">
