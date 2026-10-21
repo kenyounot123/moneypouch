@@ -1,10 +1,10 @@
 <div data-controller="sidebar" data-action="keydown@window->sidebar#shortcut resize@window->sidebar#closeOnDesktop" class="contents">
-  <header class="flex items-center gap-2 px-5 pt-7 pl-6 md:hidden">
-    <%= image_tag "pouch.png", alt: "", width: 34, height: 34, class: "size-[34px] shrink-0 [image-rendering:pixelated]" %>
-    <span class="flex-1 text-heading font-bold whitespace-nowrap">MoneyPouch</span>
+  <header class="flex items-center gap-2 px-5 pt-7 md:hidden">
     <button type="button" data-sidebar-target="opener" data-action="sidebar#open" aria-label="Show sidebar" aria-haspopup="dialog" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary">
       <%= icon_tag "sidebar" %>
     </button>
+    <%= image_tag "pouch.png", alt: "", width: 34, height: 34, class: "size-[34px] shrink-0 [image-rendering:pixelated]" %>
+    <span class="text-heading font-bold whitespace-nowrap">MoneyPouch</span>
   </header>
 
   <dialog aria-label="Sidebar" data-sidebar-target="sheet" data-action="click->sidebar#dismiss turbo:before-morph-attribute->sidebar#keepClosed"
