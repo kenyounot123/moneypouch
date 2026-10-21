@@ -8,7 +8,7 @@
 - Collapsed, each link's label becomes a tooltip to the right of the icon on hover and keyboard focus. The accessible name is the label in both states.
 - `--container-sidebar` drops from 240px to 64px when collapsed, so the ⌘K palette and the toast re-center in the content area.
 - The server renders `data-sidebar` and the toggle's `aria-expanded` from the cookie, so the first paint has no flash.
-- Below `md` the sidebar is a sheet. A top bar copies the brand row, and its button (`Show sidebar`) opens a modal `dialog[aria-label=Sidebar]`, 240px wide at the left edge, with the same links over a scrim. The page behind is inert and does not scroll. The open button sits at the left of the top bar, under the sheet, so only the sheet's `Hide sidebar` button shows. It closes on `Hide sidebar`, Escape, a tap on the scrim (the tap does not reach the page under it), any link, a page morph, and a resize to `md` or wider. The collapsed cookie never shrinks the sheet.
+- Below `md` the sidebar is a sheet. A top bar copies the brand row, and its button (`Show sidebar`) opens a modal `dialog[aria-label=Sidebar]`, 240px wide at the left edge, with the same links over a scrim. The page behind is inert and does not scroll. The open button sits at the left of the top bar, under the sheet, so only the sheet's `Hide sidebar` button shows. It closes on `Hide sidebar`, Escape, a tap on the scrim (the tap does not reach the page under it), any link (and stays closed on Back), a page morph, and a resize to `md` or wider. The collapsed cookie never shrinks the sheet.
 
 ## How to get to it (user POV)
 

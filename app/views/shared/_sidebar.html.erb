@@ -1,4 +1,4 @@
-<div data-controller="sidebar" data-action="keydown@window->sidebar#shortcut resize@window->sidebar#closeOnDesktop" class="contents">
+<div data-controller="sidebar" data-action="keydown@window->sidebar#shortcut resize@window->sidebar#closeOnDesktop turbo:before-cache@document->sidebar#close" class="contents">
   <header class="flex items-center gap-2 px-5 pt-7 md:hidden">
     <button type="button" data-sidebar-target="opener" data-action="sidebar#open" aria-label="Show sidebar" aria-haspopup="dialog" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary">
       <%= icon_tag "sidebar" %>
