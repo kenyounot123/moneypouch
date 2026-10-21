@@ -55,6 +55,49 @@ class ImportTest < ActiveSupport::TestCase
     assert_equal [ [ "work", false ] ], import.created_categories.pluck(:name, :income)
   end
 
+  test "choosing an income category for a word's money in files it there" do
+    import = @user.imports.create!(file: import_file("personal.csv"))
+
+    import.choose_categories([ { word: "Coffee", name: "Coffee", money_in: "Income" } ])
+    import = Import.find(import.id)
+    coffee = import.category_words.find { |category_word| category_word.word == "Coffee" }
+
+    assert_equal [ "Coffee", "Income" ], [ coffee.name, coffee.money_in_name ]
+    assert_equal [ 9, 0, 1 ], [ import.tally.spent, import.tally.refunds, import.tally.income ]
+
+    import.complete
+
+    assert_equal "Income", import.transactions.find_by!(name: "Blue Bottle", amount_in_cents: 550).category.name
+  end
+
+  test "a refund follows the word to its new category and leaves no stray one" do
+    import = @user.imports.create!(file: upload("work.csv", "Date,Name,Category,Amount\n2024-10-01,Laptop stand,work,-50\n2024-10-02,Upwork,work,2000\n2024-10-03,Upwork,work,1500\n"))
+
+    import.choose_categories([ { word: "work", name: "work", money_in: "" } ])
+    assert_equal [ 1, 2, 0 ], [ import.tally.spent, import.tally.refunds, import.tally.income ]
+
+    import.choose_categories([ { word: "work", name: "Food" } ])
+    work = import.category_words.first
+
+    assert_equal [ "Food", nil ], [ work.name, work.money_in_name ]
+    assert_equal [ 1, 2, 0 ], [ import.tally.spent, import.tally.refunds, import.tally.income ]
+
+    import.complete
+
+    assert_equal [ "Food", "Food", "Food" ], import.transactions.map { |transaction| transaction.category.name }
+    assert_equal [], import.created_categories.pluck(:name)
+  end
+
+  test "a money-in choice that isn't one of the user's income categories keeps money in with the word" do
+    import = @user.imports.create!(file: upload("work.csv", "Date,Name,Category,Amount\n2024-10-01,Laptop stand,work,-50\n2024-10-02,Upwork,work,2000\n"))
+
+    [ "Food", "Nope" ].each do |name|
+      import.choose_categories([ { word: "work", name: "work", money_in: name } ])
+
+      assert_equal [ nil, 1, 1, 0 ], [ import.category_words.first.money_in_name, import.tally.spent, import.tally.refunds, import.tally.income ]
+    end
+  end
+
   test "the tally says what the imported rows count as" do
     import = @user.imports.create!(file: upload("mixed.csv", <<~CSV))
       Date,Name,Category,Amount,Transfer,Excluded

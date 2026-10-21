@@ -12,6 +12,6 @@ class Imports::CategoriesController < ApplicationController
 
   private
     def categories_params
-      params.expect(import: [ categories: [ [ :word, :name ] ] ])
+      params.expect(import: [ categories: [ [ :word, :name, :money_in ] ] ])
     end
 end

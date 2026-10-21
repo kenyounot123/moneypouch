@@ -6,6 +6,7 @@ class Import < ApplicationRecord
   serialize :sheet, coder: Import::Sheet
   serialize :columns, coder: Import::Columns
   serialize :category_names, coder: JSON
+  serialize :money_in_names, coder: JSON
 
   scope :drafts, -> { where(completed_at: nil) }
   scope :completed, -> { where.not(completed_at: nil) }
@@ -29,6 +30,11 @@ class Import < ApplicationRecord
   end
 
   def category_names=(category_names)
+    forget_readings
+    super
+  end
+
+  def money_in_names=(money_in_names)
     forget_readings
     super
   end
@@ -76,8 +82,12 @@ class Import < ApplicationRecord
     update(columns: Import::Columns.from(choice, sheet:))
   end
 
+  # A choice without :money_in (the word showed no second line) leaves that word's money-in choice as it was.
   def choose_categories(choices)
-    update!(category_names: category_names.merge(choices.to_h { |choice| [ choice[:word], choice[:name].to_s.squish ] }))
+    names = choices.to_h { |choice| [ choice[:word], choice[:name].to_s.squish ] }
+    money_in = choices.reject { |choice| choice[:money_in].nil? }.to_h { |choice| [ choice[:word], choice[:money_in].to_s.squish ] }
+
+    update!(category_names: category_names.merge(names), money_in_names: money_in_names.merge(money_in))
   end
 
   def tally
@@ -150,13 +160,16 @@ class Import < ApplicationRecord
       @category_words_by_word.fetch(row.category_word) { Import::CategoryWord.uncategorized(money_in_name: income_category&.name) }
     end
 
+    # A stored name that isn't one of the user's income categories, "" included, keeps money in with the word,
+    # so a stale or tampered name can never file money in under a spending category.
     def money_in_name_for(word, name:, income:)
       if name.blank?
         income_category&.name
       elsif income
         nil
       else
-        default_money_in_name(word)
+        chosen = money_in_names.fetch(word) { default_money_in_name(word) }.to_s
+        user_categories.find { |category| category.income? && category.named?(chosen) }&.name
       end
     end
 
