@@ -88,6 +88,27 @@ class ImportTest < ActiveSupport::TestCase
     assert_equal [], import.created_categories.pluck(:name)
   end
 
+  test "a word on No category or on an income category has no money-in choice" do
+    import = @user.imports.create!(file: upload("mixed.csv", <<~CSV))
+      Date,Name,Category,Amount
+      2024-10-01,Coffee,Coffee,-5.50
+      2024-10-02,Coffee refund,Coffee,1
+      2024-10-03,Pay,Salary,2000
+      2024-10-04,Birthday,Gifts,50
+      2024-10-05,Gift card,Gifts,-20
+    CSV
+
+    import.choose_categories([ { word: "Gifts", name: "" } ])
+
+    assert_equal [ [ "Coffee", true ], [ "Gifts", false ], [ "Salary", false ] ],
+      import.category_words.map { |category_word| [ category_word.word, category_word.money_in_choice? ] }.sort
+
+    import.complete
+
+    assert_equal [ [ "Birthday", "Income" ], [ "Gift card", nil ], [ "Pay", "Salary" ] ],
+      import.transactions.where(name: [ "Birthday", "Gift card", "Pay" ]).order(:name).map { |transaction| [ transaction.name, transaction.category&.name ] }
+  end
+
   test "a money-in choice that isn't one of the user's income categories keeps money in with the word" do
     import = @user.imports.create!(file: upload("work.csv", "Date,Name,Category,Amount\n2024-10-01,Laptop stand,work,-50\n2024-10-02,Upwork,work,2000\n"))
 

@@ -3,6 +3,7 @@ class Imports::CategoriesController < ApplicationController
 
   def edit
     @category_names = Current.user.categories.alphabetically.pluck(:name)
+    @income_names = Current.user.categories.income.alphabetically.pluck(:name)
   end
 
   def update

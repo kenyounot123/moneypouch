@@ -119,6 +119,21 @@ module ImportsHelper
     end
   end
 
+  def money_in_choices(category_word, income_names)
+    income_names.map { |name| [ name, name ] } + [ [ "Refund to #{category_word.name}", "" ] ]
+  end
+
+  def money_in_sentence(category_word)
+    count = number_with_delimiter(category_word.money_in_count)
+    money_in = tag.span("money in", class: "text-success")
+
+    if category_word.money_in_count == 1
+      safe_join([ "#{count} is ", money_in ])
+    else
+      safe_join([ "#{count} are ", money_in ])
+    end
+  end
+
   def tally_counts(tally)
     counts = { "Spent" => tally.spent }
 

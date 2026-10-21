@@ -18,8 +18,23 @@ class ImportsHelperTest < ActionView::TestCase
     assert_equal "Choose what each category becomes.", categories_lead([], words(%w[ a b ]))
   end
 
+  test "the money-in line counts the word's money in" do
+    assert_equal %(1 is <span class="text-success">money in</span>), money_in_sentence(category_word(money_in_count: 1))
+    assert_equal %(16 are <span class="text-success">money in</span>), money_in_sentence(category_word(money_in_count: 16))
+    assert_equal %(1,200 are <span class="text-success">money in</span>), money_in_sentence(category_word(money_in_count: 1_200))
+  end
+
+  test "money in goes to an income category, or stays a refund to the word's category" do
+    assert_equal [ [ "Income", "Income" ], [ "Side gigs", "Side gigs" ], [ "Refund to work", "" ] ],
+      money_in_choices(category_word(name: "work"), [ "Income", "Side gigs" ])
+  end
+
   private
     def words(list)
-      list.map { |word| Import::CategoryWord.new(word:, count: 1, money_in_count: 0, match: nil, name: word, income: false, money_in_name: nil) }
+      list.map { |word| category_word(word:, name: word) }
+    end
+
+    def category_word(**attributes)
+      Import::CategoryWord.new(word: "work", count: 1, money_in_count: 0, match: nil, name: "work", income: false, money_in_name: nil, **attributes)
     end
 end
