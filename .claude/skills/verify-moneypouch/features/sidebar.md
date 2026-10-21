@@ -8,10 +8,11 @@
 - Collapsed, each link's label becomes a tooltip to the right of the icon on hover and keyboard focus. The accessible name is the label in both states.
 - `--container-sidebar` drops from 240px to 64px when collapsed, so the ⌘K palette and the toast re-center in the content area.
 - The server renders `data-sidebar` and the toggle's `aria-expanded` from the cookie, so the first paint has no flash.
+- Below `md` the sidebar is a sheet. A top bar copies the brand row, and its button (`Show sidebar`) opens a modal `dialog[aria-label=Sidebar]`, 240px wide at the left edge, with the same links over a scrim. The page behind is inert and does not scroll. The open button sits at the left of the top bar, under the sheet, so only the sheet's `Hide sidebar` button shows. It closes on `Hide sidebar`, Escape, a tap on the scrim (the tap does not reach the page under it), any link (and stays closed on Back), a page morph, and a resize to `md` or wider. The collapsed cookie never shrinks the sheet.
 
 ## How to get to it (user POV)
 
-Sidebar, top right of the brand row, desktop width (`md`, 768px) and up. Below `md` the sidebar is hidden.
+Sidebar, top right of the brand row, desktop width (`md`, 768px) and up. Below `md`, the panel button at the top left of the page opens the sheet.
 
 ## Driving it with mp.mjs
 
@@ -20,6 +21,7 @@ Sidebar, top right of the brand row, desktop width (`md`, 768px) and up. Below `
 - Persistence: `mp.mjs goto / --port N` keeps the state. `mp.mjs js 'document.cookie' --port N` shows `sidebar=collapsed`.
 - Tooltip: collapse, then `mp.mjs hover 'aside nav a[href="/transactions"]' --port N` and `shot`. The label shows to the right of the icon. A `click` would navigate, since Transactions is a real link.
 - Geometry: `mp.mjs js 'document.querySelector("aside").getBoundingClientRect().right' --port N` prints 240 or 64. With the palette open (`key Meta+k`), `#palette` is centered on `main`: compare its rect's center with `main`'s (752.5 expanded and 664.5 collapsed at 1280 wide). `(aside right + innerWidth) / 2` reads 7.5 px off, because `main` stops short of the scrollbar gutter, which stays reserved even while the open dialog hides the scrollbar. `key Meta+b` toggles with the palette open; a `click` on the toggle lands on the scrim and closes the palette instead.
+- Sheet: `mp.mjs resize 375 812 --port N`, `mp.mjs click 'button[aria-label="Show sidebar"]' --port N`, then `mp.mjs js 'document.querySelector("dialog[aria-label=Sidebar]").open' --port N` prints `true`. A scrim tap is a `click` on any page element right of x=240, for example `button[data-theme="dark"]` on Settings: the sheet closes and the theme stays. A `click` on `dialog[aria-label=Sidebar] nav` lands on the Categories `#` link and closes the sheet, so tap `dialog[aria-label=Sidebar] > div` to hit empty panel space.
 
 ## Gotchas
 

@@ -1,7 +1,7 @@
 <% content_for :title, "Transactions" %>
 <%= turbo_stream_from Current.user, :transactions %>
 
-<div class="flex min-h-dvh">
+<div class="flex min-h-dvh max-md:flex-col">
   <%= render "shared/sidebar" %>
 
   <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14" data-composer="docked">
@@ -22,8 +22,7 @@
       <% end %>
     <% end %>
 
-    <div class="flex items-center justify-between gap-4 md:hidden">
-      <%= link_to "‹ Overview", root_path, class: "text-secondary hover:text-primary" %>
+    <div class="flex md:hidden">
       <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Month">
         <%= link_to "‹", transactions_path(filters.merge(month: @month.previous.to_param)), aria: { label: month_title(@month.previous) },
           class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>

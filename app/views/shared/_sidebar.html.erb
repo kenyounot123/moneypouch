@@ -1,21 +1,28 @@
-<aside id="sidebar" data-controller="sidebar" data-action="keydown@window->sidebar#shortcut" class="sticky top-0 z-10 hidden h-dvh w-sidebar shrink-0 flex-col justify-between border-r border-secondary bg-level-1 px-5 pt-7 pb-6 md:flex in-data-[sidebar=collapsed]:pr-[11px] in-data-[sidebar=collapsed]:pl-3">
-  <div class="flex flex-col gap-8">
-    <div class="flex items-center gap-2 pl-1 in-data-[sidebar=collapsed]:justify-center in-data-[sidebar=collapsed]:pl-0">
-      <%= image_tag "pouch.png", alt: "", width: 34, height: 34, class: "size-[34px] shrink-0 [image-rendering:pixelated] in-data-[sidebar=collapsed]:hidden" %>
-      <span class="flex-1 text-heading font-bold whitespace-nowrap in-data-[sidebar=collapsed]:hidden">MoneyPouch</span>
+<div data-controller="sidebar" data-action="keydown@window->sidebar#shortcut resize@window->sidebar#closeOnDesktop turbo:before-cache@document->sidebar#close" class="contents">
+  <header class="flex items-center gap-2 px-5 pt-7 md:hidden">
+    <button type="button" data-sidebar-target="opener" data-action="sidebar#open" aria-label="Show sidebar" aria-haspopup="dialog" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary">
+      <%= icon_tag "sidebar" %>
+    </button>
+    <%= image_tag "pouch.png", alt: "", width: 34, height: 34, class: "size-[34px] shrink-0 [image-rendering:pixelated]" %>
+    <span class="text-heading font-bold whitespace-nowrap">MoneyPouch</span>
+  </header>
+
+  <dialog aria-label="Sidebar" data-sidebar-target="sheet" data-action="click->sidebar#dismiss turbo:before-morph-attribute->sidebar#keepClosed"
+    class="m-0 h-dvh max-h-none w-60 max-w-none border-0 border-r border-secondary bg-level-1 p-0 text-primary backdrop:bg-scrim">
+    <div class="flex h-full flex-col justify-between px-5 pt-7 pb-6">
+      <%= render layout: "shared/sidebar_panel" do %>
+        <button type="button" data-action="sidebar#close" aria-label="Hide sidebar" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary">
+          <%= icon_tag "sidebar" %>
+        </button>
+      <% end %>
+    </div>
+  </dialog>
+
+  <aside id="sidebar" class="sticky top-0 z-10 hidden h-dvh w-sidebar shrink-0 flex-col justify-between border-r border-secondary bg-level-1 px-5 pt-7 pb-6 md:flex in-data-[sidebar=collapsed]:pr-[11px] in-data-[sidebar=collapsed]:pl-3">
+    <%= render layout: "shared/sidebar_panel" do %>
       <button type="button" data-sidebar-target="toggle" data-action="sidebar#toggle" aria-label="Toggle sidebar" aria-keyshortcuts="Meta+B Control+B" title="Toggle sidebar (⌘B)" aria-controls="sidebar" aria-expanded="<%= sidebar_state == "expanded" %>" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary in-data-[sidebar=collapsed]:h-[34px] in-data-[sidebar=collapsed]:w-10">
         <%= icon_tag "sidebar" %>
       </button>
-    </div>
-
-    <nav class="flex flex-col gap-0.5 in-data-[sidebar=collapsed]:items-center">
-      <%= sidebar_link_to "Overview", root_path, icon: :overview %>
-      <%= sidebar_link_to "Transactions", transactions_path, icon: :transactions %>
-      <%= sidebar_link_to "Categories", "#", icon: :categories %>
-      <%= sidebar_link_to "Trends", "#", icon: :trends %>
-      <%= sidebar_link_to "Import", new_import_path, icon: :import, active: request.path.start_with?(imports_path) %>
-    </nav>
-  </div>
-
-  <%= sidebar_link_to "Settings", settings_path, icon: :settings %>
-</aside>
+    <% end %>
+  </aside>
+</div>
