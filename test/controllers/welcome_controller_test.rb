@@ -319,6 +319,14 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "aside a[aria-current=page]", text: "Overview", count: 1
   end
 
+  test "offers the sidebar on phones as a sheet with the same links" do
+    get root_url
+
+    assert_select "header button[aria-label='Show sidebar']"
+    assert_select "dialog[aria-label=Sidebar] a", text: /\A(Overview|Transactions|Categories|Trends|Import|Settings)\z/, count: 6
+    assert_select "dialog[aria-label=Sidebar] a[aria-current=page]", text: "Overview", count: 1
+  end
+
   test "renders the sidebar collapsed when the cookie says so" do
     cookies[:sidebar] = "collapsed"
 
