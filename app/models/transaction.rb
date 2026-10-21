@@ -75,7 +75,7 @@ class Transaction < ApplicationRecord
     )
   end
 
-  def self.import(rows, import:, categories:, income_category:)
+  def self.import(rows, import:)
     rows.each_slice(500).sum do |slice|
       attributes = slice.map do |row|
         {
@@ -84,7 +84,7 @@ class Transaction < ApplicationRecord
           name: row.name,
           occurred_on: row.occurred_on,
           amount_in_cents: row.amount_in_cents,
-          category_id: (categories[row.category_word] || (income_category if row.money_in? && !row.transfer?))&.id,
+          category_id: yield(row)&.id,
           transfer: row.transfer?,
           excluded: row.excluded?,
           note: normalize_value_for(:note, row.note)

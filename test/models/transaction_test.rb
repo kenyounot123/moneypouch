@@ -79,9 +79,9 @@ class TransactionTest < ActiveSupport::TestCase
     user = users(:two)
     import = user.imports.create!(file: upload("tea.csv", "Date,Name,Amount,Note\n2024-10-01,Tea,3,\n2024-10-02,Tea,3,hot\n"))
 
-    assert_equal [ 2, 0 ], 2.times.map { user.transactions.import(import.rows, import:, categories: {}, income_category: categories(:income_two)) }
-    assert_equal [ [ "Tea", -300, nil, import.id ], [ "Tea", -300, "hot", import.id ] ],
-      user.transactions.order(:occurred_on).map { |transaction| [ transaction.name, transaction.amount_in_cents, transaction.note, transaction.import_id ] }
+    assert_equal [ 2, 0 ], 2.times.map { user.transactions.import(import.rows, import:) { |row| categories(:income_two) if row.note.present? } }
+    assert_equal [ [ "Tea", -300, nil, import.id, nil ], [ "Tea", -300, "hot", import.id, "Income" ] ],
+      user.transactions.order(:occurred_on).map { |transaction| [ transaction.name, transaction.amount_in_cents, transaction.note, transaction.import_id, transaction.category&.name ] }
   end
 
   test "matches a search in the name or the note, ignoring case" do
