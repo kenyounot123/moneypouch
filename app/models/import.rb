@@ -58,7 +58,17 @@ class Import < ApplicationRecord
     @category_words ||= new_rows.select(&:category_word).group_by(&:category_word).map do |word, rows|
       match = user_categories.find { |category| category.named?(word) }
       name = category_names.fetch(word) { match&.name || word }
-      Import::CategoryWord.new(word:, count: rows.size, match:, name:, income: income_name?(name, rows:), money_in_name: money_in_name_for(name))
+      income = income_name?(name, rows:)
+
+      Import::CategoryWord.new(
+        word:,
+        count: rows.size,
+        money_in_count: rows.count(&:money_in?),
+        match:,
+        name:,
+        income:,
+        money_in_name: money_in_name_for(word, name:, income:)
+      )
     end.sort_by { |category_word| [ -category_word.count, category_word.word.downcase ] }
   end
 
@@ -71,14 +81,14 @@ class Import < ApplicationRecord
   end
 
   def tally
-    words = category_words.index_by(&:word)
     counted = new_rows.select(&:counted?)
-    spent = counted.count { |row| spending?(row, words[row.category_word]) }
+    counts = counted.map { |row| category_word_for(row).counts_as(row) }.tally
     transfers = new_rows.count(&:transfer?)
 
     Import::Tally.new(
-      spent:,
-      income: counted.size - spent,
+      spent: counts.fetch(:spent, 0),
+      refunds: counts.fetch(:refund, 0),
+      income: counts.fetch(:income, 0),
       transfers:,
       excluded: new_rows.size - counted.size - transfers,
       unreadable: unreadable_rows.size,
@@ -116,7 +126,7 @@ class Import < ApplicationRecord
     end
 
     def forget_readings
-      @readings = @new_rows = @category_words = @category_words_by_word = @user_categories = @income_category = @categories_by_name = nil
+      @readings = @new_rows = @rows_by_word = @category_words = @category_words_by_word = @user_categories = @income_category = @categories_by_name = nil
     end
 
     def new_rows
@@ -125,6 +135,10 @@ class Import < ApplicationRecord
 
     def user_categories
       @user_categories ||= user.categories.to_a
+    end
+
+    def rows_by_word
+      @rows_by_word ||= rows.group_by(&:category_word)
     end
 
     def income_category
@@ -136,8 +150,21 @@ class Import < ApplicationRecord
       @category_words_by_word.fetch(row.category_word) { Import::CategoryWord.uncategorized(money_in_name: income_category&.name) }
     end
 
-    def money_in_name_for(name)
+    def money_in_name_for(word, name:, income:)
       if name.blank?
+        income_category&.name
+      elsif income
+        nil
+      else
+        default_money_in_name(word)
+      end
+    end
+
+    # A refund never comes to more than the spending it lowers.
+    def default_money_in_name(word)
+      money_in, money_out = rows_by_word.fetch(word).select(&:counted?).partition(&:money_in?)
+
+      if money_in.sum(&:amount_in_cents) > -money_out.sum(&:amount_in_cents)
         income_category&.name
       end
     end
@@ -149,14 +176,6 @@ class Import < ApplicationRecord
         chosen.income?
       else
         rows.all?(&:money_in?)
-      end
-    end
-
-    def spending?(row, category_word)
-      if category_word&.categorized?
-        !category_word.income?
-      else
-        !row.money_in?
       end
     end
 

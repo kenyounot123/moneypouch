@@ -29,7 +29,8 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
 
     get edit_import_categories_url(import)
 
-    assert_equal [ [ "10", "Spent" ], [ "0", "Income" ], [ "1", "Excluded" ], [ "1", "Can't read" ] ], tally
+    assert_equal [ [ "9", "Spent" ], [ "1", "Refunds" ], [ "0", "Income" ], [ "1", "Excluded" ], [ "1", "Can't read" ] ], tally
+    assert_select "p", text: "Refunds lower spending in their category."
     assert_select "#unreadable_rows[hidden] li", text: /Row 12\s+Can't read the amount “abc”/
     assert_select "p", text: "You can undo the whole import later."
     assert_select "form[action=?] button:not([disabled])", import_transactions_path(import), text: "Import 11 ↵"
@@ -42,6 +43,15 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal [ [ "1", "Spent" ], [ "0", "Income" ], [ "1", "Transfers" ], [ "0", "Excluded" ] ], tally
     assert_select "dl.grid-cols-3.\\@lg\\:grid-cols-5"
+  end
+
+  test "a file with refunds and transfers counts six to a row" do
+    import = @user.start_import(upload("moves.csv", "Date,Name,Category,Amount,Transfer\n2024-10-01,To savings,,500,yes\n2024-10-02,Lunch,Food,-12,\n2024-10-03,Lunch refund,Food,5,\n"))
+
+    get edit_import_categories_url(import)
+
+    assert_equal [ [ "1", "Spent" ], [ "1", "Refunds" ], [ "0", "Income" ], [ "1", "Transfers" ], [ "0", "Excluded" ] ], tally
+    assert_select "dl.grid-cols-3.\\@lg\\:grid-cols-6"
   end
 
   test "a choice saves and the tally follows it" do

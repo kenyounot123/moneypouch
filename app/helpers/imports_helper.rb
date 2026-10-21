@@ -120,7 +120,13 @@ module ImportsHelper
   end
 
   def tally_counts(tally)
-    counts = { "Spent" => tally.spent, "Income" => tally.income }
+    counts = { "Spent" => tally.spent }
+
+    if tally.refunds.positive?
+      counts["Refunds"] = tally.refunds
+    end
+
+    counts["Income"] = tally.income
 
     if tally.transfers.positive?
       counts["Transfers"] = tally.transfers
@@ -130,18 +136,35 @@ module ImportsHelper
   end
 
   def tally_grid_classes(tally)
-    if tally.already_here.zero? && tally.transfers.positive?
-      "grid-cols-3 @lg:grid-cols-5"
-    else
+    if tally.already_here.positive?
       "grid-cols-4"
+    else
+      case tally_counts(tally).size
+      when 3
+        "grid-cols-4"
+      when 4
+        "grid-cols-3 @lg:grid-cols-5"
+      else
+        "grid-cols-3 @lg:grid-cols-6"
+      end
     end
   end
 
   def tally_note(tally)
     if tally.already_here.positive?
       "Rows you added before are skipped."
-    elsif tally.income.positive?
-      "Money in with no category counts as income."
+    else
+      notes = []
+
+      if tally.refunds.positive?
+        notes << "Refunds lower spending in their category."
+      end
+
+      if tally.income.positive?
+        notes << "Money in with no category counts as income."
+      end
+
+      notes.join(" ").presence
     end
   end
 
