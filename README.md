@@ -33,16 +33,16 @@ MoneyPouch is not a budgeting app. It has no envelopes, no "give every dollar a 
 
 ## How it compares
 
-| | Price | Budgets | Double-entry | Bank sync | Your server | Adding a purchase |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **MoneyPouch** | Free | None, tracking only | No | Optional, SimpleFIN | Yes | One line: `Chipotle 11.25 yesterday` |
-| [YNAB](https://www.ynab.com) | $109/year | Envelopes | No | Built in | No | A form |
-| [Monarch](https://www.monarchmoney.com) | $99.99/year | Category budgets | No | Built in | No | A form |
-| [Copilot](https://copilot.money) | $95/year, Apple only | Category budgets | No | Built in | No | A form |
-| [Actual Budget](https://actualbudget.org) | Free | Envelopes | No | Optional, SimpleFIN or GoCardless | Yes | A row in the register |
-| [Firefly III](https://www.firefly-iii.org) | Free | Optional | Yes | Optional, separate Data Importer | Yes | A form with source and destination accounts |
+| | Free | Runs on your server | Time to log a purchase | Bank sync |
+|---|---|---|---|---|
+| **MoneyPouch** | ✅ | ✅ | ✅ ~3 sec - `Chipotle 11.25 yesterday #food` | ✅ Optional |
+| [YNAB](https://www.ynab.com) | ❌ $109/year | ❌ | Minutes - budget it, then categorize it | ✅ |
+| [Monarch](https://www.monarchmoney.com) | ❌ $99.99/year | ❌ | Minutes - review and categorize the sync | ✅ |
+| [Copilot](https://copilot.money) | ❌ $95/year | ❌ | Auto-import, then fix the categories | ✅ |
+| [Actual Budget](https://actualbudget.org) | ✅ | ✅ | Assign it to an envelope first | ✅ Optional |
+| [Firefly III](https://www.firefly-iii.org) | ✅ | ✅ | Set up double-entry rules | ✅ Optional |
 
-Prices are for yearly plans as of October 2026. If you want a budget, Actual Budget is a good free choice. If you want real accounting, use Firefly III.
+Bank sync in MoneyPouch uses your own SimpleFIN account. Prices are for yearly plans as of October 2026. If you want a budget, Actual Budget is a good free choice. If you want real accounting, use Firefly III.
 
 ## System requirements
 
