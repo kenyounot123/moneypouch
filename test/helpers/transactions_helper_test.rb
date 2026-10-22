@@ -1,15 +1,7 @@
 require "test_helper"
 
 class TransactionsHelperTest < ActionView::TestCase
-  test "writes money out plain and money in with a plus" do
-    assert_equal [ "$5.50", "+$2,400.00" ], [ money(-550), money(240000) ]
-  end
-
-  test "colors money in green and leaves the rest to the caller" do
-    assert_equal [ "text-success", nil, nil ], [ money_color(240000), money_color(-550), money_color(0) ]
-    assert_equal [ "text-success", "text-tertiary", "text-tertiary" ],
-      [ money_color(240000, otherwise: "text-tertiary"), money_color(-550, otherwise: "text-tertiary"), money_color(0, otherwise: "text-tertiary") ]
-  end
+  include MoneyHelper
 
   test "colors a counted amount green when money comes in and an uncounted one tertiary" do
     income = Transaction.new(amount_in_cents: 240000)
