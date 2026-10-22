@@ -1,5 +1,7 @@
 class Simplefin::AccessesController < ApplicationController
-  before_action :set_access, only: %i[ edit update destroy ]
+  include SimplefinAccessScoped
+
+  skip_before_action :set_simplefin_access, only: %i[ new create ]
 
   def new
   end
@@ -26,14 +28,6 @@ class Simplefin::AccessesController < ApplicationController
   end
 
   private
-    def set_access
-      @access = Current.user.simplefin_access
-
-      if @access.nil?
-        raise ActiveRecord::RecordNotFound
-      end
-    end
-
     def setup_token
       params.expect(simplefin_access: [ :setup_token ])[:setup_token]
     end

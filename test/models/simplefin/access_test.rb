@@ -120,6 +120,15 @@ class Simplefin::AccessTest < ActiveSupport::TestCase
     assert access.syncable?
   end
 
+  test "past the day's allowance sync_later starts nothing" do
+    access = connect_simplefin
+    20.times { access.syncs.create!(finished_at: Time.current) }
+
+    assert_no_difference -> { access.syncs.count } do
+      assert_nil access.sync_later
+    end
+  end
+
   test "disconnecting forgets the access URL and keeps every row the bank added" do
     access = connect_simplefin
     activate(access)

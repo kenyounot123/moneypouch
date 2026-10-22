@@ -38,15 +38,18 @@ class Simplefin::Access < ApplicationRecord
     sync_later
   end
 
+  # Past the day's allowance it starts nothing and returns nil.
   def sync_later
-    syncs.abandon_stale
-    syncs.create!.tap(&:run_later)
+    if syncable?
+      syncs.abandon_stale
+      syncs.create!.tap(&:run_later)
+    end
   rescue ActiveRecord::RecordNotUnique
     syncs.running.take
   end
 
   def update_account(simplefin_account)
-    bank_accounts.refresh(simplefin_account, user:)
+    bank_accounts.refresh(simplefin_account)
   end
 
   def revoke
