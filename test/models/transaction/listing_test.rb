@@ -2,7 +2,7 @@ require "test_helper"
 
 class Transaction::ListingTest < ActiveSupport::TestCase
   setup do
-    @month = Month.new("2026-10", today: Date.new(2026, 10, 15))
+    @month = Period.month("2026-10", today: Date.new(2026, 10, 15))
   end
 
   test "totals the month's transactions" do

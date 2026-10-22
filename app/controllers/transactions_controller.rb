@@ -4,7 +4,7 @@ class TransactionsController < ApplicationController
   helper_method :filters
 
   def index
-    @month = Month.new(params[:month], today: Date.current)
+    @month = Period.month(params[:month], today: Date.current)
     @listing = Transaction::Listing.new(Current.user, month: @month, filters:, before:)
     @voucher = Voucher.new(flash[:shorthand], user: Current.user, today: Date.current)
     @added = Current.user.transactions.find_by(id: flash[:added_id])

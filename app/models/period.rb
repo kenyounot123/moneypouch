@@ -3,6 +3,13 @@ class Period
 
   attr_reader :kind, :today
 
+  # Reads the year and month the Transactions page puts in its URL, like 2026-10.
+  def self.month(param, today:)
+    new("month", today:, on: Date.strptime(param.to_s, "%Y-%m"))
+  rescue Date::Error
+    new("month", today:)
+  end
+
   def initialize(kind, today:, on: nil)
     @kind = kind.presence_in(KINDS) || "month"
     @today = today
@@ -23,6 +30,12 @@ class Period
 
   def previous
     Period.new(kind, today:, on: first_day - 1)
+  end
+
+  def next
+    unless current?
+      Period.new(kind, today:, on: range.end + 1)
+    end
   end
 
   def current?
