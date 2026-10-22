@@ -8,7 +8,7 @@
     <div class="flex flex-col gap-6">
       <div class="flex flex-col gap-2">
         <%= render layout: "shared/breadcrumbs", locals: { crumbs: [ [ "Import", new_import_path ], [ "Columns" ] ] } do %>
-          <%= button_to "Cancel", import_path(@import), method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+          <%= button_to "Cancel", import_path(@import), method: :delete, class: "header-button" %>
         <% end %>
         <h1 class="text-title">Columns</h1>
       </div>

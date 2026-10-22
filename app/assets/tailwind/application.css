@@ -179,6 +179,39 @@
   letter-spacing: var(--tw-tracking, 0.02em);
 }
 
+/* Controls the views share. Each one is a class name here, not a Ruby string a view reads from a helper. */
+@utility outline-button {
+  @apply ml-auto flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-primary bg-level-2 px-3 py-1.5 text-sm font-medium whitespace-nowrap text-primary shadow-control hover:bg-level-1;
+}
+
+@utility header-button {
+  @apply cursor-pointer text-sm font-medium text-secondary hover:text-primary disabled:cursor-default disabled:text-tertiary;
+}
+
+@utility icon-button {
+  @apply size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary pointer-coarse:size-10;
+}
+
+@utility category-field-slot {
+  @apply flex min-w-24 max-w-[140px] flex-1;
+}
+
+@utility category-field {
+  @apply flex h-7 w-full cursor-text items-center rounded-sm border border-primary bg-level-2 px-2.5 text-sm text-tertiary hover:border-(--ring-color-focus);
+}
+
+@utility category-link {
+  @apply cursor-pointer text-secondary underline decoration-dotted underline-offset-3 hover:text-primary;
+}
+
+@utility sidebar-link {
+  @apply relative flex items-center gap-2.5 rounded-md px-3 py-[9px] md:in-data-[sidebar=collapsed]:h-9 md:in-data-[sidebar=collapsed]:w-10 md:in-data-[sidebar=collapsed]:justify-center md:in-data-[sidebar=collapsed]:px-0;
+}
+
+@utility sidebar-label {
+  @apply md:in-data-[sidebar=collapsed]:pointer-events-none md:in-data-[sidebar=collapsed]:absolute md:in-data-[sidebar=collapsed]:top-1/2 md:in-data-[sidebar=collapsed]:left-full md:in-data-[sidebar=collapsed]:ml-2 md:in-data-[sidebar=collapsed]:-translate-y-1/2 md:in-data-[sidebar=collapsed]:rounded-sm md:in-data-[sidebar=collapsed]:border md:in-data-[sidebar=collapsed]:border-primary md:in-data-[sidebar=collapsed]:bg-level-2 md:in-data-[sidebar=collapsed]:px-2 md:in-data-[sidebar=collapsed]:py-1 md:in-data-[sidebar=collapsed]:text-sm md:in-data-[sidebar=collapsed]:whitespace-nowrap md:in-data-[sidebar=collapsed]:text-primary md:in-data-[sidebar=collapsed]:shadow-control md:in-data-[sidebar=collapsed]:opacity-0 md:in-data-[sidebar=collapsed]:group-hover:opacity-100 md:in-data-[sidebar=collapsed]:group-focus-visible:opacity-100;
+}
+
 @layer components {
   .icon {
     display: block;

@@ -44,7 +44,7 @@
       </div>
       <div class="ml-auto hidden shrink-0 items-center gap-0.5 bg-level-0 group-focus-within:flex group-hover:flex">
         <% if transaction.note.nil? %>
-          <button type="button" aria-label="Add a note" title="Add a note" class="flex <%= TransactionsHelper::ICON_BUTTON %>"
+          <button type="button" aria-label="Add a note" title="Add a note" class="flex icon-button"
             data-note-target="label" data-action="note#open"><%= icon_tag "note" %></button>
         <% end %>
         <%= exclusion_button transaction, icon: true %>
@@ -53,11 +53,11 @@
     </div>
     <div class="flex w-37.5 shrink-0 text-sm">
       <% if transaction.needs_category? %>
-        <span class="<%= TransactionsHelper::CATEGORY_FIELD_SLOT %>" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: "Category",
-          class: TransactionsHelper::CATEGORY_FIELD %></span>
+        <span class="category-field-slot" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: "Category",
+          class: "category-field" %></span>
       <% else %>
         <span class="flex min-w-0 items-center gap-1 text-tertiary" data-category-picker-target="category"><%= icon_tag("transfer", class: "size-3") if transaction.transfer? %><%= render "transactions/category_button", transaction:,
-          label: categorization_label(transaction), class: "truncate #{TransactionsHelper::CATEGORY_LINK}" %></span>
+          label: categorization_label(transaction), class: "truncate category-link" %></span>
       <% end %>
     </div>
     <p class="hidden w-47.5 shrink-0 truncate text-sm text-tertiary @4xl:block"><%= transaction.bank_account_name %></p>

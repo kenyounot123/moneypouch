@@ -17,7 +17,7 @@
           <span class="text-md font-medium group-aria-busy:hidden">Drop a file here</span>
           <span class="hidden text-md font-medium group-aria-busy:inline">Reading the file…</span>
           <span class="text-sm <%= error ? "text-danger" : "text-tertiary" %>"><%= error || "Excel (.xlsx) or CSV" %></span>
-          <span class="<%= SimplefinHelper::OUTLINE_BUTTON %> mt-3 mr-auto">Choose file</span>
+          <span class="outline-button mt-3 mr-auto">Choose file</span>
           <%= file_field_tag "import[file]", accept: ImportsHelper::FILE_TYPES, data: { controller: "auto-submit", action: "change->auto-submit#submit" },
             aria: { invalid: error.present? }, class: "absolute inset-0 cursor-pointer opacity-0" %>
         </label>
@@ -35,7 +35,7 @@
             <%= latest_import_sentence @latest %>
           </p>
           <%= button_to "Undo", import_path(@latest), method: :delete, form: { class: "shrink-0", data: { turbo_confirm: undo_import_question(@latest) } },
-            class: SimplefinHelper::HEADER_BUTTON %>
+            class: "header-button" %>
         </div>
       <% end %>
     </div>

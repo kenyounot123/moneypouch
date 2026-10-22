@@ -9,7 +9,7 @@
     </p>
     <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
       <p class="min-w-56 flex-1 text-xs text-tertiary"><%= rule_reach transaction %></p>
-      <button type="button" class="<%= SimplefinHelper::HEADER_BUTTON %> shrink-0" data-action="dismiss#dismiss">Just this one</button>
+      <button type="button" class="header-button shrink-0" data-action="dismiss#dismiss">Just this one</button>
       <%= button_to "Make a rule", transaction_rule_path(transaction), form: { class: "shrink-0", data: { turbo_frame: "_top" } },
         class: "cursor-pointer rounded-sm bg-action px-3 py-1.5 text-button-sm whitespace-nowrap text-on-action hover:brightness-95" %>
     </div>

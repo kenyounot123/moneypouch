@@ -13,7 +13,7 @@
         <%= excluded_tag %>
       <% end %>
       <% if transaction.note.nil? %>
-        <button type="button" aria-label="Add a note" title="Add a note" class="<%= TransactionsHelper::ICON_BUTTON %> -my-2 -ml-1.5 hidden group-focus-within:flex group-hover:flex"
+        <button type="button" aria-label="Add a note" title="Add a note" class="icon-button -my-2 -ml-1.5 hidden group-focus-within:flex group-hover:flex"
           data-note-target="label" data-action="note#open"><%= icon_tag "note" %></button>
       <% end %>
     </div>
@@ -23,12 +23,12 @@
     <% end %>
     <div class="flex min-w-0 items-center gap-1 text-sm text-tertiary">
       <% if field %>
-        <span class="<%= TransactionsHelper::CATEGORY_FIELD_SLOT %>" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: "Category",
-          class: TransactionsHelper::CATEGORY_FIELD %></span>
+        <span class="category-field-slot" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: "Category",
+          class: "category-field" %></span>
         <span class="shrink-0 pl-0.5 whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
       <% else %>
         <span class="flex h-4 items-center [&_input]:h-6" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: categorization_label(transaction),
-          class: TransactionsHelper::CATEGORY_LINK %></span>
+          class: "category-link" %></span>
         <span class="whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
       <% end %>
       <% if local_assigns[:account] %>

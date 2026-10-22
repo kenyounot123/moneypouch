@@ -1,12 +1,4 @@
 module TransactionsHelper
-  CATEGORY_FIELD_SLOT = "flex min-w-24 max-w-[140px] flex-1"
-
-  CATEGORY_FIELD = "flex h-7 w-full cursor-text items-center rounded-sm border border-primary bg-level-2 px-2.5 text-sm text-tertiary hover:border-(--ring-color-focus)"
-
-  CATEGORY_LINK = "cursor-pointer text-secondary underline decoration-dotted underline-offset-3 hover:text-primary"
-
-  ICON_BUTTON = "size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary pointer-coarse:size-10"
-
   def amount_color(transaction)
     if transaction.counted?
       money_color(transaction.amount_in_cents)
@@ -44,7 +36,7 @@ module TransactionsHelper
   end
 
   def icon_button_to(label, icon, url, **options)
-    button_to url, aria: { label: }, title: label, class: [ "flex", ICON_BUTTON ], **options do
+    button_to url, aria: { label: }, title: label, class: "flex icon-button", **options do
       icon_tag(icon)
     end
   end

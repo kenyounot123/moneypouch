@@ -1,6 +1,6 @@
 <section class="flex flex-col gap-4">
   <%= render layout: "simplefin/accesses/header" do %>
-    <%= button_to "Cancel", simplefin_access_path, method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+    <%= button_to "Cancel", simplefin_access_path, method: :delete, class: "header-button" %>
   <% end %>
 
   <%= form_with url: simplefin_access_path, method: :patch, scope: :simplefin_access, class: "flex flex-col rounded-lg border border-secondary bg-level-2 shadow-control" do |form| %>
