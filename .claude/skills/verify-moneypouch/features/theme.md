@@ -3,7 +3,7 @@
 ## Sub-features
 
 - Light and Dark buttons in the Appearance section of the Settings page (`/settings`).
-- The choice persists on the user (`users.background`) and in a `theme` cookie.
+- The choice persists on the user (`users.theme`).
 
 ## How to get to it (user POV)
 
