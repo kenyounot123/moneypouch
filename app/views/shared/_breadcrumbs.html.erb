@@ -1,0 +1,17 @@
+<div class="flex items-center justify-between gap-4">
+  <nav aria-label="Breadcrumb">
+    <ol class="flex flex-wrap items-center gap-1.5 text-sm">
+      <% crumbs.each do |label, url| %>
+        <li class="flex items-center gap-1.5">
+          <% if url %>
+            <%= link_to label, url, class: "text-secondary hover:text-primary" %>
+            <%= icon_tag "chevron-right", class: "size-3 text-tertiary" %>
+          <% else %>
+            <span class="font-medium text-primary" aria-current="page"><%= label %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ol>
+  </nav>
+  <%= yield %>
+</div>

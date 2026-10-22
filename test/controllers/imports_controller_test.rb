@@ -17,7 +17,8 @@ class ImportsControllerTest < ActionDispatch::IntegrationTest
     assert_select "main p", text: "One row per transaction, with at least a date and an amount. Names, categories and notes come along if you have them."
     assert_select "main button", text: "Undo", count: 0
     assert_select "aside a[aria-current=page][href=?]", new_import_path, text: "Import"
-    assert_select "ol[aria-label='Import steps'] li[aria-current=step]", text: "1 File"
+    assert_select "h1", text: "Import"
+    assert_select "nav[aria-label=Breadcrumb]", count: 0
   end
 
   test "an upload reads the file and opens the Columns step" do

@@ -13,8 +13,6 @@ module ImportsHelper
     "note" => { title: "Note", hint: "Anything else you wrote down." }
   }
 
-  STEPS = %w[ File Columns Categories ]
-
   FIELD_ORDER = %w[ date amount name spent_or_income category transfer excluded note ]
 
   POSITIVE_AMOUNTS = { "spent" => "Spent", "income" => "Income" }
