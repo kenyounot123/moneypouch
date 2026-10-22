@@ -1,6 +1,7 @@
 class Rule < ApplicationRecord
+  include Categorizable
+
   belongs_to :user
-  belongs_to :category, optional: true
 
   scope :latest, -> { order(updated_at: :desc, id: :desc) }
 
@@ -13,10 +14,6 @@ class Rule < ApplicationRecord
 
   def matches?(name)
     name.key == name_key
-  end
-
-  def categorization
-    Transaction::Categorization.new(category:, transfer:)
   end
 
   def apply_to_uncategorized

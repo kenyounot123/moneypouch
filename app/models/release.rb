@@ -1,4 +1,4 @@
-class Release
+class Release < Data.define(:version, :date, :sections)
   Section = Data.define(:title, :items)
 
   SECTION_TITLES = { "Features" => "New", "Bug Fixes" => "Fixed", "Performance Improvements" => "Faster" }
@@ -6,8 +6,6 @@ class Release
   HEADING = /\A## \[?(?<version>\d+(?:\.\d+)*)\]?(?:\(\S+\))?(?: \((?<date>\d{4}-\d{2}-\d{2})\))?\s*\z/
   SCOPE = /\A\*\*[^*]+:\*\* /
   LINKS = /(?:\s*\(\[[^\]]+\]\([^)]+\)\))+\z/
-
-  attr_reader :version, :date, :sections
 
   class << self
     def current_version
@@ -29,7 +27,7 @@ class Release
         heading, *sections = chunk.split(/^(?=### )/)
 
         if match = HEADING.match(heading.lines.first.to_s)
-          new(match[:version], match[:date]&.to_date, sections.map { |section| parse_section(section) })
+          new(version: match[:version], date: match[:date]&.to_date, sections: sections.map { |section| parse_section(section) })
         end
       end
     end
@@ -40,18 +38,12 @@ class Release
         name = heading.delete_prefix("### ").strip
         items = lines.grep(/\A\* /).map { |line| clean(line.delete_prefix("* ")) }
 
-        Section.new(SECTION_TITLES.fetch(name, name), items)
+        Section.new(title: SECTION_TITLES.fetch(name, name), items:)
       end
 
       def clean(item)
         item.sub(SCOPE, "").sub(LINKS, "").sub(/\A./) { |first| first.upcase }
       end
-  end
-
-  def initialize(version, date, sections)
-    @version = version
-    @date = date
-    @sections = sections
   end
 
   def newer_than?(other)

@@ -110,7 +110,7 @@ module ImportsHelper
   def category_choices(category_word, category_names)
     choices = category_names.map { |name| [ name, name ] } + [ [ "No category", "" ] ]
 
-    if category_word.match
+    if category_word.matched?
       choices
     else
       [ [ "New category", category_word.word ] ] + choices

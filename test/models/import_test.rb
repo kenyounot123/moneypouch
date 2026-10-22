@@ -145,7 +145,12 @@ class ImportTest < ActiveSupport::TestCase
     assert_equal [ [ "Coffee", 4, "Coffee", false ], [ "Groceries", 3, "Groceries", false ], [ "food", 1, "Food", true ],
                    [ "Fun", 1, "Fun", false ], [ "Housing", 1, "Housing", false ], [ "Travel", 1, "Travel", false ] ],
       import.category_words.map { |category_word| [ category_word.word, category_word.count, category_word.name, category_word.matched? ] }
-    assert_equal categories(:food), import.category_words.third.match
+
+    import.choose_categories([ { word: "food", name: "Groceries" } ])
+
+    food = import.category_words.find { |category_word| category_word.word == "food" }
+    assert food.matched?
+    assert_not food.settled?
   end
 
   test "a new word only on money coming in becomes an income category" do

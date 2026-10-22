@@ -70,7 +70,7 @@ class Import < ApplicationRecord
         word:,
         count: rows.size,
         money_in_count: rows.count(&:money_in?),
-        match:,
+        matched: match.present?,
         name:,
         income:,
         money_in_name: money_in_name_for(word, name:, income:)

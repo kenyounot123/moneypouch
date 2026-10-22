@@ -24,6 +24,11 @@ class ImportsHelperTest < ActionView::TestCase
     assert_equal %(1,200 are <span class="text-success">money in</span>), money_in_sentence(category_word(money_in_count: 1_200))
   end
 
+  test "a word that isn't one of yours can become a new category" do
+    assert_equal [ [ "New category", "work" ], [ "Food", "Food" ], [ "No category", "" ] ], category_choices(category_word, [ "Food" ])
+    assert_equal [ [ "Food", "Food" ], [ "No category", "" ] ], category_choices(category_word(word: "food", matched: true), [ "Food" ])
+  end
+
   test "money in goes to an income category, or stays a refund to the word's category" do
     assert_equal [ [ "Income", "Income" ], [ "Side gigs", "Side gigs" ], [ "Refund to work", "" ] ],
       money_in_choices(category_word(name: "work"), [ "Income", "Side gigs" ])
@@ -35,6 +40,6 @@ class ImportsHelperTest < ActionView::TestCase
     end
 
     def category_word(**attributes)
-      Import::CategoryWord.new(word: "work", count: 1, money_in_count: 0, match: nil, name: "work", income: false, money_in_name: nil, **attributes)
+      Import::CategoryWord.new(word: "work", count: 1, money_in_count: 0, matched: false, name: "work", income: false, money_in_name: nil, **attributes)
     end
 end
