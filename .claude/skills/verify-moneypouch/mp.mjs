@@ -696,9 +696,9 @@ async function main() {
         await b.goto(`${origin}/settings`)
       }
       await b.click(button)
-      const applied = `document.documentElement.dataset.theme === "${args[0]}" && document.cookie.includes("theme=${args[0]}")`
+      const applied = `document.documentElement.dataset.theme === "${args[0]}" && fetch("/settings").then((response) => response.text()).then((html) => html.includes('data-theme="${args[0]}"'))`
       for (let i = 0; i < 50 && !(await b.evaluate(applied).catch(() => false)); i++) await sleep(100)
-      if (!(await b.evaluate(applied))) die(`theme did not become ${args[0]} (data-theme and theme cookie) within 5s`)
+      if (!(await b.evaluate(applied))) die(`theme did not become ${args[0]} (on the page and saved on the user) within 5s`)
       await b.settle()
       console.log(args[0])
     } else if (cmd === "signin") {

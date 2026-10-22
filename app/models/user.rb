@@ -1,7 +1,10 @@
 class User < ApplicationRecord
   has_secure_password
 
+  THEMES = %w[ light dark ]
+
   validates :username, presence: true, uniqueness: true
+  validates :theme, inclusion: { in: THEMES }
 
   has_many :sessions, dependent: :destroy
 
@@ -35,6 +38,10 @@ class User < ApplicationRecord
     end
 
     import
+  end
+
+  def choose_theme(theme)
+    update!(theme:)
   end
 
   def unseen_releases

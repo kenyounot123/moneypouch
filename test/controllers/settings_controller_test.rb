@@ -32,15 +32,19 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "a theme change returns to settings" do
-    patch dark_theme_url, headers: { "HTTP_REFERER" => settings_url }
+    patch theme_url, params: { theme: "dark" }, headers: { "HTTP_REFERER" => settings_url }
 
     assert_redirected_to settings_url
-    assert_equal "dark", users(:one).reload.background
+    assert_equal "dark", users(:one).reload.theme
+
+    patch theme_url, params: { theme: "light" }, headers: { "HTTP_REFERER" => settings_url }
+    assert_equal "light", users(:one).reload.theme
   end
 
-  test "light theme change returns to settings" do
-    patch light_theme_url, headers: { "HTTP_REFERER" => settings_url }
+  test "an unknown theme is refused" do
+    patch theme_url, params: { theme: "neon" }
 
-    assert_redirected_to settings_url
+    assert_response :unprocessable_entity
+    assert_equal "light", users(:one).reload.theme
   end
 end
