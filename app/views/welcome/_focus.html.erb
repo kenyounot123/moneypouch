@@ -2,7 +2,7 @@
 <% categories = summary.categories(focus).map { |category, cents| [ category&.name || "Uncategorized", cents ] } %>
 <% peak = [ total.income, total.spent ].max %>
 <div class="flex flex-col gap-4 border-t border-secondary pt-3.5">
-  <p class="text-md font-semibold"><%= period_name focus %></p>
+  <h3 class="text-md font-semibold"><%= period_name focus %></h3>
   <% if total.income.positive? %>
     <%= render "welcome/flow", label: "Income", amount: total.income, peak:, rows: summary.sources(focus) %>
   <% end %>

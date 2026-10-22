@@ -38,7 +38,7 @@
       <div class="flex min-w-0 flex-col gap-2.5 @xl:flex-row @xl:items-end @xl:gap-12">
         <div class="flex flex-col gap-2.5">
           <p class="text-secondary">Spent in <%= month_name @month %></p>
-          <p class="text-display"><%= money @listing.spent %></p>
+          <p class="text-display" data-field="spent"><%= money @listing.spent %></p>
         </div>
         <dl class="hidden gap-8 pb-1.5 @xl:flex">
           <% { "Income" => [ money(@listing.income) ], "Net" => [ signed_money(@listing.net), money_color(@listing.net) ], "Transactions" => [ number_with_delimiter(@listing.count) ] }.each do |term, (value, color)| %>

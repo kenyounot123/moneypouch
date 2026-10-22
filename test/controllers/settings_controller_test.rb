@@ -19,8 +19,8 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "section h2", text: "About"
     assert_select "section:has(h2)", text: /About/ do
-      assert_select "p.text-secondary", text: /\A\d+\.\d+\.\d+\z/
-      assert_select "p.text-secondary", text: Release.current_version
+      assert_select "p", text: /\A\d+\.\d+\.\d+\z/
+      assert_select "p", text: Release.current_version
     end
   end
 

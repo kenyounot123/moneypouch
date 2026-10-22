@@ -12,7 +12,8 @@
           <p class="text-secondary"><%= spent_heading(@period) %></p>
           <p class="text-display"><%= money @spending.total %></p>
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
-            <div class="flex w-[300px] max-w-full shrink-0 gap-0.5">
+            <div class="flex w-[300px] max-w-full shrink-0 gap-0.5" role="meter" aria-label="Days gone"
+              aria-valuemin="0" aria-valuemax="<%= @period.days %>" aria-valuenow="<%= @period.day %>">
               <% @period.columns.each do |column| %>
                 <div class="h-2.5 flex-1 rounded-[2px] <%= column <= @period.today ? "bg-data" : "bg-data-track" %>"></div>
               <% end %>
@@ -41,7 +42,7 @@
             <div class="flex items-center gap-4">
               <p class="w-28 shrink-0 truncate"><%= category&.name || "Uncategorized" %></p>
               <div class="h-2.5 flex-1 rounded-bar bg-data-track">
-                <div class="h-full rounded-bar <%= category_color category, index %>" style="width: max(3px, round(<%= (cents * 100.0 / categories.first.last).round(1) %>%, 1px))"></div>
+                <div data-field="category-bar" class="h-full rounded-bar <%= category_color category, index %>" style="width: max(3px, round(<%= (cents * 100.0 / categories.first.last).round(1) %>%, 1px))"></div>
               </div>
               <p class="w-22 shrink-0 text-right font-mono"><%= money cents %></p>
               <p class="w-10 shrink-0 text-right text-sm text-tertiary"><%= share_of cents, categories.sum(&:last) %></p>

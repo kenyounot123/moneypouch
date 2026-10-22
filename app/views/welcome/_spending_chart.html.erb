@@ -15,6 +15,6 @@
 </div>
 <div class="flex gap-1">
   <% column_labels(period, columns).each do |caption, span| %>
-    <p class="basis-0 text-xs text-tertiary" style="flex-grow: <%= span %>"><%= caption %></p>
+    <p data-field="caption" class="basis-0 text-xs text-tertiary" style="flex-grow: <%= span %>"><%= caption %></p>
   <% end %>
 </div>

@@ -12,8 +12,8 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     get transactions_url
 
     assert_select "main section li", 11
-    assert_select "li#transaction_#{transactions(:coffee).id} p.w-47\\.5", text: "SimpleFIN Savings"
-    assert_select "li#transaction_#{transactions(:paycheck).id} p.w-47\\.5", text: ""
+    assert_select "li#transaction_#{transactions(:coffee).id} [data-field=account]", text: "SimpleFIN Savings"
+    assert_select "li#transaction_#{transactions(:paycheck).id} [data-field=account]", count: 0
   end
 
   test "rows added by the bank with no category carry the marker and a matched row does not" do
@@ -22,9 +22,9 @@ class BankRowsTest < ActionDispatch::IntegrationTest
 
     get transactions_url
 
-    assert_select "li#transaction_#{grocery.id} div.h-10 div.bg-highlight"
-    assert_select "li#transaction_#{transactions(:coffee).id} div.h-10 div.bg-highlight", count: 0
-    assert_select "main section div.h-10 div.bg-highlight", 9
+    assert_select "li#transaction_#{grocery.id} [role=img][aria-label='Needs a category']"
+    assert_select "li#transaction_#{transactions(:coffee).id} [role=img][aria-label='Needs a category']", count: 0
+    assert_select "main section [role=img][aria-label='Needs a category']", 9
   end
 
   test "money in from the bank waits for a category until Income is picked" do
@@ -32,12 +32,12 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     deposit = Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: 196_000).transaction_id)
 
     get transactions_url
-    assert_select "li#transaction_#{deposit.id} div.h-10 div.bg-highlight"
+    assert_select "li#transaction_#{deposit.id} [role=img][aria-label='Needs a category']"
 
     patch transaction_categorization_url(deposit), params: { categorization: { category: "Income" } }
     get transactions_url
 
-    assert_select "li#transaction_#{deposit.id} div.h-10 div.bg-highlight", count: 0
+    assert_select "li#transaction_#{deposit.id} [role=img][aria-label='Needs a category']", count: 0
     assert_select "li#transaction_#{deposit.id} button[data-action='category-picker#open']", text: "Income"
     assert_select "a[aria-pressed=false]", text: /Needs a category · 8/
   end
@@ -51,7 +51,7 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     get transactions_url(needs: "1")
     assert_select "a[aria-pressed=true]", text: /Needs a category · 9/
     assert_select "main section li", 9
-    assert_select "main section div.h-10 div.bg-highlight", 9
+    assert_select "main section [role=img][aria-label='Needs a category']", 9
   end
 
   test "the account filter narrows to one bank account, or to rows typed in" do
@@ -60,7 +60,7 @@ class BankRowsTest < ActionDispatch::IntegrationTest
 
     get transactions_url(account: savings.id)
     assert_select "main section li", 5
-    assert_select "main section li p.w-47\\.5", text: "SimpleFIN Savings", count: 5
+    assert_select "main section li [data-field=account]", text: "SimpleFIN Savings", count: 5
     assert_select "select#account option[selected][value=?]", savings.id.to_s
 
     get transactions_url(account: "typed")

@@ -51,12 +51,11 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "Spent in October"
     assert_select "p", text: "$1,655.50"
     assert_select "p", text: "Day 15 of 31"
-    assert_select "div.h-2\\.5.bg-data", 15
-    assert_select "div.h-2\\.5.bg-highlight", 0
+    assert_select "[role=meter][aria-label='Days gone'][aria-valuenow='15'][aria-valuemax='31'] > .bg-data", 15
     assert_select "p", text: "Oct 1–31"
     assert_select "p", text: "Food"
     assert_select "p", text: "Uncategorized"
-    assert_select "div.rounded-bar.bg-highlight", 1
+    assert_select "[data-field=category-bar].bg-highlight", 1
   end
 
   test "shows the year by month" do
@@ -104,9 +103,9 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-chart-label-param='Oct 1 · $5.50'] .bg-data-strong"
     assert_select "[data-chart-target=readout]", text: ""
     assert_select "[data-chart-target=key]", count: 0
-    assert_select "p.basis-0", text: "Oct 1"
-    assert_select "p.basis-0", text: "Oct 29"
-    assert_select "p.basis-0", text: "Oct 2", count: 0
+    assert_select "[data-field=caption]", text: "Oct 1"
+    assert_select "[data-field=caption]", text: "Oct 29"
+    assert_select "[data-field=caption]", text: "Oct 2", count: 0
   end
 
   test "labels every column when the period has twelve or fewer" do
@@ -114,8 +113,8 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
       get root_url(period: "week")
     end
 
-    assert_select "p.basis-0", count: 7
-    assert_select "p.basis-0", text: "Oct 12"
+    assert_select "[data-field=caption]", count: 7
+    assert_select "[data-field=caption]", text: "Oct 12"
   end
 
   test "keeps the chart across periods and the period across charts" do
@@ -154,9 +153,9 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-chart-target=readout]", text: ""
     assert_equal [ "Income", "Spent", "±Net" ], css_select("[data-chart-target=key] > span").map { |span| span.text.strip }
     assert_select "a[href*='focus=2026-08-01'] span.text-tertiary", text: "−$500"
-    assert_select "div.flex.gap-1\\.5 > a[aria-current]", count: 0
-    assert_select "a .opacity-40", count: 0
-    assert_select "p.font-semibold", count: 0
+    assert_select "[role=group][aria-label=Periods] > a[aria-current]", count: 0
+    assert_select "a [data-dimmed]", count: 0
+    assert_select "h3", count: 0
   end
 
   test "summarizes the last six weeks, each linking to its focus" do
@@ -175,7 +174,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     end
     assert_select "a[href*='month=']", count: 0
     assert_select "a[href*='focus=2026-09-01']", count: 0
-    assert_select "div.flex.gap-1\\.5 > a", count: 6
+    assert_select "[role=group][aria-label=Periods] > a", count: 6
   end
 
   test "summarizes the last six years, each linking to its focus" do
@@ -208,29 +207,29 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
 
     unfocused = root_path(period: "month", chart: "summary")
     assert_select "a[href='#{unfocused}'][aria-current=true][aria-label='Sep · income $8,903 · spent $1,653'].bg-level-3" do
-      assert_select "span.font-medium.text-primary", text: "Sep"
+      assert_select "span", text: "Sep"
       assert_select "span.text-success", text: "+$7,250"
-      assert_select ".opacity-40", count: 0
+      assert_select "[data-dimmed]", count: 0
     end
-    assert_select "div.flex.gap-1\\.5 > a[aria-current]", count: 1
-    assert_select "a[href*='focus=2026-08-01'] .opacity-40"
-    assert_select "a[href*='focus=2026-08-01'] span.text-secondary", text: "Aug"
+    assert_select "[role=group][aria-label=Periods] > a[aria-current]", count: 1
+    assert_select "a[href*='focus=2026-08-01'] [data-dimmed]"
+    assert_select "a[href*='focus=2026-08-01'] span", text: "Aug"
     assert_select "[data-chart-target=key]"
     assert_select "[data-chart-target=readout]"
-    assert_select "p.font-semibold", text: "September"
+    assert_select "h3", text: "September"
     assert_select "p", text: "Income"
     assert_select "p", text: "$8,902.88"
     assert_select "p", text: "Spent"
     assert_select "p", text: "$1,652.50"
-    assert_select "span.truncate", text: "Payroll"
+    assert_select "span", text: "Payroll"
     assert_select "span", text: "$7,890.00"
-    assert_select "span.truncate", text: "Bonus"
-    assert_select "span.truncate", text: "1 more"
+    assert_select "span", text: "Bonus"
+    assert_select "span", text: "1 more"
     assert_select "span", text: "$12.88"
     assert_select "span", text: "Uncategorized"
     assert_select "span", text: "Food"
-    assert_select "div.h-2\\.5[style='width: 100.0%']", count: 1
-    assert_select "div.h-2\\.5[style='width: 18.6%']", count: 1
+    assert_select "[data-field=flow-bar][style='width: 100.0%']", count: 1
+    assert_select "[data-field=flow-bar][style='width: 18.6%']", count: 1
     assert_select "p", text: "Nothing came in.", count: 0
     assert_select "p", text: "Nothing spent.", count: 0
   end
@@ -240,13 +239,13 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
       users(:one).transactions.create!(name: "Rent", amount_in_cents: -250_000, occurred_on: "2026-10-06")
 
       get root_url(period: "week", chart: "summary", focus: "2026-10-05")
-      assert_select "p.font-semibold", text: "Oct 5–11"
+      assert_select "h3", text: "Oct 5–11"
       assert_select "p", text: "$2,500.00"
       assert_select "span", text: "Uncategorized"
       assert_select "p", text: "Income", count: 0
 
       get root_url(period: "year", chart: "summary", focus: "2025-01-01")
-      assert_select "p.font-semibold", text: "2025"
+      assert_select "h3", text: "2025"
       assert_select "p", text: "Nothing spent."
     end
   end
@@ -256,7 +255,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
       get root_url(chart: "summary", focus: "2026-03-01")
     end
 
-    assert_select "p.font-semibold", text: "March"
+    assert_select "h3", text: "March"
     assert_select "p", text: "Nothing spent."
     assert_select "p", text: "Nothing came in.", count: 0
     assert_select "p", text: "Income", count: 0
@@ -284,14 +283,14 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
       get root_url(chart: "summary", focus: "2030-01-01")
     end
 
-    assert_select "p.font-semibold", text: "October"
+    assert_select "h3", text: "October"
     assert_select "a[aria-current=true][aria-label^='Oct ·']"
   end
 
   test "ignores a focus outside the summary chart" do
     get root_url(focus: "2026-09-01")
 
-    assert_select "p.font-semibold", count: 0
+    assert_select "h3", count: 0
     assert_select "[data-chart-target=readout]"
   end
 

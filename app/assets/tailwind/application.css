@@ -212,6 +212,30 @@
   @apply md:in-data-[sidebar=collapsed]:pointer-events-none md:in-data-[sidebar=collapsed]:absolute md:in-data-[sidebar=collapsed]:top-1/2 md:in-data-[sidebar=collapsed]:left-full md:in-data-[sidebar=collapsed]:ml-2 md:in-data-[sidebar=collapsed]:-translate-y-1/2 md:in-data-[sidebar=collapsed]:rounded-sm md:in-data-[sidebar=collapsed]:border md:in-data-[sidebar=collapsed]:border-primary md:in-data-[sidebar=collapsed]:bg-level-2 md:in-data-[sidebar=collapsed]:px-2 md:in-data-[sidebar=collapsed]:py-1 md:in-data-[sidebar=collapsed]:text-sm md:in-data-[sidebar=collapsed]:whitespace-nowrap md:in-data-[sidebar=collapsed]:text-primary md:in-data-[sidebar=collapsed]:shadow-control md:in-data-[sidebar=collapsed]:opacity-0 md:in-data-[sidebar=collapsed]:group-hover:opacity-100 md:in-data-[sidebar=collapsed]:group-focus-visible:opacity-100;
 }
 
+/* A Transactions page row. Narrow: the name over a meta line. From @xl the meta line's pieces become columns. */
+@utility transaction-row {
+  display: grid;
+  grid-template-columns: 0.5rem minmax(0, 1fr) 90px;
+  grid-template-areas: "dot name amount" "dot meta amount";
+  align-items: center;
+  column-gap: --spacing(3);
+  row-gap: --spacing(0.5);
+  padding-block: --spacing(3);
+
+  @variant @xl {
+    grid-template-columns: 0.5rem minmax(0, 1fr) 150px 100px;
+    grid-template-areas: "dot name category amount";
+    height: --spacing(10);
+    column-gap: --spacing(4);
+    padding-block: 0;
+  }
+
+  @variant @4xl {
+    grid-template-columns: 0.5rem minmax(0, 1fr) 150px 190px 100px;
+    grid-template-areas: "dot name category account amount";
+  }
+}
+
 @layer components {
   .icon {
     display: block;

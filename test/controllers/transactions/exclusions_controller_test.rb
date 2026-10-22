@@ -38,7 +38,7 @@ class Transactions::ExclusionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "li#transaction_#{transactions(:coffee).id} span", text: "Excluded"
     assert_select "li#transaction_#{transactions(:coffee).id} form[action=?] button[aria-label=Include][title=Include] .icon--include", transaction_exclusion_path(transactions(:coffee))
     assert_select "li#transaction_#{transactions(:paycheck).id} form[action=?] button[aria-label=Exclude][title=Exclude] .icon--exclude", transaction_exclusion_path(transactions(:paycheck))
-    assert_select "p.text-display", text: "$0.00"
+    assert_select "[data-field=spent]", text: "$0.00"
   end
 
   test "the sheet offers Exclude, then Include once excluded" do

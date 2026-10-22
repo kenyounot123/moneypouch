@@ -1,0 +1,11 @@
+<%# Narrow, the category reads as text in the meta line and a tap opens the sheet. From @xl it is the category column's picker. %>
+<% if transaction.needs_category? %>
+  <span class="shrink-0 text-secondary underline decoration-dotted underline-offset-3 @xl:hidden"><%= categorization_label transaction %></span>
+  <span class="hidden text-sm @xl:flex @xl:[grid-area:category]">
+    <span class="category-field-slot" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: "Category", class: "category-field" %></span>
+  </span>
+<% else %>
+  <span class="flex shrink-0 items-center gap-1 text-secondary @xl:min-w-0 @xl:shrink @xl:text-tertiary @xl:[grid-area:category]" data-category-picker-target="category">
+    <%= icon_tag("transfer", class: "size-3") if transaction.transfer? %><%= render "transactions/category_button", transaction:, label: categorization_label(transaction), class: "truncate category-link" %>
+  </span>
+<% end %>
