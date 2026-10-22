@@ -1,6 +1,6 @@
 <% content_for :title, "Import" %>
 <% category_words, tally, unreadable_rows = @import.category_words, @import.tally, @import.unreadable_rows %>
-<% matched, unmatched = category_words.partition(&:matched?) %>
+<% matched, unmatched = category_words.partition(&:settled?) %>
 
 <div class="flex min-h-dvh max-md:flex-col">
   <%= render "shared/sidebar" %>
@@ -31,7 +31,7 @@
               <%= categories_lead matched, unmatched %>
             </p>
             <% unmatched.each do |category_word| %>
-              <%= render "imports/categories/category_word", category_word:, category_names: @category_names %>
+              <%= render "imports/categories/category_word", category_word:, category_names: @category_names, income_names: @income_names %>
             <% end %>
           <% end %>
 
@@ -50,7 +50,7 @@
               </button>
               <div id="matched_categories" hidden data-disclosure-target="panel">
                 <% matched.each do |category_word| %>
-                  <%= render "imports/categories/category_word", category_word:, category_names: @category_names %>
+                  <%= render "imports/categories/category_word", category_word:, category_names: @category_names, income_names: @income_names %>
                 <% end %>
               </div>
             </div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_18_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_190000) do
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -67,6 +67,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_120000) do
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "money_in_names", default: "{}", null: false
     t.index ["user_id", "completed_at"], name: "index_imports_on_user_id_and_completed_at"
     t.index ["user_id"], name: "index_imports_one_draft", unique: true, where: "completed_at IS NULL"
     t.check_constraint "(completed_at IS NULL) = (sheet IS NOT NULL)", name: "draft_has_a_sheet"

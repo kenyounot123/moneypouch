@@ -1,4 +1,8 @@
-class Import::CategoryWord < Data.define(:word, :count, :match, :name, :income)
+class Import::CategoryWord < Data.define(:word, :count, :money_in_count, :match, :name, :income, :money_in_name)
+  def self.uncategorized(money_in_name:)
+    new(word: nil, count: 0, money_in_count: 0, match: nil, name: "", income: false, money_in_name:)
+  end
+
   def matched?
     match.present? && name.casecmp?(match.name)
   end
@@ -9,5 +13,35 @@ class Import::CategoryWord < Data.define(:word, :count, :match, :name, :income)
 
   def income?
     income
+  end
+
+  def settled?
+    matched? && !money_in_choice?
+  end
+
+  def money_in_choice?
+    categorized? && !income? && money_in_count.positive?
+  end
+
+  def category_name_for(row)
+    if row.transfer?
+      ""
+    elsif row.money_in? && money_in_name
+      money_in_name
+    else
+      name
+    end
+  end
+
+  def counts_as(row)
+    if income?
+      :income
+    elsif !row.money_in?
+      :spent
+    elsif categorized? && money_in_name.nil?
+      :refund
+    else
+      :income
+    end
   end
 end

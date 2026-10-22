@@ -1,0 +1,5 @@
+<span class="relative flex w-[200px] max-w-[50%] shrink-0">
+  <%= select_tag name, options_for_select(choices, selected), id: nil, aria: { label: }, onchange: "this.form.requestSubmit()",
+    class: "h-8.5 w-full min-w-0 cursor-pointer appearance-none rounded-lg border border-primary bg-level-0 pr-7 pl-3 text-sm text-primary hover:border-(--ring-color-focus)" %>
+  <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-tertiary" aria-hidden="true">▾</span>
+</span>

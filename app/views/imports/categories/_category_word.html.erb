@@ -1,13 +1,18 @@
-<div class="flex items-center gap-3 border-t border-secondary py-3">
-  <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-    <p class="truncate text-md font-medium"><%= category_word.word %></p>
-    <p class="truncate text-sm text-tertiary"><%= pluralize number_with_delimiter(category_word.count), "row" %></p>
+<div class="flex flex-col gap-2 border-t border-secondary py-3">
+  <div class="flex items-center gap-3">
+    <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+      <p class="truncate text-md font-medium"><%= category_word.word %></p>
+      <p class="truncate text-sm text-tertiary"><%= pluralize number_with_delimiter(category_word.count), "row" %></p>
+    </div>
+    <%= hidden_field_tag "import[categories][][word]", category_word.word, id: nil %>
+    <%= render "imports/categories/select", name: "import[categories][][name]", choices: category_choices(category_word, category_names),
+      selected: category_word.name, label: "What #{category_word.word} becomes" %>
   </div>
-  <%= hidden_field_tag "import[categories][][word]", category_word.word, id: nil %>
-  <span class="relative flex w-[200px] max-w-[50%] shrink-0">
-    <%= select_tag "import[categories][][name]", options_for_select(category_choices(category_word, category_names), category_word.name), id: nil,
-      aria: { label: "What #{category_word.word} becomes" }, onchange: "this.form.requestSubmit()",
-      class: "h-8.5 w-full min-w-0 cursor-pointer appearance-none rounded-lg border border-primary bg-level-0 pr-7 pl-3 text-sm text-primary hover:border-(--ring-color-focus)" %>
-    <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-tertiary" aria-hidden="true">▾</span>
-  </span>
+  <% if category_word.money_in_choice? %>
+    <div class="flex items-center gap-3">
+      <p class="min-w-0 flex-1 truncate pl-4 text-sm text-tertiary"><span aria-hidden="true">└</span> <%= money_in_sentence category_word %></p>
+      <%= render "imports/categories/select", name: "import[categories][][money_in]", choices: money_in_choices(category_word, income_names),
+        selected: category_word.money_in_name.to_s, label: "What #{category_word.word} money in becomes" %>
+    </div>
+  <% end %>
 </div>

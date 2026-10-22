@@ -3,6 +3,7 @@ class Imports::CategoriesController < ApplicationController
 
   def edit
     @category_names = Current.user.categories.alphabetically.pluck(:name)
+    @income_names = Current.user.categories.income.alphabetically.pluck(:name)
   end
 
   def update
@@ -12,6 +13,6 @@ class Imports::CategoriesController < ApplicationController
 
   private
     def categories_params
-      params.expect(import: [ categories: [ [ :word, :name ] ] ])
+      params.expect(import: [ categories: [ [ :word, :name, :money_in ] ] ])
     end
 end

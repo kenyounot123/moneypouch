@@ -24,12 +24,25 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "ol[aria-label='Import steps'] li[aria-current=step]", text: "3 Categories"
   end
 
+  test "a word with money in under a spending category asks where its money in goes" do
+    import = @user.start_import(import_file("personal.csv"))
+
+    get edit_import_categories_url(import)
+
+    assert_select "p", text: "└ 1 is money in"
+    assert_select "p span.text-success", text: "money in"
+    assert_select "select[aria-label='What Coffee money in becomes'][onchange='this.form.requestSubmit()'] option[selected]", text: "Refund to Coffee"
+    assert_equal [ "Income", "Refund to Coffee" ], css_select("select[aria-label='What Coffee money in becomes'] option").map(&:text)
+    assert_select "select[aria-label^='What Groceries money in']", count: 0
+  end
+
   test "the tally counts what Import adds, and Can't read lists the rows it leaves out" do
     import = @user.start_import(import_file("personal.csv"))
 
     get edit_import_categories_url(import)
 
-    assert_equal [ [ "10", "Spent" ], [ "0", "Income" ], [ "1", "Excluded" ], [ "1", "Can't read" ] ], tally
+    assert_equal [ [ "9", "Spent" ], [ "1", "Refunds" ], [ "0", "Income" ], [ "1", "Excluded" ], [ "1", "Can't read" ] ], tally
+    assert_select "p", text: "Refunds lower spending in their category."
     assert_select "#unreadable_rows[hidden] li", text: /Row 12\s+Can't read the amount “abc”/
     assert_select "p", text: "You can undo the whole import later."
     assert_select "form[action=?] button:not([disabled])", import_transactions_path(import), text: "Import 11 ↵"
@@ -44,6 +57,15 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "dl.grid-cols-3.\\@lg\\:grid-cols-5"
   end
 
+  test "a file with refunds and transfers counts six to a row" do
+    import = @user.start_import(upload("moves.csv", "Date,Name,Category,Amount,Transfer\n2024-10-01,To savings,,500,yes\n2024-10-02,Lunch,Food,-12,\n2024-10-03,Lunch refund,Food,5,\n"))
+
+    get edit_import_categories_url(import)
+
+    assert_equal [ [ "1", "Spent" ], [ "1", "Refunds" ], [ "0", "Income" ], [ "1", "Transfers" ], [ "0", "Excluded" ] ], tally
+    assert_select "dl.grid-cols-3.\\@lg\\:grid-cols-6"
+  end
+
   test "a choice saves and the tally follows it" do
     import = @user.start_import(import_file("personal.csv"))
 
@@ -55,6 +77,37 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "select[aria-label='What Groceries becomes'] option[selected]", text: "Food"
     assert_equal [ [ "9", "Spent" ], [ "1", "Income" ], [ "1", "Excluded" ], [ "1", "Can't read" ] ], tally
     assert_select "p", text: "Money in with no category counts as income."
+  end
+
+  test "a matched word with money in stays out of the fold so its money-in choice shows" do
+    import = @user.start_import(upload("food.csv", "Date,Name,Amount,Type,Category\n2024-10-01,Sushi,36.40,Expense,food\n2024-10-02,Sushi refund,10.00,Income,food\n"))
+
+    get edit_import_categories_url(import)
+
+    assert_select "form p", text: "Choose what each category becomes."
+    assert_select "select[aria-label='What food becomes'] option[selected]", text: "Food"
+    assert_select "select[aria-label='What food money in becomes'] option[selected]", text: "Refund to Food"
+    assert_select "button[aria-controls=matched_categories]", count: 0
+  end
+
+  test "a money-in choice saves and the tally follows it" do
+    import = @user.start_import(import_file("personal.csv"))
+
+    patch import_categories_url(import), params: { import: { categories: [ { word: "Coffee", name: "Coffee", money_in: "Income" } ] } }
+
+    follow_redirect!
+    assert_select "select[aria-label='What Coffee money in becomes'] option[selected]", text: "Income"
+    assert_equal [ [ "9", "Spent" ], [ "1", "Income" ], [ "1", "Excluded" ], [ "1", "Can't read" ] ], tally
+    assert_select "p", text: "Money in with no category counts as income."
+  end
+
+  test "Refund to follows the word's category" do
+    import = @user.start_import(import_file("personal.csv"))
+
+    patch import_categories_url(import), params: { import: { categories: [ { word: "Coffee", name: "Food", money_in: "" } ] } }
+
+    follow_redirect!
+    assert_select "select[aria-label='What Coffee money in becomes'] option[selected]", text: "Refund to Food"
   end
 
   test "a newer copy of the file counts what's new and what's already here" do
