@@ -86,7 +86,7 @@ class User < ApplicationRecord
     def remember_once(name, categorization)
       transaction do
         rule = rules.find_or_initialize_by(name_key: name.key)
-        rule.update!(name: name.to_s, category: categorization.category, transfer: categorization.transfer?)
+        rule.update!(name: name.to_s, categorization:)
         rule.apply_to_uncategorized
       end
     end

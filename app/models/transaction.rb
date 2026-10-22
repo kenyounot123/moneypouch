@@ -1,6 +1,7 @@
 class Transaction < ApplicationRecord
+  include Categorizable
+
   belongs_to :user
-  belongs_to :category, optional: true
   belongs_to :import, optional: true
   has_one :bank_transaction
 
@@ -70,8 +71,7 @@ class Transaction < ApplicationRecord
       amount_in_cents: simplefin_transaction.amount_in_cents,
       currency:,
       occurred_on: simplefin_transaction.occurred_on,
-      category: categorization.category,
-      transfer: categorization.transfer?
+      categorization:
     )
   end
 
@@ -173,12 +173,8 @@ class Transaction < ApplicationRecord
     !amount_in_cents.negative?
   end
 
-  def categorization
-    Categorization.new(category:, transfer:)
-  end
-
   def categorize(categorization)
-    update!(category: categorization.category, transfer: categorization.transfer?)
+    update!(categorization:)
   end
 
   def offers_rule?
