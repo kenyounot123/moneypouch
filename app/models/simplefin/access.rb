@@ -1,6 +1,8 @@
 class Simplefin::Access < ApplicationRecord
-  HISTORIES = { "today" => 0, "90_days" => 90 }.freeze
+  # The furthest back a sync asks SimpleFIN for: 89 days before today plus today, 90 days in all.
+  # "90 days ago" starts there too, so every day it promises is one a sync can fetch.
   LONGEST_HISTORY = 89
+  HISTORIES = { "today" => 0, "90_days" => LONGEST_HISTORY }.freeze
   SYNCS_PER_DAY = 20
   SYNC_EVERY = 23.hours
 

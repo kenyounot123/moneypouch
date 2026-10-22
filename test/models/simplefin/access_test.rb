@@ -41,8 +41,15 @@ class Simplefin::AccessTest < ActiveSupport::TestCase
     end
 
     assert access.reload.active?
-    assert_equal({ "Demo Savings" => [ "synced", Date.new(2026, 7, 8) ], "Demo Checking" => [ "skipped", nil ], "Demo Empty Account" => [ "skipped", nil ] },
+    assert_equal({ "Demo Savings" => [ "synced", Date.new(2026, 7, 9) ], "Demo Checking" => [ "skipped", nil ], "Demo Empty Account" => [ "skipped", nil ] },
       access.bank_accounts.to_h { |account| [ account.external_id, [ account.status, account.starts_on ] ] })
+  end
+
+  test "the longest history fetches from the first day it promises" do
+    access = connect_simplefin
+    access.activate(account_ids: access.bank_accounts.ids, history: "90_days")
+
+    assert_equal access.bank_accounts.synced.minimum(:starts_on), access.history_start.to_date
   end
 
   test "asking to sync while a sync runs returns the running sync" do

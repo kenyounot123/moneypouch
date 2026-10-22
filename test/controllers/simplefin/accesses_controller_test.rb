@@ -57,7 +57,7 @@ class Simplefin::AccessesControllerTest < ActionDispatch::IntegrationTest
     patch simplefin_access_url, params: { simplefin_access: { account_ids: [ savings.id ], history: "90_days" } }
 
     assert_redirected_to settings_url
-    assert_equal [ "synced", Date.new(2026, 10, 6) - 90 ], [ savings.reload.status, savings.starts_on ]
+    assert_equal [ "synced", Date.new(2026, 10, 6) - 89 ], [ savings.reload.status, savings.starts_on ]
     assert_equal [ "skipped" ], access.bank_accounts.where.not(id: savings.id).distinct.pluck(:status)
     assert_enqueued_jobs 1, only: Simplefin::SyncJob
   end
