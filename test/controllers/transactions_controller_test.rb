@@ -16,7 +16,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal [ "Fri, Oct 2", "Thu, Oct 1" ], css_select("main section h2").map(&:text)
-    assert_select "main section li p.font-medium", text: "Rent", count: 0
+    assert_select "main section li [data-field=name]", text: "Rent", count: 0
   end
 
   test "shows the day total even when the day has one row" do
@@ -26,7 +26,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
       get transactions_url
     end
 
-    assert_select "section[aria-label='Fri, Oct 2'] > div > p.font-mono", text: "$3.00", count: 2
+    assert_select "section[aria-label='Fri, Oct 2'] [data-field=day-total]", text: "$3.00", count: 1
   end
 
   test "shows the requested month only" do
@@ -37,8 +37,8 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "main section li", 1
-    assert_select "main section li div.h-10 p.font-medium", text: "Rent"
-    assert_select ".text-display", text: "$1,500.00"
+    assert_select "main section li [data-field=name]", text: "Rent"
+    assert_select "[data-field=spent]", text: "$1,500.00"
   end
 
   test "totals what was spent, earned, and kept for the month" do
@@ -47,10 +47,10 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "p", text: "Spent in October"
-    assert_select ".text-display", text: "$5.50"
+    assert_select "[data-field=spent]", text: "$5.50"
     assert_equal [ "$2,000.00", "+$1,994.50", "2" ], css_select("dl dd").map(&:text)
     assert_select "p", text: "Income $2,000.00 · Net +$1,994.50 · 2 transactions"
-    assert_select "main section p.font-mono", text: "+$1,994.50", count: 2
+    assert_select "main section [data-field=day-total]", text: "+$1,994.50", count: 1
   end
 
   test "searches names and notes, and the totals follow the search" do
@@ -60,7 +60,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
       get transactions_url(query: "BOTTLE")
       assert_select "main section li", 1
       assert_select "li#transaction_#{@transaction.id}"
-      assert_select ".text-display", text: "$5.50"
+      assert_select "[data-field=spent]", text: "$5.50"
 
       get transactions_url(query: "october")
       assert_select "main section li", 1

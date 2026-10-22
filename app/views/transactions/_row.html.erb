@@ -1,48 +1,26 @@
 <% offering_rule = offering_rule?(transaction) %>
 <li id="<%= dom_id transaction %>" class="group border-b border-secondary last:border-b-0 <%= "pb-3" if offering_rule %>">
-  <div class="relative flex items-center gap-3 py-3 @xl:hidden">
-    <%= link_to "", edit_transaction_path(transaction), aria: { label: transaction.name }, data: { turbo_frame: "sheet" }, class: "absolute inset-0" %>
-    <div class="flex w-2 shrink-0 justify-center">
-      <% if transaction.needs_category? %>
-        <div class="size-1.5 rounded-[1px] bg-highlight"></div>
-      <% end %>
-    </div>
-    <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-      <p class="truncate font-medium <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
-      <% if transaction.note %>
-        <p class="flex min-w-0 items-center gap-1.5 text-secondary"><%= icon_tag("note", class: "size-3 text-tertiary") %><span class="truncate"><%= transaction.note %></span></p>
-      <% end %>
-      <p class="flex min-w-0 items-center gap-1 text-sm text-tertiary">
-        <span class="flex shrink-0 items-center gap-1 text-secondary underline decoration-dotted underline-offset-3"><%= icon_tag("transfer", class: "size-3") if transaction.transfer? %><%= categorization_label transaction %></span>
-        <% if transaction.excluded? %>
-          <span class="shrink-0">· Excluded</span>
-        <% end %>
-        <% if transaction.from_bank? %>
-          <span class="truncate">· <%= transaction.bank_account_name %></span>
-        <% end %>
-      </p>
-    </div>
-    <p class="w-[90px] shrink-0 text-right font-mono <%= amount_color transaction %>"><%= money_flow transaction.amount_in_cents %></p>
-  </div>
+  <div class="transaction-row relative">
+    <%= link_to "", edit_transaction_path(transaction), aria: { label: transaction.name }, data: { turbo_frame: "sheet" }, class: "absolute inset-0 @xl:hidden" %>
 
-  <div class="hidden h-10 items-center gap-4 @xl:flex">
-    <div class="flex w-2 shrink-0 justify-center">
+    <div class="flex justify-center [grid-area:dot]">
       <% if transaction.needs_category? %>
-        <div class="size-1.5 rounded-[1px] bg-highlight"></div>
+        <%= row_marker "Needs a category" %>
       <% end %>
     </div>
-    <div class="flex min-w-0 flex-1 items-center gap-2.5" data-controller="note" data-note-url-value="<%= transaction_note_path(transaction) %>">
-      <div class="flex min-w-0 items-baseline gap-2.5" data-note-target="name">
-        <p class="<%= transaction.excluded? ? "min-w-0" : "max-w-full shrink-0" %> truncate font-medium <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
+
+    <div class="flex min-w-0 items-center gap-2.5 [grid-area:name]" data-controller="note" data-note-url-value="<%= transaction_note_path(transaction) %>">
+      <div class="flex min-w-0 flex-col gap-0.5 @xl:flex-row @xl:items-baseline @xl:gap-2.5" data-note-target="name">
+        <p data-field="name" class="truncate font-medium <%= transaction.excluded? ? "@xl:min-w-0" : "@xl:max-w-full @xl:shrink-0" %> <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
         <% if transaction.excluded? %>
-          <%= excluded_tag %>
+          <%= excluded_tag class: "hidden @xl:inline" %>
         <% end %>
         <% if transaction.note %>
-          <button type="button" class="min-w-0 cursor-text truncate text-left text-sm text-tertiary hover:text-secondary"
-            data-note-target="label" data-action="note#open" data-note-text-param="<%= transaction.note %>"><%= transaction.note %></button>
+          <button type="button" class="flex min-w-0 cursor-text items-center gap-1.5 text-left text-secondary @xl:block @xl:truncate @xl:text-sm @xl:text-tertiary @xl:hover:text-secondary"
+            data-note-target="label" data-action="note#open" data-note-text-param="<%= transaction.note %>"><%= icon_tag("note", class: "size-3 text-tertiary @xl:hidden") %><span class="truncate"><%= transaction.note %></span></button>
         <% end %>
       </div>
-      <div class="ml-auto hidden shrink-0 items-center gap-0.5 bg-level-0 group-focus-within:flex group-hover:flex">
+      <div role="group" aria-label="Actions" class="ml-auto hidden shrink-0 items-center gap-0.5 bg-level-0 @xl:group-focus-within:flex @xl:group-hover:flex">
         <% if transaction.note.nil? %>
           <button type="button" aria-label="Add a note" title="Add a note" class="flex icon-button"
             data-note-target="label" data-action="note#open"><%= icon_tag "note" %></button>
@@ -51,17 +29,18 @@
         <%= icon_button_to "Delete", :delete, transaction, method: :delete, data: { turbo_confirm: "Delete #{transaction.name}?" } %>
       </div>
     </div>
-    <div class="flex w-37.5 shrink-0 text-sm">
-      <% if transaction.needs_category? %>
-        <span class="category-field-slot" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: "Category",
-          class: "category-field" %></span>
-      <% else %>
-        <span class="flex min-w-0 items-center gap-1 text-tertiary" data-category-picker-target="category"><%= icon_tag("transfer", class: "size-3") if transaction.transfer? %><%= render "transactions/category_button", transaction:,
-          label: categorization_label(transaction), class: "truncate category-link" %></span>
+
+    <div class="flex min-w-0 items-center gap-1 text-sm text-tertiary [grid-area:meta] @xl:contents">
+      <%= render "transactions/row_category", transaction: %>
+      <% if transaction.excluded? %>
+        <span class="shrink-0 @xl:hidden">· Excluded</span>
+      <% end %>
+      <% if transaction.from_bank? %>
+        <span class="truncate @xl:hidden @4xl:block @4xl:[grid-area:account]"><span class="@xl:hidden">· </span><span data-field="account"><%= transaction.bank_account_name %></span></span>
       <% end %>
     </div>
-    <p class="hidden w-47.5 shrink-0 truncate text-sm text-tertiary @4xl:block"><%= transaction.bank_account_name %></p>
-    <p class="w-25 shrink-0 text-right font-mono <%= amount_color transaction %>"><%= money_flow transaction.amount_in_cents %></p>
+
+    <p class="text-right font-mono [grid-area:amount] <%= amount_color transaction %>"><%= money_flow transaction.amount_in_cents %></p>
   </div>
 
   <% if offering_rule %>

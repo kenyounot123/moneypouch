@@ -5,7 +5,7 @@
     <p class="font-mono text-md text-primary"><%= money amount %></p>
   </div>
   <% if amount.positive? %>
-    <div class="flex h-2.5 gap-0.5" style="width: <%= (amount * 100.0 / peak).round(1) %>%">
+    <div data-field="flow-bar" class="flex h-2.5 gap-0.5" style="width: <%= (amount * 100.0 / peak).round(1) %>%">
       <% segments.each_with_index do |(_, cents), index| %>
         <div class="h-full rounded-bar <%= segment_color index %>" style="flex: <%= cents %> 1 0; min-width: 3px"></div>
       <% end %>

@@ -78,7 +78,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
     assert_select "section h2", "Rules"
     assert_equal [ "“John's Fishin Shack” Transfer 3 rows · just now Forget", "“Grocery store” Food 4 rows Forget" ],
       css_select("section:has(h2) ul li").map { _1.text.squish }
-    assert_select "li.bg-highlight\\/14", 1
+    assert_select "li[data-just-made]", 1
   end
 
   test "with no rules yet the panel says where they come from" do

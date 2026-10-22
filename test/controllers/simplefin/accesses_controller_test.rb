@@ -108,7 +108,7 @@ class Simplefin::AccessesControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#bank_sync p", text: "Last synced Oct 6"
     assert_select "li", text: /SimpleFIN stopped sharing your banks/
     assert_select "li a[href=?]", new_simplefin_access_path, text: "Reconnect"
-    assert_select "li p.text-tertiary", text: "SimpleFIN Savings"
+    assert_select "li p", text: "SimpleFIN Savings"
     assert_select "p", text: "Synced transactions stay if you disconnect."
     assert_select "button", text: "Sync now", count: 0
   end

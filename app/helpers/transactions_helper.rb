@@ -19,6 +19,10 @@ module TransactionsHelper
     categories.map { |category| [ category.name, category.income? ] }.to_json
   end
 
+  def row_marker(label)
+    tag.div class: "size-1.5 rounded-[1px] bg-highlight", role: "img", aria: { label: }
+  end
+
   def excluded_tag(**options)
     tag.span "Excluded", class: [ "shrink-0 rounded-[4px] bg-level-3 px-1.5 py-px text-xs text-tertiary", options[:class] ]
   end
