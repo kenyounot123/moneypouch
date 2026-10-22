@@ -19,6 +19,9 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#needing_category_page_1 li", 4
     assert_select "turbo-frame#needing_category_page_1 li:first-child", text: /Category\s+· Oct 3\s+· SimpleFIN Checking/
     assert_select "li#transaction_#{transactions(:coffee).id}", count: 0
+    assert_select "nav[aria-label=Breadcrumb] a[href=?]", root_path, text: "Overview"
+    assert_select "nav[aria-label=Breadcrumb] [aria-current=page]", text: "From your bank"
+    assert_select "h1", text: "From your bank"
   end
 
   test "show picks a list" do
