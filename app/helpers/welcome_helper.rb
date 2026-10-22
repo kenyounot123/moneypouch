@@ -20,10 +20,6 @@ module WelcomeHelper
     end
   end
 
-  def spent(cents)
-    number_to_currency(cents.to_d / 100)
-  end
-
   def span(dates)
     first, last = dates.begin, dates.end
     label =
@@ -54,9 +50,9 @@ module WelcomeHelper
 
   def column_title(period, column, cents)
     if period.unit == :month
-      "#{column.strftime("%B")} · #{spent cents}"
+      "#{column.strftime("%B")} · #{money cents}"
     else
-      "#{short_date column} · #{spent cents}"
+      "#{short_date column} · #{money cents}"
     end
   end
 
@@ -96,32 +92,8 @@ module WelcomeHelper
     end
   end
 
-  def whole_spent(cents)
-    number_to_currency((cents.to_d / 100).round, precision: 0)
-  end
-
-  def whole_net(cents)
-    if cents.negative?
-      "−#{whole_spent(-cents)}"
-    elsif cents.positive?
-      "+#{whole_spent(cents)}"
-    else
-      whole_spent(0)
-    end
-  end
-
-  def exact_net(cents)
-    if cents.negative?
-      "−#{spent(-cents)}"
-    elsif cents.positive?
-      "+#{spent(cents)}"
-    else
-      spent(0)
-    end
-  end
-
   def total_readout(total)
-    "#{period_abbreviation(total.period)} · income #{whole_spent total.income} · spent #{whole_spent total.spent}"
+    "#{period_abbreviation(total.period)} · income #{money(total.income, whole: true)} · spent #{money(total.spent, whole: true)}"
   end
 
   def period_abbreviation(period)

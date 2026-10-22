@@ -21,7 +21,7 @@
             <span class="truncate text-md font-medium text-tertiary group-has-checked:text-primary"><%= bank_account.name %></span>
             <span class="truncate text-sm text-tertiary"><%= bank_account.institution %></span>
           </span>
-          <span class="w-[110px] shrink-0 text-right font-mono text-md text-tertiary group-has-checked:text-primary"><%= balance bank_account.balance_in_cents %></span>
+          <span class="w-[110px] shrink-0 text-right font-mono text-md text-tertiary group-has-checked:text-primary"><%= money bank_account.balance_in_cents if bank_account.balance_in_cents %></span>
         </label>
       <% end %>
     </div>

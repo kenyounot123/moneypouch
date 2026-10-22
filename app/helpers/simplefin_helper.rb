@@ -19,12 +19,6 @@ module SimplefinHelper
     REVIEW_LIST_TITLES.fetch(list)
   end
 
-  def balance(cents)
-    if cents
-      number_to_currency(cents.to_d / 100)
-    end
-  end
-
   def synced_ago(time)
     minutes = ((Time.current - time) / 60).floor
 

@@ -1,6 +1,8 @@
 require "test_helper"
 
 class WelcomeHelperTest < ActionView::TestCase
+  include MoneyHelper
+
   include TransactionsHelper
 
   setup do
@@ -68,16 +70,6 @@ class WelcomeHelperTest < ActionView::TestCase
 
     assert_equal [ [ "Jan", 1 ], [ "Feb", 1 ], [ "Mar", 1 ], [ "Apr", 1 ], [ "May", 1 ], [ "Jun", 1 ] ], column_labels(year, columns).first(6)
     assert_equal 12, column_labels(year, columns).size
-  end
-
-  test "rounds money to whole dollars" do
-    assert_equal [ "$7,890", "$3,977", "$0" ], [ whole_spent(789_000), whole_spent(397_712), whole_spent(0) ]
-    assert_equal "$1", whole_spent(50)
-  end
-
-  test "signs a net, with a real minus for a loss" do
-    assert_equal [ "+$3,913", "−$310", "$0" ], [ whole_net(391_288), whole_net(-31_000), whole_net(0) ]
-    assert_equal [ "+$3,912.88", "−$310.00", "$0.00" ], [ exact_net(391_288), exact_net(-31_000), exact_net(0) ]
   end
 
   test "abbreviates a period by its kind" do

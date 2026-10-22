@@ -273,7 +273,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "p", text: "Spent"
-    assert_select "p", text: "-$63.00"
+    assert_select "p", text: "−$63.00"
     assert_select "span", text: "Uncategorized"
     assert_select "span", text: "$12.00"
     assert_select "p", text: "Nothing spent.", count: 0

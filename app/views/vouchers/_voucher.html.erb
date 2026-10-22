@@ -7,7 +7,7 @@
         <%= safe_join [
           (tag.span("ok") if voucher.valid?),
           (tag.span(voucher.errors.to_sentence(two_words_connector: " · ", last_word_connector: " · "), class: "inline-block animate-shake text-danger") if shake && !voucher.valid?),
-          (tag.span(money(voucher.amount_in_cents), class: [ "font-mono", voucher.money_in? ? "text-success" : "text-secondary" ]) if voucher.amount_in_cents),
+          (tag.span(money_flow(voucher.amount_in_cents), class: [ "font-mono", voucher.money_in? ? "text-success" : "text-secondary" ]) if voucher.amount_in_cents),
           tag.span(voucher.category&.new_record? ? "New category #{voucher.category_name}" : voucher.category_name || "Uncategorized", class: "text-secondary"),
           tag.span(relative_date(voucher.occurred_on), class: "text-secondary")
         ].compact, " · " %>

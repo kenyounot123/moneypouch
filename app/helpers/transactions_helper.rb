@@ -7,24 +7,6 @@ module TransactionsHelper
 
   ICON_BUTTON = "size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary pointer-coarse:size-10"
 
-  def money(amount_in_cents)
-    amount = number_to_currency(amount_in_cents.abs.to_d / 100)
-
-    if amount_in_cents.positive?
-      "+#{amount}"
-    else
-      amount
-    end
-  end
-
-  def money_color(amount_in_cents, otherwise: nil)
-    if amount_in_cents.positive?
-      "text-success"
-    else
-      otherwise
-    end
-  end
-
   def amount_color(transaction)
     if transaction.counted?
       money_color(transaction.amount_in_cents)
