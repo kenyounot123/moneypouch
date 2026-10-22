@@ -11,9 +11,9 @@
           <p class="text-sm text-tertiary"><%= synced_ago synced_at %></p>
         <% end %>
         <% if access.syncing? %>
-          <button type="button" disabled class="<%= SimplefinHelper::HEADER_BUTTON %>">Syncing…</button>
+          <button type="button" disabled class="header-button">Syncing…</button>
         <% elsif access.syncable? %>
-          <%= button_to "Sync now", simplefin_sync_path, form: { data: { turbo_frame: "_top" } }, class: SimplefinHelper::HEADER_BUTTON %>
+          <%= button_to "Sync now", simplefin_sync_path, form: { data: { turbo_frame: "_top" } }, class: "header-button" %>
         <% end %>
       </div>
     <% end %>
@@ -26,7 +26,7 @@
           <p class="text-md font-medium text-danger">SimpleFIN stopped sharing your banks</p>
           <p class="text-sm text-tertiary">Access was turned off there. Paste a new token to resume.</p>
         </div>
-        <%= link_to "Reconnect", new_simplefin_access_path, class: SimplefinHelper::OUTLINE_BUTTON %>
+        <%= link_to "Reconnect", new_simplefin_access_path, class: "outline-button" %>
       </li>
     <% elsif access.lapsed? %>
       <li class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-secondary py-3">
@@ -45,6 +45,6 @@
 
   <div class="flex items-center justify-between gap-6 pt-3">
     <p class="text-sm text-tertiary"><%= access.revoked? ? "Synced transactions stay if you disconnect." : "New banks you add on SimpleFIN show up here." %></p>
-    <%= button_to "Disconnect", simplefin_access_path, method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+    <%= button_to "Disconnect", simplefin_access_path, method: :delete, class: "header-button" %>
   </div>
 </section>

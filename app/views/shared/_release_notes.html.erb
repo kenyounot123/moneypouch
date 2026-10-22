@@ -30,7 +30,7 @@
     </div>
 
     <%= form_with url: seen_release_path, class: "flex items-center justify-between gap-4", data: { release_notes_target: "form" } do %>
-      <%= link_to "All releases", "https://github.com/kenyounot123/moneypouch/releases", target: "_blank", rel: "noopener", class: SimplefinHelper::HEADER_BUTTON %>
+      <%= link_to "All releases", "https://github.com/kenyounot123/moneypouch/releases", target: "_blank", rel: "noopener", class: "header-button" %>
       <button type="button" data-action="release-notes#close" class="cursor-pointer rounded-md bg-action px-4 py-3 text-button text-on-action hover:brightness-95">Got it</button>
     <% end %>
   </div>

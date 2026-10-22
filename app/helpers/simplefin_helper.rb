@@ -2,15 +2,10 @@ module SimplefinHelper
   SIMPLEFIN_URL = "https://bridge.simplefin.org"
   SIMPLEFIN_CREATE_URL = "https://bridge.simplefin.org/simplefin/create"
 
-  OUTLINE_BUTTON = "ml-auto flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-primary bg-level-2 px-3 py-1.5 " \
-    "text-sm font-medium whitespace-nowrap text-primary shadow-control hover:bg-level-1"
-
-  HEADER_BUTTON = "cursor-pointer text-sm font-medium text-secondary hover:text-primary disabled:cursor-default disabled:text-tertiary"
-
   REVIEW_LIST_TITLES = { "needing_category" => "Need a category", "categorized" => "Categorized for you", "transfers" => "Transfers" }
 
   def link_to_simplefin(label, url = SIMPLEFIN_URL)
-    link_to url, target: "_blank", rel: "noopener", class: OUTLINE_BUTTON do
+    link_to url, target: "_blank", rel: "noopener", class: "outline-button" do
       safe_join [ label, icon_tag("external", class: "size-3 text-secondary") ]
     end
   end

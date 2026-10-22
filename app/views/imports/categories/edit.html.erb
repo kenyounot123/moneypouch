@@ -9,7 +9,7 @@
     <div class="flex flex-col gap-6">
       <div class="flex flex-col gap-2">
         <%= render layout: "shared/breadcrumbs", locals: { crumbs: [ [ "Import", new_import_path ], [ "Columns", edit_import_columns_path(@import) ], [ "Categories" ] ] } do %>
-          <%= button_to "Cancel", import_path(@import), method: :delete, class: SimplefinHelper::HEADER_BUTTON %>
+          <%= button_to "Cancel", import_path(@import), method: :delete, class: "header-button" %>
         <% end %>
         <h1 class="text-title">Categories</h1>
       </div>
@@ -78,7 +78,7 @@
               <div class="flex flex-col-reverse gap-1">
                 <dt>
                   <button type="button" aria-expanded="false" aria-controls="unreadable_rows" data-disclosure-target="button" data-action="disclosure#toggle"
-                    class="<%= TransactionsHelper::CATEGORY_LINK %> block text-sm">Can't read</button>
+                    class="category-link block text-sm">Can't read</button>
                 </dt>
                 <dd class="font-mono text-md text-danger"><%= number_with_delimiter unreadable_rows.size %></dd>
               </div>
