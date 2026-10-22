@@ -26,7 +26,9 @@ class Release < Data.define(:version, :date, :sections)
       text.split(/^(?=## )/).filter_map do |chunk|
         heading, *sections = chunk.split(/^(?=### )/)
 
-        if match = HEADING.match(heading.lines.first.to_s)
+        match = HEADING.match(heading.lines.first.to_s)
+
+        if match
           new(version: match[:version], date: match[:date]&.to_date, sections: sections.map { |section| parse_section(section) })
         end
       end
