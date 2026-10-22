@@ -86,4 +86,27 @@ class PeriodTest < ActiveSupport::TestCase
     assert_not_equal Period.new("week", today:, on: "2026-10-01"), Period.new("month", today:, on: "2026-10-01")
     assert_not_equal Period.new("month", today:), nil
   end
+
+  test "reads the Transactions page's year and month" do
+    month = Period.month("2026-09", today: Date.new(2026, 10, 13))
+
+    assert_equal Date.new(2026, 9, 1)..Date.new(2026, 9, 30), month.range
+    assert_not month.current?
+  end
+
+  test "falls back to this month for a missing or unreadable month, and clamps a future one" do
+    [ nil, "", "soon", "2026-13", "2027-01" ].each do |param|
+      assert_equal Date.new(2026, 10, 1), Period.month(param, today: Date.new(2026, 10, 13)).first_day, param.inspect
+    end
+  end
+
+  test "steps forward until the current period" do
+    january = Period.month("2026-01", today: Date.new(2026, 10, 13))
+
+    assert_equal Date.new(2025, 12, 1), january.previous.first_day
+    assert_equal Date.new(2026, 2, 1), january.next.first_day
+    assert_equal Date.new(2026, 10, 1), Period.month("2026-09", today: Date.new(2026, 10, 13)).next.first_day
+    assert_nil Period.month("2026-10", today: Date.new(2026, 10, 13)).next
+    assert_equal Date.new(2026, 10, 12), Period.new("week", today: Date.new(2026, 10, 13), on: "2026-10-05").next.first_day
+  end
 end

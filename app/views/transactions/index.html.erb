@@ -24,11 +24,11 @@
 
     <div class="flex md:hidden">
       <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Month">
-        <%= link_to "‹", transactions_path(filters.merge(month: @month.previous.to_param)), aria: { label: month_title(@month.previous) },
+        <%= link_to "‹", transactions_path(filters.merge(month: month_param(@month.previous))), aria: { label: month_title(@month.previous) },
           class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
         <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true"><%= short_month_title @month %></span>
         <% if @month.next %>
-          <%= link_to "›", transactions_path(filters.merge(month: @month.next.to_param)), aria: { label: month_title(@month.next) },
+          <%= link_to "›", transactions_path(filters.merge(month: month_param(@month.next))), aria: { label: month_title(@month.next) },
             class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
         <% end %>
       </nav>
@@ -37,7 +37,7 @@
     <div class="flex flex-wrap items-end justify-between gap-6">
       <div class="flex min-w-0 flex-col gap-2.5 @xl:flex-row @xl:items-end @xl:gap-12">
         <div class="flex flex-col gap-2.5">
-          <p class="text-secondary">Spent in <%= @month.name %></p>
+          <p class="text-secondary">Spent in <%= month_name @month %></p>
           <p class="text-display"><%= money @listing.spent %></p>
         </div>
         <dl class="hidden gap-8 pb-1.5 @xl:flex">
@@ -52,18 +52,18 @@
       </div>
 
       <nav class="hidden gap-1 rounded-[10px] bg-level-3 p-1 md:flex" aria-label="Month">
-        <%= link_to "‹ #{month_abbreviation @month.previous}", transactions_path(filters.merge(month: @month.previous.to_param)),
+        <%= link_to "‹ #{month_abbreviation @month.previous}", transactions_path(filters.merge(month: month_param(@month.previous))),
           class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
         <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true"><%= month_title @month %></span>
         <% if @month.next %>
-          <%= link_to "#{month_abbreviation @month.next} ›", transactions_path(filters.merge(month: @month.next.to_param)),
+          <%= link_to "#{month_abbreviation @month.next} ›", transactions_path(filters.merge(month: month_param(@month.next))),
             class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
         <% end %>
       </nav>
     </div>
 
     <%= form_with url: transactions_path, method: :get, class: "flex flex-wrap items-center gap-2" do %>
-      <%= hidden_field_tag :month, @month.to_param, id: nil %>
+      <%= hidden_field_tag :month, month_param(@month), id: nil %>
       <% if filters[:needs] %>
         <%= hidden_field_tag :needs, filters[:needs], id: nil %>
       <% end %>
@@ -74,7 +74,7 @@
       </label>
 
       <% if @listing.needing_category_count.positive? || filters[:needs] %>
-        <%= link_to transactions_path(filters.merge(month: @month.to_param, needs: (filters[:needs] ? nil : "1"))), aria: { pressed: filters[:needs].present? },
+        <%= link_to transactions_path(filters.merge(month: month_param(@month), needs: (filters[:needs] ? nil : "1"))), aria: { pressed: filters[:needs].present? },
           class: [ "flex h-9 shrink-0 items-center gap-1.75 rounded-lg border px-3 text-sm whitespace-nowrap @xl:order-last @xl:h-8.5",
             filters[:needs] ? "border-(--ring-color-focus) bg-level-3 font-medium text-primary" : "border-primary bg-level-2 text-primary shadow-control hover:border-(--ring-color-focus)" ] do %>
           <span class="size-1.5 shrink-0 rounded-[1px] bg-highlight"></span>
@@ -117,14 +117,14 @@
           <% end %>
 
           <% if @listing.page.next_before %>
-            <%= turbo_frame_tag :days, @listing.page.next_before, src: transactions_path(filters.merge(month: @month.to_param, before: @listing.page.next_before)),
+            <%= turbo_frame_tag :days, @listing.page.next_before, src: transactions_path(filters.merge(month: month_param(@month), before: @listing.page.next_before)),
               loading: :lazy, refresh: :morph, target: "_top" %>
           <% end %>
         <% end %>
       <% elsif filters.any? %>
         <p class="text-sm text-tertiary">No transactions match.</p>
       <% else %>
-        <p class="text-sm text-tertiary">Nothing in <%= @month.name %>.</p>
+        <p class="text-sm text-tertiary">Nothing in <%= month_name @month %>.</p>
       <% end %>
     </div>
 

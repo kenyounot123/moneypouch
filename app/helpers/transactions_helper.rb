@@ -93,6 +93,14 @@ module TransactionsHelper
     month.first_day.strftime("%b %Y")
   end
 
+  def month_name(month)
+    month.first_day.strftime("%B")
+  end
+
+  def month_param(month)
+    month.first_day.strftime("%Y-%m")
+  end
+
   def month_abbreviation(month)
     month.first_day.strftime("%b")
   end
