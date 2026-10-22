@@ -41,4 +41,8 @@ class Transaction < ApplicationRecord
   def categorize(categorization)
     update!(categorization:)
   end
+
+  def categorize_as(category:, transfer:)
+    categorize Transaction::Categorization.from(category:, transfer:, categories: user.categories, money_in: money_in?)
+  end
 end
