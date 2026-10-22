@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.10.0](https://github.com/kenyounot123/moneypouch/compare/v0.9.0...v0.10.0) (2026-10-22)
+
+
+### Features
+
+* **import:** ask where each category's money in goes ([#129](https://github.com/kenyounot123/moneypouch/issues/129)) ([27372fe](https://github.com/kenyounot123/moneypouch/commit/27372fe90a50cb8e8d525f1202fbe482799a9208))
+* **import:** replace the step row and header buttons with a breadcrumb trail ([#131](https://github.com/kenyounot123/moneypouch/issues/131)) ([2713795](https://github.com/kenyounot123/moneypouch/commit/27137956e4bfc6488e3dae9cf8bdb99805cf9763))
+* **transactions:** put Add a note first in the row actions and keep the Excluded tag visible on hover ([#133](https://github.com/kenyounot123/moneypouch/issues/133)) ([63463c6](https://github.com/kenyounot123/moneypouch/commit/63463c69fffdaf3e26bef436685ef5adfaaa109f))
+
+
+### Bug Fixes
+
+* **import:** clearer column field list and import steps ([#125](https://github.com/kenyounot123/moneypouch/issues/125)) ([c957e49](https://github.com/kenyounot123/moneypouch/commit/c957e497b8a209712640028d64b4b3266e37f6dd))
+* **sidebar:** open the sidebar as a sheet on phones ([#127](https://github.com/kenyounot123/moneypouch/issues/127)) ([82eaba6](https://github.com/kenyounot123/moneypouch/commit/82eaba62d36644123b6fe7998c7c0ba868d35158))
+* **transactions:** always show the day total ([#130](https://github.com/kenyounot123/moneypouch/issues/130)) ([fb4d567](https://github.com/kenyounot123/moneypouch/commit/fb4d567477e9ae369984888cb02f3cc6f59477cd))
+
 ## [0.9.0](https://github.com/kenyounot123/moneypouch/compare/v0.8.0...v0.9.0) (2026-10-19)
 
 
