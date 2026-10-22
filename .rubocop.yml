@@ -6,3 +6,21 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
 # Layout/SpaceInsideArrayLiteralBrackets:
 #   Enabled: false
+
+# Plain conditionals: no endless methods, no `x or return`, no assignment inside a condition,
+# and an if/elsif chain that compares one value three or more times reads as a case.
+Style/EndlessMethod:
+  Enabled: true
+  EnforcedStyle: disallow
+
+Style/AndOr:
+  Enabled: true
+  EnforcedStyle: always
+
+Lint/AssignmentInCondition:
+  Enabled: true
+  AllowSafeAssignment: false
+
+Style/CaseLikeIf:
+  Enabled: true
+  MinBranchesCount: 3
