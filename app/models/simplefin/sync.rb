@@ -13,7 +13,7 @@ class Simplefin::Sync < ApplicationRecord
   scope :unreviewed, -> { finished.where(reviewed_at: nil) }
 
   def self.added_transactions
-    Transaction.kept.where(id: BankTransaction.unmatched.where(simplefin_sync_id: select(:id)).select(:transaction_id))
+    Transaction.kept.behind(BankTransaction.unmatched.where(simplefin_sync_id: select(:id)))
   end
 
   def self.abandon_stale

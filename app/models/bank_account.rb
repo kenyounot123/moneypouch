@@ -26,7 +26,7 @@ class BankAccount < ApplicationRecord
   end
 
   def transactions
-    Transaction.where(id: bank_transactions.select(:transaction_id))
+    Transaction.behind(bank_transactions)
   end
 
   def add_transactions(simplefin_transactions, sync:)

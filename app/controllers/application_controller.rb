@@ -10,14 +10,6 @@ class ApplicationController < ActionController::Base
 
   private
     def use_time_zone(&)
-      zone = ActiveSupport::TimeZone[cookies[:time_zone].to_s]
-      save_time_zone(zone) if zone
-      Time.use_zone(zone || "UTC", &)
-    end
-
-    def save_time_zone(zone)
-      if Current.user && Current.user.time_zone != zone.name
-        Current.user.update!(time_zone: zone.name)
-      end
+      Time.use_zone(ActiveSupport::TimeZone[cookies[:time_zone].to_s] || "UTC", &)
     end
 end
