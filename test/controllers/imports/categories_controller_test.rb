@@ -14,7 +14,7 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "form p", text: "1 category matched yours. Choose what the other 5 become."
     assert_equal [ "Coffee", "Groceries", "Fun", "Housing", "Travel", "food" ], css_select("form p.text-md").map(&:text)
-    assert_select "select[aria-label='What Coffee becomes'][onchange='this.form.requestSubmit()'] option[selected][value=Coffee]", text: "New category"
+    assert_select "select[aria-label='What Coffee becomes'][data-action='change->auto-submit#submit'] option[selected][value=Coffee]", text: "New category"
     assert_equal [ "New category", "Food", "Income", "No category" ], css_select("select[aria-label='What Coffee becomes'] option").map(&:text)
     assert_select "button[aria-controls=matched_categories][aria-expanded=false]", text: /food matched\s+Show/
     assert_select "#matched_categories[hidden] select[aria-label='What food becomes'] option[selected]", text: "Food"
@@ -35,7 +35,7 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "p", text: "└ 1 is money in"
     assert_select "p span.text-success", text: "money in"
-    assert_select "select[aria-label='What Coffee money in becomes'][onchange='this.form.requestSubmit()'] option[selected]", text: "Refund to Coffee"
+    assert_select "select[aria-label='What Coffee money in becomes'][data-action='change->auto-submit#submit'] option[selected]", text: "Refund to Coffee"
     assert_equal [ "Income", "Refund to Coffee" ], css_select("select[aria-label='What Coffee money in becomes'] option").map(&:text)
     assert_select "select[aria-label^='What Groceries money in']", count: 0
   end

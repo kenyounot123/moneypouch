@@ -4,7 +4,7 @@
     <p class="text-md font-medium">By hand</p>
     <p class="text-sm text-tertiary">Type it the way you'd text a friend.</p>
   </div>
-  <button type="button" aria-haspopup="dialog" onclick="document.getElementById('palette').showModal()" class="<%= SimplefinHelper::OUTLINE_BUTTON %>">
+  <button type="button" aria-haspopup="dialog" data-controller="dialog-opener" data-action="dialog-opener#open" data-dialog-opener-id-param="palette" class="<%= SimplefinHelper::OUTLINE_BUTTON %>">
     Add <span class="rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs font-normal text-secondary pointer-coarse:hidden"><%= shortcut("K") %></span>
   </button>
 </li>
