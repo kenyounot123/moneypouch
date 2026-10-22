@@ -1,4 +1,6 @@
 class Simplefin::ReviewsController < ApplicationController
+  include SimplefinAccessScoped
+
   before_action :set_review
 
   def show
@@ -17,13 +19,7 @@ class Simplefin::ReviewsController < ApplicationController
 
   private
     def set_review
-      access = Current.user.simplefin_access
-
-      if access.nil?
-        raise ActiveRecord::RecordNotFound
-      end
-
-      @review = access.review
+      @review = @access.review
     end
 
     # After a pick Turbo reloads each loaded page frame in turn, so the row's own page has to see the flash too.

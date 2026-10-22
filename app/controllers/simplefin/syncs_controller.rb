@@ -1,15 +1,8 @@
 class Simplefin::SyncsController < ApplicationController
+  include SimplefinAccessScoped
+
   def create
-    access = Current.user.simplefin_access
-
-    if access.nil?
-      raise ActiveRecord::RecordNotFound
-    end
-
-    if access.syncable?
-      access.sync_later
-    end
-
+    @access.sync_later
     redirect_to root_path, status: :see_other
   end
 end
