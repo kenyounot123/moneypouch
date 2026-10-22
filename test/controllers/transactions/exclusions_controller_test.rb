@@ -6,7 +6,7 @@ class Transactions::ExclusionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "excludes a transaction and redirects back" do
-    patch transaction_exclusion_url(transactions(:coffee)), params: { transaction: { excluded: true } }, headers: { "HTTP_REFERER" => root_url }
+    post transaction_exclusion_url(transactions(:coffee)), headers: { "HTTP_REFERER" => root_url }
 
     assert_redirected_to root_url
     assert_equal 303, response.status
@@ -16,7 +16,7 @@ class Transactions::ExclusionsControllerTest < ActionDispatch::IntegrationTest
   test "includes it again" do
     transactions(:coffee).update!(excluded: true)
 
-    patch transaction_exclusion_url(transactions(:coffee)), params: { transaction: { excluded: false } }
+    delete transaction_exclusion_url(transactions(:coffee))
 
     assert_not transactions(:coffee).reload.excluded?
   end
@@ -24,7 +24,7 @@ class Transactions::ExclusionsControllerTest < ActionDispatch::IntegrationTest
   test "another user's transaction is not found" do
     sign_in_as(users(:two))
 
-    patch transaction_exclusion_url(transactions(:coffee)), params: { transaction: { excluded: true } }
+    post transaction_exclusion_url(transactions(:coffee))
 
     assert_response :not_found
     assert_not transactions(:coffee).reload.excluded?

@@ -12,11 +12,6 @@ class Simplefin::ReviewsController < ApplicationController
     @categories = Current.user.categories.alphabetically
   end
 
-  def update
-    @review.complete
-    redirect_to root_path, status: :see_other
-  end
-
   private
     def set_review
       @review = @access.review

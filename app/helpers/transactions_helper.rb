@@ -52,12 +52,12 @@ module TransactionsHelper
   def exclusion_button(transaction, icon: false, **options)
     label = transaction.excluded? ? "Include" : "Exclude"
     path = transaction_exclusion_path(transaction)
-    params = { transaction: { excluded: !transaction.excluded? } }
+    method = transaction.excluded? ? :delete : :post
 
     if icon
-      icon_button_to label, label.downcase.to_sym, path, method: :patch, params:, **options
+      icon_button_to label, label.downcase.to_sym, path, method:, **options
     else
-      button_to label, path, method: :patch, params:, **options
+      button_to label, path, method:, **options
     end
   end
 

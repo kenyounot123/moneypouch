@@ -90,7 +90,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
   test "Done marks every sync reviewed and goes to the Overview" do
     sync_again(@access)
 
-    patch simplefin_review_url
+    post simplefin_review_completion_url
 
     assert_redirected_to root_url
     assert_equal [ 2, 0 ], [ @access.syncs.count, @access.syncs.where(reviewed_at: nil).count ]
