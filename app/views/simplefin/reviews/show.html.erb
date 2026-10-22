@@ -13,7 +13,7 @@
         <% if @review.pending? %>
           <div class="flex items-center gap-4">
             <p class="text-sm text-tertiary"><%= synced_ago Current.user.simplefin_access.last_synced_at %></p>
-            <%= button_to "Done", simplefin_review_path, method: :patch,
+            <%= button_to "Done", simplefin_review_completion_path,
               class: "cursor-pointer rounded-md bg-action px-4 py-2 text-button text-on-action hover:brightness-95" %>
           </div>
         <% end %>

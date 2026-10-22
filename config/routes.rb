@@ -6,7 +6,7 @@ Rails.application.routes.draw do
     resource :categorization, only: :update, module: :transactions
     resource :rule, only: :create, module: :transactions
     resource :note, only: :update, module: :transactions
-    resource :exclusion, only: :update, module: :transactions
+    resource :exclusion, only: %i[ create destroy ], module: :transactions
   end
   resource :voucher, only: :show
   resource :session, only: %i[ new create destroy ]
@@ -18,7 +18,9 @@ Rails.application.routes.draw do
   namespace :simplefin do
     resource :access, only: %i[ new create edit update destroy ]
     resource :sync, only: :create
-    resource :review, only: %i[ show update ]
+    resource :review, only: :show do
+      resource :completion, only: :create, module: :reviews
+    end
   end
   resources :bank_accounts, only: :update
   resources :rules, only: :destroy

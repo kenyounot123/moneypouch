@@ -80,7 +80,7 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     assert_select "#bank_review a[href=?][data-turbo-frame=_top]", simplefin_review_path, text: "Show all", count: 1
     assert_select "#bank_review form", count: 0
 
-    patch simplefin_review_url
+    post simplefin_review_completion_url
     get root_url
     assert_select "#bank_review", count: 0
   end

@@ -34,6 +34,14 @@ class Transaction < ApplicationRecord
     !transfer? && !excluded?
   end
 
+  def exclude
+    update!(excluded: true)
+  end
+
+  def include_in_totals
+    update!(excluded: false)
+  end
+
   def money_in?
     !amount_in_cents.negative?
   end
