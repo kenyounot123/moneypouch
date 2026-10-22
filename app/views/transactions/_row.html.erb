@@ -33,19 +33,20 @@
     </div>
     <div class="flex min-w-0 flex-1 items-center gap-2.5" data-controller="note" data-note-url-value="<%= transaction_note_path(transaction) %>">
       <div class="flex min-w-0 items-baseline gap-2.5" data-note-target="name">
-        <p class="max-w-full shrink-0 truncate font-medium <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
+        <p class="<%= transaction.excluded? ? "min-w-0" : "max-w-full shrink-0" %> truncate font-medium <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
         <% if transaction.excluded? %>
-          <%= excluded_tag class: "group-focus-within:hidden group-hover:hidden" %>
+          <%= excluded_tag %>
         <% end %>
         <% if transaction.note %>
           <button type="button" class="min-w-0 cursor-text truncate text-left text-sm text-tertiary hover:text-secondary"
             data-note-target="label" data-action="note#open" data-note-text-param="<%= transaction.note %>"><%= transaction.note %></button>
-        <% else %>
-          <button type="button" aria-label="Add a note" title="Add a note" class="<%= TransactionsHelper::ICON_BUTTON %> -my-2 -ml-1.5 hidden self-center group-focus-within:flex group-hover:flex"
-            data-note-target="label" data-action="note#open"><%= icon_tag "note" %></button>
         <% end %>
       </div>
       <div class="ml-auto hidden shrink-0 items-center gap-0.5 bg-level-0 group-focus-within:flex group-hover:flex">
+        <% if transaction.note.nil? %>
+          <button type="button" aria-label="Add a note" title="Add a note" class="flex <%= TransactionsHelper::ICON_BUTTON %>"
+            data-note-target="label" data-action="note#open"><%= icon_tag "note" %></button>
+        <% end %>
         <%= exclusion_button transaction, icon: true %>
         <%= icon_button_to "Delete", :delete, transaction, method: :delete, data: { turbo_confirm: "Delete #{transaction.name}?" } %>
       </div>

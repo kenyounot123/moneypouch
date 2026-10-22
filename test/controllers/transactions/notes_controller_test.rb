@@ -37,6 +37,7 @@ class Transactions::NotesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "li#transaction_#{transactions(:coffee).id} button[data-action='note#open']", text: "Paid Wendy back"
     assert_select "li#transaction_#{transactions(:coffee).id} button[data-action='note#open'][aria-label='Add a note']", count: 0
-    assert_select "li#transaction_#{transactions(:paycheck).id} button.hidden[data-action='note#open'][aria-label='Add a note'][title='Add a note'] .icon--note"
+    assert_select "li#transaction_#{transactions(:paycheck).id} div.ml-auto > button[data-action='note#open'][aria-label='Add a note'][title='Add a note'] .icon--note"
+    assert_select "li#transaction_#{transactions(:paycheck).id} div.ml-auto > button[aria-label='Add a note'] + form[action$='/exclusion']"
   end
 end
