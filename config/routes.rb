@@ -32,6 +32,7 @@ Rails.application.routes.draw do
     end
   end
   resource :theme, only: :update
+  resource :time_zone, only: :update
 
   get "up" => "rails/health#show", as: :rails_health_check
 
