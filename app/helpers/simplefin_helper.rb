@@ -7,12 +7,16 @@ module SimplefinHelper
 
   HEADER_BUTTON = "cursor-pointer text-sm font-medium text-secondary hover:text-primary disabled:cursor-default disabled:text-tertiary"
 
-  REVIEW_LISTS = { "needing_category" => "Need a category", "categorized" => "Categorized for you", "transfers" => "Transfers" }
+  REVIEW_LIST_TITLES = { "needing_category" => "Need a category", "categorized" => "Categorized for you", "transfers" => "Transfers" }
 
   def link_to_simplefin(label, url = SIMPLEFIN_URL)
     link_to url, target: "_blank", rel: "noopener", class: OUTLINE_BUTTON do
       safe_join [ label, icon_tag("external", class: "size-3 text-secondary") ]
     end
+  end
+
+  def review_list_title(list)
+    REVIEW_LIST_TITLES.fetch(list)
   end
 
   def balance(cents)
