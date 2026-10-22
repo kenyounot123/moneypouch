@@ -19,6 +19,16 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "main section li p.font-medium", text: "Rent", count: 0
   end
 
+  test "shows the day total even when the day has one row" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      users(:one).transactions.create!(name: "Tea", amount_in_cents: -300, occurred_on: "2026-10-02")
+
+      get transactions_url
+    end
+
+    assert_select "section[aria-label='Fri, Oct 2'] > div > p.font-mono", text: "$3.00", count: 2
+  end
+
   test "shows the requested month only" do
     travel_to Time.utc(2026, 10, 13, 12) do
       users(:one).transactions.create!(name: "Rent", amount_in_cents: -150_000, occurred_on: "2026-09-30")
