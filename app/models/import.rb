@@ -140,7 +140,7 @@ class Import < ApplicationRecord
     end
 
     def new_rows
-      @new_rows ||= rows - Transaction.already_here(rows, user:)
+      @new_rows ||= rows - user.imported_already(rows)
     end
 
     def user_categories

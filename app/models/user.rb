@@ -63,6 +63,10 @@ class User < ApplicationRecord
     rules.find_by(name_key: name.key)&.categorization == categorization
   end
 
+  def imported_already(rows)
+    Transaction.where(user: self).already_here(rows)
+  end
+
   def transactions_named(name_key)
     transactions.where(id: bank_transactions.unmatched.where(name_key:).select(:transaction_id))
   end
