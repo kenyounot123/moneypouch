@@ -22,7 +22,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_equal [ "No transactions yet.", "By hand", "From a file", "From your bank" ], css_select("main ul li").map { |row| row.at_css("p")&.text || row.text }
-    assert_select "main ul li button[aria-haspopup=dialog][onclick=?]", "document.getElementById('palette').showModal()", text: /Add/
+    assert_select "main ul li button[aria-haspopup=dialog][data-action='dialog-opener#open'][data-dialog-opener-id-param=palette]", text: /Add/
     assert_select "main ul li a[href=?][data-turbo-frame=_top]", new_import_path, text: "Import"
     assert_select "main ul li a[href=?][data-turbo-frame=_top]", new_simplefin_access_path, text: "Connect"
   end

@@ -13,7 +13,7 @@ class ImportsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "Import"
     assert_select "main p", text: "Import your previous expense history that you already keep in a file."
     assert_select "form[action=?] label", imports_path, text: /Drop a file here\s+Reading the file…\s+Excel \(.xlsx\) or CSV\s+Choose file/
-    assert_select "input[type=file][name='import[file]'][onchange='this.form.requestSubmit()']"
+    assert_select "input[type=file][name='import[file]'][data-action='change->auto-submit#submit']"
     assert_select "main p", text: "One row per transaction, with at least a date and an amount. Names, categories and notes come along if you have them."
     assert_select "main button", text: "Undo", count: 0
     assert_select "aside a[aria-current=page][href=?]", new_import_path, text: "Import"

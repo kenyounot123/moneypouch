@@ -18,7 +18,7 @@
           <span class="hidden text-md font-medium group-aria-busy:inline">Reading the file…</span>
           <span class="text-sm <%= error ? "text-danger" : "text-tertiary" %>"><%= error || "Excel (.xlsx) or CSV" %></span>
           <span class="<%= SimplefinHelper::OUTLINE_BUTTON %> mt-3 mr-auto">Choose file</span>
-          <%= file_field_tag "import[file]", accept: ImportsHelper::FILE_TYPES, onchange: "this.form.requestSubmit()",
+          <%= file_field_tag "import[file]", accept: ImportsHelper::FILE_TYPES, data: { controller: "auto-submit", action: "change->auto-submit#submit" },
             aria: { invalid: error.present? }, class: "absolute inset-0 cursor-pointer opacity-0" %>
         </label>
       <% end %>

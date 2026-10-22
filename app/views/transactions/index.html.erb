@@ -92,7 +92,7 @@
           [ :category, "All categories", @categories.map { |category| [ category.name, category.id ] } + [ [ "Uncategorized", "none" ] ] ]
         ].each do |name, blank, choices| %>
           <span class="relative flex min-w-0 flex-1 @xl:flex-none">
-            <%= select_tag name, options_for_select(choices, filters[name]), include_blank: blank, onchange: "this.form.requestSubmit()",
+            <%= select_tag name, options_for_select(choices, filters[name]), include_blank: blank, data: { controller: "auto-submit", action: "change->auto-submit#submit" },
               class: "h-9 w-full min-w-0 cursor-pointer appearance-none @xl:field-sizing-content rounded-lg border border-primary bg-level-2 pr-7 pl-3 text-md text-primary shadow-control hover:border-(--ring-color-focus) @xl:h-8.5 @xl:text-sm" %>
             <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-secondary" aria-hidden="true">▾</span>
           </span>
