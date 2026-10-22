@@ -21,7 +21,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
 
   READS_AS = 0.8
   MOSTLY_SPENT = 0.9
-  private_constant :KINDS, :POSITIVE_AMOUNTS, :SPENT_WORDS, :INCOME_WORDS, :NO_WORDS, :HEADER_WORDS, :NEEDED, :READS_AS, :MOSTLY_SPENT
+  private_constant :POSITIVE_AMOUNTS, :SPENT_WORDS, :INCOME_WORDS, :NO_WORDS, :HEADER_WORDS, :NEEDED, :READS_AS, :MOSTLY_SPENT
 
   class << self
     def guess(sheet)

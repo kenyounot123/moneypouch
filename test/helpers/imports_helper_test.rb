@@ -1,6 +1,11 @@
 require "test_helper"
 
 class ImportsHelperTest < ActionView::TestCase
+  test "every column kind has a title and a place in the field order" do
+    assert_equal Import::Columns::KINDS.sort, ImportsHelper::COLUMN_KINDS.keys.sort
+    assert_equal (Import::Columns::KINDS - [ "skip" ]).sort, ImportsHelper::FIELD_ORDER.sort
+  end
+
   test "a row that can't be read names its tab when the file has tabs" do
     assert_equal "2023, row 214", unreadable_place(Import::UnreadableRow.new(tab: "2023", number: 214, reason: "there's no amount"))
     assert_equal "Row 12", unreadable_place(Import::UnreadableRow.new(tab: nil, number: 12, reason: "there's no amount"))
