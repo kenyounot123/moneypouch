@@ -7,6 +7,8 @@ module TransactionsHelper
 
   ICON_BUTTON = "size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary pointer-coarse:size-10"
 
+  EXCLUSION_BUTTON = "flex h-8 min-w-8 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm text-sm text-secondary hover:bg-level-3 hover:text-primary pointer-coarse:h-10 pointer-coarse:min-w-10 @3xl:px-2"
+
   def money(amount_in_cents)
     amount = number_to_currency(amount_in_cents.abs.to_d / 100)
 
@@ -50,12 +52,21 @@ module TransactionsHelper
   end
 
   def exclusion_button(transaction, icon: false, **options)
-    label = transaction.excluded? ? "Include" : "Exclude"
     path = transaction_exclusion_path(transaction)
     params = { transaction: { excluded: !transaction.excluded? } }
 
+    if transaction.excluded?
+      label = "Include in totals"
+      icon_name = :include
+    else
+      label = "Exclude from totals"
+      icon_name = :exclude
+    end
+
     if icon
-      icon_button_to label, label.downcase.to_sym, path, method: :patch, params:, **options
+      button_to path, method: :patch, params:, aria: { label: }, title: label, class: EXCLUSION_BUTTON, **options do
+        safe_join([ icon_tag(icon_name), tag.span(label, class: "hidden @3xl:inline") ])
+      end
     else
       button_to label, path, method: :patch, params:, **options
     end
