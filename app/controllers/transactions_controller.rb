@@ -4,25 +4,14 @@ class TransactionsController < ApplicationController
   helper_method :filters
 
   def index
-    transactions = Current.user.transactions
     @month = Month.new(params[:month], today: Date.current)
+    @listing = Transaction::Listing.new(Current.user, month: @month, filters:, before:)
     @voucher = Voucher.new(flash[:shorthand], user: Current.user, today: Date.current)
-    @added = transactions.find_by(id: flash[:added_id])
+    @added = Current.user.transactions.find_by(id: flash[:added_id])
     @import = Current.user.imports.completed.find_by(id: flash[:import_id])
     @categories = Current.user.categories.alphabetically
     @bank_accounts = Current.user.bank_accounts.order(:name)
-
-    narrowed = narrow(transactions.occurred_in(@month.range))
-    shown = only_needing_category(narrowed)
-    @needing_category_count = narrowed.needing_category.count
-    @count = shown.count
-    @page = Transaction::Page.new(shown, before:)
-    @transactions = @page.transactions.listed.includes(bank_transaction: :bank_account)
     keep_categorized_for_later_page
-    @spent = shown.spent
-    @net = shown.net
-    @income = shown.income
-    @day_totals = shown.group(:occurred_on).sum(:amount_in_cents)
   end
 
   def edit
@@ -66,36 +55,8 @@ class TransactionsController < ApplicationController
     def keep_categorized_for_later_page
       id = flash[:categorized_id]
 
-      if id && @page.next_before && @transactions.none? { |transaction| transaction.id == id }
+      if id && @listing.page.next_before && @listing.transactions.none? { |transaction| transaction.id == id }
         flash.keep(:categorized_id)
-      end
-    end
-
-    def narrow(transactions)
-      in_chosen_category(from_chosen_account(transactions.matching(filters[:query])))
-    end
-
-    def from_chosen_account(transactions)
-      case filters[:account]
-      when nil then transactions
-      when "typed" then transactions.typed_in
-      else transactions.from_bank_account(Current.user.bank_accounts.find(filters[:account]))
-      end
-    end
-
-    def in_chosen_category(transactions)
-      case filters[:category]
-      when nil then transactions
-      when "none" then transactions.uncategorized
-      else transactions.in_category(Current.user.categories.find(filters[:category]))
-      end
-    end
-
-    def only_needing_category(transactions)
-      if filters[:needs]
-        transactions.needing_category
-      else
-        transactions
       end
     end
 end
