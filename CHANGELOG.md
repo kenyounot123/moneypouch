@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.0](https://github.com/kenyounot123/moneypouch/compare/v0.10.0...v0.11.0) (2026-10-23)
+
+
+### Features
+
+* **security:** turn on a content security policy and replace the inline handlers ([79de26b](https://github.com/kenyounot123/moneypouch/commit/79de26be647a3e13ebd78733661c975aa37c3afa))
+* **theme:** pick a color theme that works in light and dark mode ([#136](https://github.com/kenyounot123/moneypouch/issues/136)) ([36fe08e](https://github.com/kenyounot123/moneypouch/commit/36fe08eee11dacd8462154c673019ade79889efa))
+
+
+### Bug Fixes
+
+* **simplefin:** start the 90-day history on the first day a sync fetches ([86e09d1](https://github.com/kenyounot123/moneypouch/commit/86e09d179f5f77718695714e4dc77078a46735f1))
+
 ## [0.10.0](https://github.com/kenyounot123/moneypouch/compare/v0.9.0...v0.10.0) (2026-10-22)
 
 
