@@ -22,21 +22,51 @@
 }
 
 :root {
-  --slate-50: oklch(98.5% 0.004 277);
-  --slate-100: oklch(95.5% 0.010 277);
-  --slate-200: oklch(92.5% 0.016 277);
-  --slate-300: oklch(87% 0.028 277);
-  --slate-400: oklch(76% 0.042 277);
-  --slate-450: oklch(69% 0.048 277);
-  --slate-500: oklch(62.6% 0.054 277);
-  --slate-600: oklch(50.2% 0.061 277);
-  --slate-700: oklch(40% 0.062 277);
-  --slate-800: oklch(31% 0.060 277);
-  --slate-850: oklch(28.5% 0.059 277);
-  --slate-900: oklch(26.2% 0.058 277);
-  --slate-950: oklch(22.5% 0.050 277);
-  --slate-975: oklch(20.2% 0.044 277);
+  --white: oklch(100% 0 0);
+}
 
+/* The neutrals take their hue and strength from the theme. [data-theme] repeats them on a theme's swatch so it previews its own colors. */
+:root,
+[data-theme] {
+  --hue: 277;
+  --tint: 1;
+  --paper: var(--white);
+
+  --slate-50: oklch(98.5% calc(0.004 * var(--tint)) var(--hue));
+  --slate-100: oklch(95.5% calc(0.010 * var(--tint)) var(--hue));
+  --slate-200: oklch(92.5% calc(0.016 * var(--tint)) var(--hue));
+  --slate-300: oklch(87% calc(0.028 * var(--tint)) var(--hue));
+  --slate-400: oklch(76% calc(0.042 * var(--tint)) var(--hue));
+  --slate-450: oklch(69% calc(0.048 * var(--tint)) var(--hue));
+  --slate-500: oklch(62.6% calc(0.054 * var(--tint)) var(--hue));
+  --slate-600: oklch(50.2% calc(0.061 * var(--tint)) var(--hue));
+  --slate-700: oklch(40% calc(0.062 * var(--tint)) var(--hue));
+  --slate-800: oklch(31% calc(0.060 * var(--tint)) var(--hue));
+  --slate-850: oklch(28.5% calc(0.059 * var(--tint)) var(--hue));
+  --slate-900: oklch(26.2% calc(0.058 * var(--tint)) var(--hue));
+  --slate-950: oklch(22.5% calc(0.050 * var(--tint)) var(--hue));
+  --slate-975: oklch(20.2% calc(0.044 * var(--tint)) var(--hue));
+
+  --swatch-light: var(--paper);
+  --swatch-dark: var(--slate-975);
+}
+
+/* Pouch keeps a white page in light mode. Every other theme washes the page and the light neutrals in its hue. */
+[data-theme]:not([data-theme="pouch"]) {
+  --paper: oklch(98% calc(0.016 * var(--tint)) var(--hue));
+  --slate-50: oklch(96.5% calc(0.022 * var(--tint)) var(--hue));
+  --slate-100: oklch(94% calc(0.030 * var(--tint)) var(--hue));
+  --slate-200: oklch(91% calc(0.036 * var(--tint)) var(--hue));
+}
+
+[data-theme="graphite"] { --tint: 0; }
+[data-theme="moss"] { --hue: 150; }
+[data-theme="tide"] { --hue: 220; }
+[data-theme="ember"] { --hue: 50; }
+[data-theme="rose"] { --hue: 10; }
+[data-theme="plum"] { --hue: 320; }
+
+:root {
   --gold-100: oklch(95% 0.050 92);
   --gold-300: oklch(85% 0.146 90);
   --gold-600: oklch(56% 0.110 80);
@@ -53,20 +83,18 @@
   --violet-300: oklch(79% 0.100 315);
   --violet-600: oklch(53% 0.150 315);
 
-  --white: oklch(100% 0 0);
-
   --font-pixel: "Pixelify Sans", "Geist", ui-sans-serif, sans-serif;
 }
 
 @theme static {
   --color-*: initial;
 
-  --background-color-level-0: light-dark(var(--white), var(--slate-975));
+  --background-color-level-0: light-dark(var(--paper), var(--slate-975));
   --background-color-level-1: light-dark(var(--slate-50), var(--slate-950));
   --background-color-level-2: light-dark(var(--white), var(--slate-900));
   --background-color-level-3: light-dark(var(--slate-100), var(--slate-800));
   --background-color-scrim: light-dark(color-mix(in oklch, var(--slate-900) 40%, transparent), color-mix(in oklch, var(--slate-975) 60%, transparent));
-  --background-color-level-0-scrimmed: light-dark(color-mix(in srgb, var(--slate-900) 40%, var(--white)), var(--slate-975));
+  --background-color-level-0-scrimmed: light-dark(color-mix(in srgb, var(--slate-900) 40%, var(--paper)), var(--slate-975));
   --background-color-action: var(--gold-300);
   --background-color-highlight: var(--gold-300);
   --background-color-data: light-dark(var(--slate-500), var(--slate-400));
@@ -286,11 +314,11 @@
     --container-sidebar: 64px;
   }
 
-  :root[data-theme="light"] {
+  :root[data-mode="light"] {
     color-scheme: light;
   }
 
-  :root[data-theme="dark"] {
+  :root[data-mode="dark"] {
     color-scheme: dark;
   }
 

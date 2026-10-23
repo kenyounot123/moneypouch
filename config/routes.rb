@@ -31,6 +31,7 @@ Rails.application.routes.draw do
       resource :transactions, only: :create
     end
   end
+  resource :mode, only: :update
   resource :theme, only: :update
   resource :time_zone, only: :update
 

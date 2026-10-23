@@ -1,9 +1,11 @@
 class User < ApplicationRecord
   has_secure_password
 
-  THEMES = %w[ light dark ]
+  MODES = %w[ light dark ]
+  THEMES = %w[ pouch graphite moss tide ember rose plum ]
 
   validates :username, presence: true, uniqueness: true
+  validates :mode, inclusion: { in: MODES }
   validates :theme, inclusion: { in: THEMES }
 
   has_many :sessions, dependent: :destroy
@@ -47,6 +49,10 @@ class User < ApplicationRecord
     if zone
       update!(time_zone: zone.name)
     end
+  end
+
+  def choose_mode(mode)
+    update!(mode:)
   end
 
   def choose_theme(theme)

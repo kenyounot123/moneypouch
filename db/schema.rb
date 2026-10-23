@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_22_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_130000) do
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -144,11 +144,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_120000) do
     t.string "password_digest", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "theme", default: "light", null: false
+    t.string "mode", default: "light", null: false
     t.string "time_zone", default: "UTC", null: false
     t.string "seen_version", null: false
+    t.string "theme", default: "pouch", null: false
     t.index ["username"], name: "index_users_on_username", unique: true
-    t.check_constraint "theme IN ('light', 'dark')", name: "theme_is_light_or_dark"
+    t.check_constraint "mode IN ('light', 'dark')", name: "mode_is_light_or_dark"
+    t.check_constraint "theme IN ('pouch', 'graphite', 'moss', 'tide', 'ember', 'rose', 'plum')", name: "theme_is_known"
   end
 
   add_foreign_key "bank_accounts", "simplefin_accesses"

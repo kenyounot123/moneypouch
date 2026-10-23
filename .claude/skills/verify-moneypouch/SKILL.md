@@ -37,7 +37,7 @@ Per-instance state lives in `tmp/verify/<port>/` (gitignored): `state.json`, `se
 $M doctor --port 3101
 ```
 
-Prints JSON with `serverAlive`, `chromeAlive`, `holderAlive`, `up` (the `/up` status), the current `url`, `theme`, the recorded `viewport`, the live `inner` size, the emulated `timezone`, and the mp4 path being `recording`, if any. Exit 1 when the server or Chrome is down, `/up` is not 200, the viewport holder is dead, or `inner` differs from `viewport`. Run it first whenever a drive behaves oddly. A port that is busy with a process this skill did not start makes `boot` refuse with an error instead of attaching.
+Prints JSON with `serverAlive`, `chromeAlive`, `holderAlive`, `up` (the `/up` status), the current `url`, `mode`, `theme`, the recorded `viewport`, the live `inner` size, the emulated `timezone`, and the mp4 path being `recording`, if any. Exit 1 when the server or Chrome is down, `/up` is not 200, the viewport holder is dead, or `inner` differs from `viewport`. Run it first whenever a drive behaves oddly. A port that is busy with a process this skill did not start makes `boot` refuse with an error instead of attaching.
 
 ## Drive
 
@@ -49,11 +49,11 @@ Prints JSON with `serverAlive`, `chromeAlive`, `holderAlive`, `up` (the `/up` st
 | Drop a file | `$M drop 'main form label' test/fixtures/files/imports/history.xlsx --port N` drags the file in from outside the page and drops it on the element's center (`Input.dispatchDragEvent` with the file), the way a file dragged from Finder lands. Prints the URL after the page settles. |
 | Press keys | `$M key Enter --port N`. Also `Escape`, `Tab`, `ArrowDown`, `PageUp`, `Backspace`, a single character, `Meta+z`, `Ctrl+z`, `Shift+Tab`. Several keys in one call go back to back, under 1 ms apart: `$M key Enter Enter Enter` is a triple press, `$M key ArrowLeft ArrowLeft ArrowUp Tab` a sequence. |
 | Wait for a render | `$M wait 'turbo-frame#voucher' --text 'Type an amount' --port N` polls every 50 ms until an element matches the selector and contains the text, then prints its text. `--gone` waits until nothing matches. `--timeout 5000` is the default; a timeout exits 1. Wait before every `shot` that follows a server round trip, because `type` and `key` return before the response paints. |
-| Click | `$M click 'button[data-theme="dark"]' --port N` |
+| Click | `$M click 'button[data-mode="dark"]' --port N` |
 | Hover | `$M hover '#transaction_12 p.font-mono' --port N` moves the mouse to the element's center and leaves it there, so `:hover` and `group-hover:` styles show in the next `shot` until another command moves the mouse. A `click` on an element that only shows on hover needs a `hover` on its row first. |
 | Screenshot | `$M shot /tmp/x/overview.png --port N` (`--scale 2` for a sharp image at twice the CSS pixels, `--full` for the whole page; it fires page resize events while it captures, so take full-page shots last when a lane watches resize events or popovers) |
 | Resize viewport | `$M resize 375 812 --port N`. A small detached holder process per instance keeps the emulated viewport applied between commands, so the page does not see a resize until the next `resize`. Chrome headless cannot shrink its window below 500 px, which is why emulation is used. Prints `scrollWidth`; equal to the width means no horizontal scroll. |
-| Switch theme | `$M theme dark --port N`. Real mouse click on the Settings page button, going to `/settings` first when the button is not on the page. Waits for `html[data-theme]` and the `theme` cookie, and fails if the button is missing. |
+| Switch mode or theme | `$M mode dark --port N`, `$M theme moss --port N`. Real mouse click on the Settings page button or swatch, going to `/settings` first when it is not on the page. Waits for `html[data-mode]` or `html[data-theme]` on the page and in a fresh `/settings` render (so saved on the user), and fails if the button is missing. |
 | Navigate | `$M goto /session/new --port N` |
 | Sign in or out | `$M signin demo wrong --port N`, `$M signout --port N`. `signin` does nothing while the page is signed in, so `signout` first. `signout` sends `DELETE /session` with `fetch`, not the Settings button. |
 | Page text | `$M text '#alert' --port N` |
