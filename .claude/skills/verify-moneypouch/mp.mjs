@@ -368,6 +368,7 @@ async function doctor(flags) {
   if (out.chromeAlive) {
     const b = await cdpSession(port)
     out.url = await b.evaluate("location.href")
+    out.mode = await b.evaluate("document.documentElement.dataset.mode")
     out.theme = await b.evaluate("document.documentElement.dataset.theme")
     out.viewport = s.viewport
     out.inner = await b.evaluate("[innerWidth, innerHeight]")
@@ -567,7 +568,8 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   hover <selector>                   move the mouse to the element's center and leave it there, for :hover states
   shot <file.png> [--full]           screenshot the viewport, or the whole page with --full
   resize <w> <h>                     set the emulated viewport; the per-instance holder keeps it between commands
-  theme light|dark                   open /settings if the button is not on the page, then click the theme button
+  mode light|dark                    open /settings if the button is not on the page, then click the mode button
+  theme pouch|graphite|moss|...      open /settings if the swatch is not on the page, then click the theme swatch
   signin <user> <password>           sign in through the form
   signout                            DELETE /session and land on the sign-in page
   js <expr>                          evaluate JS in the page, print the JSON result
@@ -602,7 +604,7 @@ async function main() {
     if (!args[0]) die("query needs a Ruby expression")
     return console.log(rails(["runner", READONLY_RUNNER], { MP_QUERY: args[0] }).trim())
   }
-  if (!["goto", "type", "paste", "upload", "drop", "key", "hover", "click", "shot", "resize", "theme", "signin", "signout", "js", "text", "wait", "latency"].includes(cmd)) {
+  if (!["goto", "type", "paste", "upload", "drop", "key", "hover", "click", "shot", "resize", "mode", "theme", "signin", "signout", "js", "text", "wait", "latency"].includes(cmd)) {
     console.error(USAGE)
     process.exit(cmd ? 1 : 0)
   }
@@ -689,16 +691,17 @@ async function main() {
       const [w, h] = await dims()
       if (w !== s.viewport.width || h !== s.viewport.height) die(`viewport holder did not apply ${s.viewport.width}x${s.viewport.height}; see ${dirFor(port)}/holder.log`)
       console.log(`${w}x${h} scrollWidth=${await b.evaluate("document.documentElement.scrollWidth")}`)
-    } else if (cmd === "theme") {
-      if (!["light", "dark"].includes(args[0])) die("theme takes light or dark")
-      const button = `button[data-theme="${args[0]}"]`
+    } else if (cmd === "mode" || cmd === "theme") {
+      const choices = cmd === "mode" ? ["light", "dark"] : ["pouch", "graphite", "moss", "tide", "ember", "rose", "plum"]
+      if (!choices.includes(args[0])) die(`${cmd} takes ${choices.join(", ")}`)
+      const button = `button[data-${cmd}="${args[0]}"]`
       if (!(await b.evaluate(`!!document.querySelector('${button}')`))) {
         await b.goto(`${origin}/settings`)
       }
       await b.click(button)
-      const applied = `document.documentElement.dataset.theme === "${args[0]}" && fetch("/settings").then((response) => response.text()).then((html) => html.includes('data-theme="${args[0]}"'))`
+      const applied = `document.documentElement.dataset.${cmd} === "${args[0]}" && fetch("/settings").then((response) => response.text()).then((html) => new DOMParser().parseFromString(html, "text/html").documentElement.dataset.${cmd} === "${args[0]}")`
       for (let i = 0; i < 50 && !(await b.evaluate(applied).catch(() => false)); i++) await sleep(100)
-      if (!(await b.evaluate(applied))) die(`theme did not become ${args[0]} (on the page and saved on the user) within 5s`)
+      if (!(await b.evaluate(applied))) die(`${cmd} did not become ${args[0]} (on the page and saved on the user) within 5s`)
       await b.settle()
       console.log(args[0])
     } else if (cmd === "signin") {

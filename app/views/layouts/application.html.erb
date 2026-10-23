@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-controller="theme time-zone" data-theme="<%= Current.user&.theme || "light" %>" data-sidebar="<%= sidebar_state %>"
+<html data-controller="theme time-zone" data-mode="<%= Current.user&.mode || "light" %>" data-theme="<%= Current.user&.theme || "pouch" %>" data-sidebar="<%= sidebar_state %>"
   <% if Current.user %><%= tag.attributes(data: { time_zone_saved_value: Current.user.time_zone, time_zone_url_value: time_zone_path }) %><% end %>>
   <head>
     <title><%= content_for(:title) || "Moneypouch" %></title>
