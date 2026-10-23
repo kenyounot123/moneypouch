@@ -7,7 +7,7 @@
 
   <ul class="flex flex-col">
     <% rules.each do |rule, rows| %>
-      <li class="flex items-center gap-3 border-b border-secondary px-2 py-3 last:border-b-0 <%= "bg-highlight/14" if rule_just_made?(rule) %>" <%= "data-just-made" if rule_just_made?(rule) %>>
+      <li class="flex items-center gap-3 border-b border-secondary px-2 py-3 last:border-b-0 <%= "bg-highlight/14" if rule_just_made?(rule) %>" <% if rule_just_made?(rule) %>data-just-made<% end %>>
         <div class="flex min-w-0 flex-1 flex-col gap-0.5">
           <p class="flex min-w-0 items-center gap-2">
             <span class="truncate font-medium">“<%= rule.name %>”</span>
