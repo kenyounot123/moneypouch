@@ -1,0 +1,63 @@
+<% content_for :title, @category.name %>
+<%= turbo_stream_from Current.user, :transactions %>
+
+<div class="flex min-h-dvh max-md:flex-col">
+  <%= render "shared/sidebar" %>
+
+  <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14">
+    <div class="flex flex-col gap-2">
+      <%= link_to "‹ Categories", categories_path, class: "self-start text-sm text-tertiary hover:text-primary" %>
+      <h1 class="text-title"><%= @category.name %></h1>
+    </div>
+
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <div class="flex flex-col gap-2.5">
+        <p class="text-secondary"><%= @category.income? ? "Received" : "Spent" %> in <%= month_name @month %></p>
+        <p class="text-display" data-field="total"><%= money(@category.income? ? @listing.income : @listing.spent) %></p>
+        <p class="text-sm text-tertiary"><%= pluralize number_with_delimiter(@listing.count), "transaction" %></p>
+      </div>
+
+      <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Month">
+        <%= link_to "‹ #{month_abbreviation @month.previous}", category_path(@category, month: month_param(@month.previous)), aria: { label: month_title(@month.previous) },
+          class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
+        <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true"><%= month_title @month %></span>
+        <% if @month.next %>
+          <%= link_to "#{month_abbreviation @month.next} ›", category_path(@category, month: month_param(@month.next)), aria: { label: month_title(@month.next) },
+            class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
+        <% end %>
+      </nav>
+    </div>
+
+    <div class="flex flex-col" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>">
+      <% if @listing.count.positive? %>
+        <div class="hidden items-center gap-4 border-b border-primary pb-2 text-xs text-tertiary @xl:flex" aria-hidden="true">
+          <p class="w-24 shrink-0">Date</p>
+          <p class="w-2 shrink-0"></p>
+          <p class="min-w-0 flex-1">Name</p>
+          <p class="w-37.5 shrink-0">Category</p>
+          <p class="hidden w-47.5 shrink-0 @4xl:block">Account</p>
+          <p class="w-25 shrink-0 text-right">Amount</p>
+        </div>
+
+        <%= turbo_frame_tag [ :days, @listing.page.before ].compact.join("_"), target: "_top" do %>
+          <% @listing.transactions.group_by(&:occurred_on).each do |date, transactions| %>
+            <%= render "transactions/day", date:, transactions:, total: @listing.day_totals[date] %>
+          <% end %>
+
+          <% if @listing.page.next_before %>
+            <%= turbo_frame_tag :days, @listing.page.next_before, src: category_path(@category, month: month_param(@month), before: @listing.page.next_before),
+              loading: :lazy, refresh: :morph, target: "_top" %>
+          <% end %>
+        <% end %>
+      <% else %>
+        <p class="text-sm text-tertiary">Nothing in <%= @category.name %> in <%= month_name @month %>.</p>
+      <% end %>
+    </div>
+
+    <dialog aria-label="Transaction" data-controller="sheet"
+      data-action="turbo:frame-load->sheet#open click->sheet#dismiss turbo:submit-start->sheet#close turbo:before-morph-attribute->sheet#keepClosed close->sheet#forget"
+      class="m-0 mt-auto max-h-[85dvh] w-full max-w-none overflow-y-auto rounded-t-[16px] border-0 bg-level-2 p-0 text-primary backdrop:bg-scrim">
+      <%= turbo_frame_tag "sheet", data: { sheet_target: "frame" } %>
+    </dialog>
+  </main>
+</div>

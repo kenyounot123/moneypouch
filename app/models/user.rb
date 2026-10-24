@@ -68,7 +68,7 @@ class User < ApplicationRecord
   end
 
   def income_category
-    categories.income.named("Income").first
+    categories.default_income.first
   end
 
   def latest_import
@@ -106,7 +106,7 @@ class User < ApplicationRecord
 
   private
     def create_income_category
-      categories.create!(name: "Income", income: true)
+      categories.create!(name: Category::INCOME, income: true)
     end
 
     def remember_once(name, categorization)
