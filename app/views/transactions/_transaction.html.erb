@@ -23,7 +23,7 @@
       <button type="button" class="flex max-w-full cursor-text items-center gap-1.5 self-start text-left text-base text-secondary hover:text-primary"
         data-note-target="label" data-action="note#open" data-note-text-param="<%= transaction.note %>"><%= icon_tag("note", class: "size-3 text-tertiary") %><span class="truncate"><%= transaction.note %></span></button>
     <% end %>
-    <div class="flex min-w-0 items-center gap-1 text-sm text-tertiary">
+    <div class="flex min-w-0 items-center gap-1 text-sm text-tertiary <%= "flex-wrap sm:flex-nowrap" if local_assigns[:account] %>">
       <% if field %>
         <span class="category-field-slot" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: "Category",
           class: "category-field" %></span>
@@ -34,7 +34,7 @@
         <span class="whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
       <% end %>
       <% if local_assigns[:account] %>
-        <span class="truncate">· <%= transaction.bank_account_name %></span>
+        <span class="basis-full truncate sm:basis-auto"><span class="hidden sm:inline">· </span><%= transaction.bank_account_name %></span>
       <% end %>
     </div>
   </div>
