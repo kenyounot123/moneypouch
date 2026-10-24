@@ -10,7 +10,7 @@
         <span><%= month_abbreviation(period).first %><span class="max-md:hidden"><%= month_abbreviation(period)[1..] %></span></span>
       <% end %>
     </div>
-    <span class="w-24 shrink-0 text-right max-md:hidden">Present month</span>
+    <span class="w-28 shrink-0 text-right max-md:hidden">Present month</span>
   </div>
 
   <ul class="flex flex-col gap-3">
@@ -29,10 +29,10 @@
             <div class="<%= class_names "h-6 rounded-[3px]", heat_class(cents, peak), "outline-1 outline-dashed outline-offset-1 outline-(--background-color-data)": period.current? %>" title="<%= month_abbreviation period %> · <%= money cents %>"></div>
           <% end %>
         </div>
-        <div class="w-24 shrink-0 text-right">
+        <div class="w-28 shrink-0 text-right">
           <p class="font-amount"><%= money line.current %></p>
           <% if line.usual&.positive? %>
-            <p class="text-xs text-tertiary">usually <%= money line.usual %></p>
+            <p class="text-sm text-tertiary">usually <%= money line.usual %></p>
           <% end %>
         </div>
       </li>

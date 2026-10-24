@@ -135,10 +135,10 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
         assert_equal [ "Rent", "Spotify" ], names.map { |name| name.text.strip }
       end
       assert_select "li", text: /Spotify/ do
-        assert_select "p.text-xs", text: "Usually on the 3rd · was $15.49"
+        assert_select "p.text-sm", text: "Usually on the 3rd · was $15.49"
         assert_select "p.font-amount", text: "$17.99"
       end
-      assert_select "li p.text-xs", text: "Usually on the 1st"
+      assert_select "li p.text-sm", text: "Usually on the 1st"
     end
   end
 
