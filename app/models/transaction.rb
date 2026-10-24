@@ -47,7 +47,13 @@ class Transaction < ApplicationRecord
   end
 
   def categorize(categorization)
-    update!(categorization:)
+    self.class.transaction do
+      if paired? && !categorization.transfer?
+        bank_transaction.unpair
+      end
+
+      update!(categorization:)
+    end
   end
 
   def categorize_as(category:, transfer:)

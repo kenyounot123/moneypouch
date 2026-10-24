@@ -154,6 +154,45 @@ class BankAccount::PairingTest < ActiveSupport::TestCase
     assert_equal categories(:food), card_row("in").linked_transaction.category
   end
 
+  test "choosing a category on one side dissolves the pair and frees the other to be categorized" do
+    sync checking: [ row("out", -5_000, 3) ], card: [ row("in", 5_000, 3) ]
+    checking = checking_row("out").linked_transaction
+
+    checking.categorize(Transaction::Categorization.new(category: categories(:food)))
+
+    assert_equal [ nil, nil ], [ checking_row("out").reload.transfer_partner, card_row("in").reload.transfer_partner ]
+    assert_equal categories(:food), checking.reload.category
+    partner = card_row("in").linked_transaction
+    assert_equal [ false, true ], [ partner.transfer?, partner.needs_category? ]
+  end
+
+  test "choosing transfer again on a paired row keeps the pair" do
+    sync checking: [ row("out", -5_000, 3) ], card: [ row("in", 5_000, 3) ]
+
+    checking_row("out").linked_transaction.categorize(Transaction::Categorization.transfer)
+
+    assert_equal card_row("in"), checking_row("out").reload.transfer_partner
+    assert card_row("in").linked_transaction.transfer?
+  end
+
+  test "a freed partner can pair again with a later row" do
+    sync checking: [ row("out", -5_000, 3) ], card: [ row("in", 5_000, 3) ]
+    checking_row("out").linked_transaction.categorize(Transaction::Categorization.new(category: categories(:food)))
+    sync_again @access, report: report(checking: [ row("again", -5_000, 4) ])
+
+    assert_equal card_row("in"), checking_row("again").transfer_partner
+  end
+
+  test "no rule is offered for a paired row" do
+    sync checking: [ row("out", -5_000, 3) ], card: [ row("in", 5_000, 3) ]
+    sync_again @access, report: report(card: [ row("lone", 900, 3) ])
+    card_row("lone").linked_transaction.categorize(Transaction::Categorization.new(category: categories(:food)))
+
+    assert card_row("in").linked_transaction.paired?
+    assert_not card_row("in").linked_transaction.offers_rule?
+    assert card_row("lone").linked_transaction.offers_rule?
+  end
+
   test "deleting a bank account leaves its partner unlinked, not dangling" do
     sync checking: [ row("out", -5_000, 3) ], card: [ row("in", 5_000, 3) ]
 
