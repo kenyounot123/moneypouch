@@ -57,7 +57,17 @@ module Trends::Notes
     end
   end
 
-  DETECTORS = [ BelowUsual, LowestSince, KeptMonths ]
+  module ChargeStopped
+    def self.call(trends)
+      charge = trends.stopped.find { |stopped| trends.periods[-3].range.cover?(stopped.last_on) && trends.today.day > stopped.day }
+
+      if charge
+        Trends::Note.new(kind: :charge_stopped, tone: :neutral, text: "Your #{charge.name} charge stopped.")
+      end
+    end
+  end
+
+  DETECTORS = [ BelowUsual, LowestSince, KeptMonths, ChargeStopped ]
 
   def self.for(trends, detectors: DETECTORS)
     detectors.filter_map { |detector| detector.call(trends) }.first(LIMIT)

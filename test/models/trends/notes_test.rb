@@ -95,6 +95,29 @@ class Trends::NotesTest < ActiveSupport::TestCase
     assert_nil kept_months
   end
 
+  test "charge stopped: a monthly charge that last came the month before last month, once this month is past its day" do
+    spotify
+
+    assert_equal [ :charge_stopped, :neutral, "Your Spotify charge stopped.", nil ], charge_stopped.to_h.values_at(:kind, :tone, :text, :path)
+  end
+
+  test "charge stopped: waits for this month to pass the usual day" do
+    spotify
+
+    assert_nil charge_stopped(Date.new(2026, 10, 3))
+    assert charge_stopped(Date.new(2026, 10, 4))
+  end
+
+  test "charge stopped: says nothing while the charge still comes, or when it stopped long before" do
+    spotify
+    add(-1_549, "2026-09-03", "Spotify")
+    assert_nil charge_stopped
+
+    @user.transactions.destroy_all
+    [ "2026-03-03", "2026-04-03", "2026-05-03", "2026-06-03", "2026-07-03" ].each { |on| add(-1_549, on, "Spotify") }
+    assert_nil charge_stopped
+  end
+
   test "keeps at most four, in the order of the registry" do
     detectors = Array.new(6) { |index| ->(_) { Trends::Note.new(kind: :"k#{index}", tone: :good, text: "Note #{index}.") } }
 
@@ -118,6 +141,14 @@ class Trends::NotesTest < ActiveSupport::TestCase
 
     def lowest_since
       Trends::Notes::LowestSince.call(trends)
+    end
+
+    def charge_stopped(today = @today)
+      Trends::Notes::ChargeStopped.call(Trends.new(@user.transactions, today:))
+    end
+
+    def spotify
+      [ "2026-04-03", "2026-05-03", "2026-06-03", "2026-07-03", "2026-08-03" ].each { |on| add(-1_549, on, "Spotify") }
     end
 
     def kept_months

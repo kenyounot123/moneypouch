@@ -145,6 +145,87 @@ class TrendsTest < ActiveSupport::TestCase
     assert_equal [], trends_on(@today).spending_lines
   end
 
+  test "finds a charge that comes once a month under the same name, whatever the case" do
+    add(-1_549, "2026-07-03", "Spotify")
+    add(-1_549, "2026-08-04", "SPOTIFY")
+    add(-1_549, "2026-09-03", "Spotify")
+    add(-1_549, "2026-10-03", "spotify")
+
+    charge = trends_on(@today).recurring.sole
+
+    assert_equal [ "spotify", 1_549, nil, 3, Date.new(2026, 10, 3) ], [ charge.name, charge.amount, charge.previous_amount, charge.day, charge.last_on ]
+  end
+
+  test "a price change shows the latest amount and the one before" do
+    add(-1_549, "2026-07-03", "Spotify")
+    add(-1_549, "2026-08-03", "Spotify")
+    add(-1_549, "2026-09-03", "Spotify")
+    add(-1_799, "2026-10-03", "Spotify")
+
+    charge = trends_on(@today).recurring.sole
+
+    assert_equal [ 1_799, 1_549 ], [ charge.amount, charge.previous_amount ]
+  end
+
+  test "needs three distinct months" do
+    add(-1_000, "2026-08-03", "Gym")
+    add(-1_000, "2026-09-03", "Gym")
+
+    assert_empty trends_on(@today).recurring
+
+    add(-1_000, "2026-10-03", "Gym")
+
+    assert_equal [ "Gym" ], trends_on(@today).recurring.map(&:name)
+  end
+
+  test "needs about one charge a month" do
+    add(-1_000, "2026-08-03", "Cafe")
+    add(-1_000, "2026-08-13", "Cafe")
+    add(-1_000, "2026-09-03", "Cafe")
+    add(-1_000, "2026-09-13", "Cafe")
+    add(-1_000, "2026-10-03", "Cafe")
+    add(-1_000, "2026-10-13", "Cafe")
+
+    assert_empty trends_on(@today).recurring
+  end
+
+  test "needs amounts within 20% of the median" do
+    [ "2026-06-03", "2026-07-03", "2026-08-03", "2026-09-03" ].each { |on| add(-10_000, on, "Insurance") }
+    add(-12_000, "2026-10-03", "Insurance")
+
+    assert_equal [ "Insurance" ], trends_on(@today).recurring.map(&:name)
+
+    @user.transactions.find_by!(occurred_on: "2026-10-03").update!(amount_in_cents: -12_001)
+
+    assert_empty trends_on(@today).recurring
+  end
+
+  test "lists active charges largest first with their monthly total, and sets aside one not charged in over 45 days" do
+    [ "2026-08-03", "2026-09-03", "2026-10-03" ].each { |on| add(-1_549, on, "Spotify") }
+    [ "2026-08-20", "2026-09-20" ].each { |on| add(-90_000, on, "Rent") }
+    add(-90_000, "2026-07-20", "Rent")
+    [ "2026-05-10", "2026-06-10", "2026-07-10", "2026-08-30" ].each { |on| add(-2_000, on, "Old gym") }
+
+    trends = trends_on(@today)
+
+    assert_equal [ "Rent", "Spotify" ], trends.recurring.map(&:name)
+    assert_equal 91_549, trends.recurring_total
+    assert_equal [ "Old gym" ], trends.stopped.map(&:name)
+  end
+
+  test "a charge not yet 45 days old still counts, and 46 days does not" do
+    [ "2026-06-01", "2026-07-01", "2026-08-31" ].each { |on| add(-1_000, on, "Gym") }
+
+    assert_equal [ "Gym" ], trends_on(Date.new(2026, 10, 15)).recurring.map(&:name)
+    assert_empty trends_on(Date.new(2026, 10, 16)).recurring
+  end
+
+  test "leaves income out of the recurring charges" do
+    [ "2026-08-01", "2026-09-01", "2026-10-01" ].each { |on| add 200_000, on, "Pay" }
+
+    assert_empty trends_on(@today).recurring
+  end
+
   private
     def trends_on(today)
       Trends.new(@user.transactions, today:)

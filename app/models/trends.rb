@@ -2,6 +2,9 @@ class Trends
   MONTHS = 12
   FULL_MONTHS_NEEDED = 2
   USUAL_MONTHS = 6
+  CHARGE_MONTHS = 3
+  CHARGE_AMOUNT_SPREAD = 0.2
+  CHARGE_STOPPED_AFTER = 45
 
   Month = Data.define(:month, :income, :spent) do
     def net
@@ -29,7 +32,11 @@ class Trends
     end
   end
 
-  Entry = Data.define(:on, :category_id, :cents)
+  # A charge that comes about once a month under the same name. amount is the latest one, and previous_amount
+  # the one before it when that was different.
+  Recurring = Data.define(:name, :amount, :previous_amount, :day, :last_on)
+
+  Entry = Data.define(:on, :category_id, :name, :cents)
   private_constant :Entry
 
   attr_reader :today
@@ -54,6 +61,18 @@ class Trends
 
   def notes
     @notes ||= Notes.for(self)
+  end
+
+  def recurring
+    charges.select { |charge| charge.last_on >= today - CHARGE_STOPPED_AFTER }
+  end
+
+  def stopped
+    charges - recurring
+  end
+
+  def recurring_total
+    recurring.sum(&:amount)
   end
 
   def spending_lines
@@ -102,8 +121,8 @@ class Trends
 
     def entries(scope, sign:)
       scope.occurred_in(periods.first.first_day..periods.last.range.end)
-        .pluck(:occurred_on, :category_id, :amount_in_cents)
-        .map { |on, category_id, cents| Entry.new(on:, category_id:, cents: cents * sign) }
+        .pluck(:occurred_on, :category_id, :name, :amount_in_cents)
+        .map { |on, category_id, name, cents| Entry.new(on:, category_id:, name:, cents: cents * sign) }
     end
 
     def spending_series
@@ -123,6 +142,24 @@ class Trends
           series.transform_values { |cents| [ cents, 0 ].max }
         end
         .select { |_, series| series.values.any?(&:positive?) }
+    end
+
+    def charges
+      @charges ||= spending_entries.group_by { |entry| entry.name.downcase }
+        .filter_map { |_, rows| recurring_from(rows.sort_by(&:on)) }
+        .sort_by { |charge| [ -charge.amount, charge.name.downcase ] }
+    end
+
+    def recurring_from(rows)
+      months = rows.map { |row| row.on.beginning_of_month }.uniq.size
+      typical = median(rows.map(&:cents))
+      steady = typical.positive? && rows.all? { |row| (row.cents - typical).abs <= typical * CHARGE_AMOUNT_SPREAD }
+
+      if months >= CHARGE_MONTHS && rows.size <= months && steady
+        latest, before = rows.last, rows[-2]
+        Recurring.new(name: latest.name, amount: latest.cents, previous_amount: (before.cents unless before.cents == latest.cents),
+          day: median(rows.map { |row| row.on.day }), last_on: latest.on)
+      end
     end
 
     def lines_from(all_series)

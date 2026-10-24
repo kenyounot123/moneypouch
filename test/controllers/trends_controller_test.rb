@@ -115,6 +115,35 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     assert_select "section[aria-labelledby=notes-heading] li.text-success a[href='#{category_path(categories(:food), month: "2026-09")}']", text: "Food came in under your usual in September."
   end
 
+  test "lists recurring charges largest first with their usual day, a price change, and what they come to a month" do
+    [ "2026-08-03", "2026-09-03" ].each { |on| add(-1_549, on, "Spotify") }
+    add(-1_799, "2026-10-03", "Spotify")
+    [ "2026-08-01", "2026-09-01", "2026-10-01" ].each { |on| add(-120_000, on, "Rent") }
+
+    get trends_url
+
+    assert_select "section[aria-labelledby=recurring-heading]" do
+      assert_select "h2", text: "Recurring charges"
+      assert_select "p.text-sm", text: "$1,217.99 a month"
+      assert_select "li p.truncate", text: /\S/ do |names|
+        assert_equal [ "Rent", "Spotify" ], names.map { |name| name.text.strip }
+      end
+      assert_select "li", text: /Spotify/ do
+        assert_select "p.text-xs", text: "Usually on the 3rd · now $17.99, was $15.49"
+        assert_select "p.font-mono", text: "$17.99"
+      end
+      assert_select "li p.text-xs", text: "Usually on the 1st"
+    end
+  end
+
+  test "has no recurring section without a recurring charge" do
+    add(-1_549, "2026-09-03", "Spotify")
+
+    get trends_url
+
+    assert_select "[aria-labelledby=recurring-heading]", count: 0
+  end
+
   private
     def add(cents, occurred_on, name, category = nil)
       users(:one).transactions.create!(name:, amount_in_cents: cents, occurred_on:, category:)

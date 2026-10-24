@@ -29,11 +29,14 @@ class TrendsToneTest < ActionDispatch::IntegrationTest
     add(-30_000, "2026-09-10", "Meal", categories(:food))
     add(-900_000, "2026-10-05", "Trip", categories(:food))
     add(-1_000, "2026-10-06", "Gum")
+    [ "2026-08-03", "2026-09-03" ].each { |on| add(-1_549, on, "Spotify") }
+    add(-1_799, "2026-10-03", "Spotify")
 
     get trends_url
 
     assert_response :success
     assert_select "main", text: /Food/
+    assert_select "main", text: /now \$17.99, was \$15.49/
     assert_no_match MoneyHelper::MINUS, response.body
     assert_no_match BANNED_STYLES, response.body
     assert_no_match BANNED_WORDS, css_select("main").text

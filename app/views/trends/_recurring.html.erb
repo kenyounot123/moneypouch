@@ -1,0 +1,20 @@
+<% if trends.recurring.any? %>
+  <section class="flex flex-col gap-3" aria-labelledby="recurring-heading">
+    <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+      <h2 id="recurring-heading" class="text-heading">Recurring charges</h2>
+      <p class="text-sm text-tertiary"><%= money trends.recurring_total %> a month</p>
+    </div>
+
+    <ul class="flex flex-col">
+      <% trends.recurring.each do |charge| %>
+        <li class="flex items-baseline justify-between gap-4 py-2">
+          <div class="min-w-0">
+            <p class="truncate"><%= charge.name %></p>
+            <p class="text-xs text-tertiary"><%= charge_detail charge %></p>
+          </div>
+          <p class="shrink-0 font-mono"><%= money charge.amount %></p>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>
