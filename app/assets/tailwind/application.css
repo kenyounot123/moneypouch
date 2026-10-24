@@ -119,7 +119,7 @@
 
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-ui: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --text-*: initial;
   --text-xs: 12px;
@@ -320,6 +320,15 @@
 
   :root[data-mode="dark"] {
     color-scheme: dark;
+  }
+
+  @media (max-width: 639px) {
+    :root {
+      --text-sm: 14px;
+      --text-sm--line-height: 18px;
+      --text-base: 15px;
+      --text-base--line-height: 20px;
+    }
   }
 
   body {
