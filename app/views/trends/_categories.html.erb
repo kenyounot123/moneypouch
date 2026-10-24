@@ -30,7 +30,7 @@
           <% end %>
         </div>
         <div class="w-24 shrink-0 text-right">
-          <p class="font-mono"><%= money line.current %></p>
+          <p class="font-amount"><%= money line.current %></p>
           <% if line.usual&.positive? %>
             <p class="text-xs text-tertiary">usually <%= money line.usual %></p>
           <% end %>

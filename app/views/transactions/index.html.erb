@@ -44,7 +44,7 @@
           <% { "Income" => [ money(@listing.income) ], "Net" => [ signed_money(@listing.net), money_color(@listing.net) ], "Transactions" => [ number_with_delimiter(@listing.count) ] }.each do |term, (value, color)| %>
             <div class="flex flex-col gap-1">
               <dt class="text-sm text-tertiary"><%= term %></dt>
-              <dd class="font-mono text-md <%= color %>"><%= value %></dd>
+              <dd class="font-amount text-md <%= color %>"><%= value %></dd>
             </div>
           <% end %>
         </dl>

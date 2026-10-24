@@ -162,8 +162,14 @@
   }
 }
 
+@utility font-amount {
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+
 @utility text-display {
   font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 48px;
   line-height: var(--tw-leading, 48px);
   font-weight: var(--tw-font-weight, 600);

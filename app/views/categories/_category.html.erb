@@ -13,7 +13,7 @@
 
   <div class="flex items-center justify-between gap-4 max-sm:w-full">
     <%= link_to category_holdings(category, usage), category, class: "text-sm whitespace-nowrap text-tertiary hover:text-primary" %>
-    <p class="w-22 shrink-0 text-right font-mono" title="<%= month_title usage.period %>"><%= money usage.total(category) %></p>
+    <p class="w-22 shrink-0 text-right font-amount" title="<%= month_title usage.period %>"><%= money usage.total(category) %></p>
   </div>
 
   <% if category.default_income? %>

@@ -3,7 +3,7 @@
     <div class="flex items-center gap-2">
       <h2 class="text-heading">From your bank</h2>
       <% if (needing = review.needing_category).any? %>
-        <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-highlight/30 px-1.5 font-mono text-xs font-medium text-primary"
+        <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-highlight/30 px-1.5 font-amount text-xs font-medium text-primary"
           aria-label="<%= need_a_category needing.size %>" title="<%= need_a_category needing.size %>"><%= needing.size %></span>
       <% end %>
     </div>
