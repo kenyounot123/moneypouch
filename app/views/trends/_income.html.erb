@@ -1,0 +1,22 @@
+<% if trends.sources.any? %>
+  <section class="flex flex-col gap-3" aria-labelledby="income-heading">
+    <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+      <h2 id="income-heading" class="text-heading">Income</h2>
+      <p class="text-sm text-tertiary">Last <%= Trends::MONTHS %> months</p>
+    </div>
+
+    <ul class="flex flex-col">
+      <% trends.sources.each do |source| %>
+        <li class="flex items-baseline justify-between gap-4 py-2">
+          <div class="min-w-0">
+            <p class="truncate"><%= source.name %></p>
+            <% if income_rhythm(source) %>
+              <p class="text-xs text-tertiary"><%= income_rhythm source %></p>
+            <% end %>
+          </div>
+          <p class="shrink-0 font-mono"><%= money source.total %></p>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>

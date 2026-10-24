@@ -1,0 +1,91 @@
+# The things worth saying about the last few months. Each detector reads a Trends and returns a Trends::Note or nil.
+# Two notes about the same category and month say the same thing, so only the first is kept.
+module Trends::Notes
+  LIMIT = 4
+
+  module BelowUsual
+    MINIMUM_CENTS = 2_000
+    MINIMUM_SHARE = 0.1
+
+    def self.call(trends)
+      month = trends.last_full
+      below = trends.spending_lines.filter_map do |line|
+        next unless line.category && line.usual
+
+        gap = line.usual - line.series.fetch(month)
+        [ line, gap ] if gap >= MINIMUM_CENTS && gap >= line.usual * MINIMUM_SHARE
+      end
+
+      line, = below.max_by(&:last)
+      if line
+        Trends::Note.new(kind: :below_usual, tone: :good, text: "You spent less than usual on #{line.label} in #{month.first_day.strftime("%B")}.",
+          path: Trends::Notes.category_path(line.category, month))
+      end
+    end
+  end
+
+  module LowestSince
+    MINIMUM_HISTORY = 4
+
+    def self.call(trends)
+      month, *earlier = trends.periods[0...-1].reverse
+      runs = trends.spending_lines.filter_map do |line|
+        lowest = line.series.fetch(month)
+        next unless line.category && lowest.positive?
+
+        higher = earlier.take_while { |period| line.series.fetch(period) > lowest }
+        ended = earlier[higher.size] if earlier[higher.size] && line.series.fetch(earlier[higher.size]).positive?
+        [ line, higher.size, ended ] if higher.size >= MINIMUM_HISTORY
+      end
+
+      line, run, ended = runs.max_by { |line, run, _| [ run, line.total ] }
+      if line
+        Trends::Note.new(kind: :lowest_since, tone: :good, text: "#{month.first_day.strftime("%B")} was your lowest #{line.label} month #{ended ? "since #{ended.first_day.strftime("%B")}" : "in #{run + 1} months"}.",
+          path: Trends::Notes.category_path(line.category, month))
+      end
+    end
+  end
+
+  module KeptMonths
+    RECENT = 6
+    MINIMUM = 3
+
+    def self.call(trends)
+      kept = trends.months[0...-1].last(RECENT).count(&:kept)
+
+      if kept >= MINIMUM
+        Trends::Note.new(kind: :kept_months, tone: :good, text: "You kept money in #{kept} of the last #{RECENT} months.")
+      end
+    end
+  end
+
+  module ChargeStopped
+    def self.call(trends)
+      charge = trends.stopped.find { |stopped| trends.periods[-3].range.cover?(stopped.last_on) && trends.today.day > stopped.day }
+
+      if charge
+        Trends::Note.new(kind: :charge_stopped, tone: :neutral, text: "Your #{charge.name} charge stopped.")
+      end
+    end
+  end
+
+  module NewIncome
+    def self.call(trends)
+      recent = trends.sources.find { |source| source.first_on >= trends.last_full.first_day }
+
+      if recent
+        Trends::Note.new(kind: :new_income, tone: :good, text: "New income from #{recent.name}.")
+      end
+    end
+  end
+
+  DETECTORS = [ LowestSince, BelowUsual, KeptMonths, ChargeStopped, NewIncome ]
+
+  def self.for(trends, detectors: DETECTORS)
+    detectors.filter_map { |detector| detector.call(trends) }.uniq { |note| note.path || note.kind }.first(LIMIT)
+  end
+
+  def self.category_path(category, period)
+    Rails.application.routes.url_helpers.category_path(category, month: period.first_day.strftime("%Y-%m"))
+  end
+end

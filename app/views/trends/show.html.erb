@@ -1,0 +1,22 @@
+<% content_for :title, "Trends" %>
+<%= turbo_stream_from Current.user, :transactions %>
+
+<div class="flex min-h-dvh max-md:flex-col">
+  <%= render "shared/sidebar" %>
+
+  <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
+    <h1 class="text-title">Trends</h1>
+
+    <% if @trends.ready? %>
+      <div class="flex max-w-[960px] flex-col gap-12">
+        <%= render "trends/glance", trends: @trends %>
+        <%= render "trends/categories", trends: @trends %>
+        <%= render "trends/notes", trends: @trends %>
+        <%= render "trends/recurring", trends: @trends %>
+        <%= render "trends/income", trends: @trends %>
+      </div>
+    <% else %>
+      <%= render "trends/empty", trends: @trends %>
+    <% end %>
+  </main>
+</div>

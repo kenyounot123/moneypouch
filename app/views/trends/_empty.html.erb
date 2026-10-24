@@ -1,0 +1,13 @@
+<%# herb:disable html-aria-role-must-be-valid 1 %>
+<section class="flex max-w-[480px] flex-col gap-4">
+  <p class="text-secondary">Trends fill in once you have two full months of transactions.</p>
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div class="flex w-[300px] max-w-full shrink-0 gap-0.5" role="meter" aria-label="Full months"
+      aria-valuemin="0" aria-valuemax="<%= Trends::FULL_MONTHS_NEEDED %>" aria-valuenow="<%= trends.full_months_with_data %>">
+      <% Trends::FULL_MONTHS_NEEDED.times do |index| %>
+        <div class="h-2.5 flex-1 rounded-[2px] <%= index < trends.full_months_with_data ? "bg-data" : "bg-data-track" %>"></div>
+      <% end %>
+    </div>
+    <p class="text-sm text-tertiary"><%= trends.full_months_with_data %> of <%= Trends::FULL_MONTHS_NEEDED %> months</p>
+  </div>
+</section>

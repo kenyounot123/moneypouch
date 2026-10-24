@@ -27,6 +27,7 @@ Rails.application.routes.draw do
   resources :categories, only: %i[ index show update destroy ] do
     resource :merge, only: :create, module: :categories
   end
+  resource :trends, only: :show
   resources :imports, only: %i[ new create destroy ] do
     scope module: :imports do
       resource :columns, only: %i[ edit update ]
