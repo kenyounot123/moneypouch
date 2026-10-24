@@ -10,7 +10,7 @@
       <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h1 class="text-title">From your bank</h1>
 
-        <% if @review.pending? %>
+        <% if @review.completable? %>
           <div class="flex items-center gap-4">
             <p class="text-sm text-tertiary"><%= synced_ago Current.user.simplefin_access.last_synced_at %></p>
             <%= button_to "Done", simplefin_review_completion_path,
