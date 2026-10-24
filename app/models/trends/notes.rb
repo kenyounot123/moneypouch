@@ -67,7 +67,17 @@ module Trends::Notes
     end
   end
 
-  DETECTORS = [ BelowUsual, LowestSince, KeptMonths, ChargeStopped ]
+  module NewIncome
+    def self.call(trends)
+      recent = trends.sources.find { |source| source.first_on >= trends.last_full.first_day }
+
+      if recent
+        Trends::Note.new(kind: :new_income, tone: :good, text: "New income from #{recent.name}.")
+      end
+    end
+  end
+
+  DETECTORS = [ BelowUsual, LowestSince, KeptMonths, ChargeStopped, NewIncome ]
 
   def self.for(trends, detectors: DETECTORS)
     detectors.filter_map { |detector| detector.call(trends) }.first(LIMIT)

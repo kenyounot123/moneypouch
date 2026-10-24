@@ -118,6 +118,23 @@ class Trends::NotesTest < ActiveSupport::TestCase
     assert_nil charge_stopped
   end
 
+  test "new income: names an income source first seen last month or this month" do
+    add 100_000, "2026-07-01", "Acme"
+    add 100_000, "2026-09-01", "Acme"
+    add 5_000, "2026-09-02", "Side gig"
+    add 9_000, "2026-10-02", "Refund"
+
+    assert_equal [ :new_income, :good, "New income from Refund.", nil ], new_income.to_h.values_at(:kind, :tone, :text, :path)
+  end
+
+  test "new income: says nothing for a source seen before last month" do
+    add 100_000, "2026-08-31", "Acme"
+    add 100_000, "2026-09-01", "Acme"
+    add 100_000, "2026-10-01", "ACME"
+
+    assert_nil new_income
+  end
+
   test "keeps at most four, in the order of the registry" do
     detectors = Array.new(6) { |index| ->(_) { Trends::Note.new(kind: :"k#{index}", tone: :good, text: "Note #{index}.") } }
 
@@ -141,6 +158,10 @@ class Trends::NotesTest < ActiveSupport::TestCase
 
     def lowest_since
       Trends::Notes::LowestSince.call(trends)
+    end
+
+    def new_income
+      Trends::Notes::NewIncome.call(trends)
     end
 
     def charge_stopped(today = @today)

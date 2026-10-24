@@ -226,6 +226,47 @@ class TrendsTest < ActiveSupport::TestCase
     assert_empty trends_on(@today).recurring
   end
 
+  test "ranks income sources by what they brought in over the year, whatever the case of the name" do
+    add 500_000, "2026-09-01", "Acme payroll"
+    add 250_000, "2026-08-15", "ACME PAYROLL"
+    add 15_000, "2026-09-10", "Interest"
+    add 15_000, "2026-09-20", "Interest"
+    add 90_000, "2026-10-02", "Gift", categories(:income)
+    add(-4_000, "2026-09-03", "Lunch")
+
+    sources = trends_on(@today).sources
+
+    assert_equal [ [ "Acme payroll", 750_000 ], [ "Gift", 90_000 ], [ "Interest", 30_000 ] ], sources.map { |source| [ source.name, source.total ] }
+    assert_equal [ Date.new(2026, 8, 15), Date.new(2026, 10, 2) ], sources.values_at(0, 1).map(&:first_on)
+  end
+
+  test "an income source's usual days are those it arrived on in at least three different months" do
+    [ "2026-04-01", "2026-05-01", "2026-06-01", "2026-07-01", "2026-04-15", "2026-06-15", "2026-08-15", "2026-09-14", "2026-10-02" ].each { |on| add 100_000, on, "Pay" }
+    add 100_000, "2026-09-01", "Pay"
+
+    assert_equal [ 1, 15 ], trends_on(@today).sources.sole.days
+  end
+
+  test "an income source that arrives on no regular day has none" do
+    [ "2026-08-04", "2026-09-12", "2026-10-02" ].each { |on| add 100_000, on, "Gig" }
+    add 100_000, "2026-09-20", "Gig"
+
+    assert_empty trends_on(@today).sources.sole.days
+  end
+
+  test "two payments on the same day of one month count as one month" do
+    [ "2026-08-01", "2026-09-01", "2026-09-01" ].each { |on| add 100_000, on, "Pay" }
+
+    assert_empty trends_on(@today).sources.sole.days
+  end
+
+  test "a source whose rows add up to nothing is not listed" do
+    add 10_000, "2026-09-01", "Odd", categories(:income)
+    add(-10_000, "2026-09-02", "Odd", categories(:income))
+
+    assert_empty trends_on(@today).sources
+  end
+
   private
     def trends_on(today)
       Trends.new(@user.transactions, today:)

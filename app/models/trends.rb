@@ -2,7 +2,7 @@ class Trends
   MONTHS = 12
   FULL_MONTHS_NEEDED = 2
   USUAL_MONTHS = 6
-  CHARGE_MONTHS = 3
+  REGULAR_MONTHS = 3
   CHARGE_AMOUNT_SPREAD = 0.2
   CHARGE_STOPPED_AFTER = 45
 
@@ -35,6 +35,9 @@ class Trends
   # A charge that comes about once a month under the same name. amount is the latest one, and previous_amount
   # the one before it when that was different.
   Recurring = Data.define(:name, :amount, :previous_amount, :day, :last_on)
+
+  # days are the days of the month it usually arrives on, those it arrived on in at least 3 different months.
+  Source = Data.define(:name, :total, :days, :first_on)
 
   Entry = Data.define(:on, :category_id, :name, :cents)
   private_constant :Entry
@@ -73,6 +76,12 @@ class Trends
 
   def recurring_total
     recurring.sum(&:amount)
+  end
+
+  def sources
+    @sources ||= income_entries.group_by { |entry| entry.name.downcase }
+      .filter_map { |_, rows| source_from(rows) }
+      .sort_by { |source| [ -source.total, source.name.downcase ] }
   end
 
   def spending_lines
@@ -155,10 +164,19 @@ class Trends
       typical = median(rows.map(&:cents))
       steady = typical.positive? && rows.all? { |row| (row.cents - typical).abs <= typical * CHARGE_AMOUNT_SPREAD }
 
-      if months >= CHARGE_MONTHS && rows.size <= months && steady
+      if months >= REGULAR_MONTHS && rows.size <= months && steady
         latest, before = rows.last, rows[-2]
         Recurring.new(name: latest.name, amount: latest.cents, previous_amount: (before.cents unless before.cents == latest.cents),
           day: median(rows.map { |row| row.on.day }), last_on: latest.on)
+      end
+    end
+
+    def source_from(rows)
+      total = rows.sum(&:cents)
+
+      if total.positive?
+        days = rows.group_by { |row| row.on.day }.select { |_, same_day| same_day.map { |row| row.on.beginning_of_month }.uniq.size >= REGULAR_MONTHS }.keys.sort
+        Source.new(name: rows.max_by(&:on).name, total:, days:, first_on: rows.map(&:on).min)
       end
     end
 

@@ -11,6 +11,10 @@ module TrendsHelper
       ("now #{money charge.amount}, was #{money charge.previous_amount}" if charge.previous_amount) ].compact.join(" · ")
   end
 
+  def income_rhythm(source)
+    "Usually arrives on the #{source.days.map(&:ordinalize).to_sentence}" if source.days.any?
+  end
+
   def note_color(note)
     NOTE_COLORS.fetch(note.tone)
   end

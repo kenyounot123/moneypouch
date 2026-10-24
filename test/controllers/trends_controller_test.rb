@@ -101,6 +101,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "shares good news in success green, linking to the month it is about, and hides the section without any" do
+    add_two_full_months
     get trends_url
     assert_select "[aria-labelledby=notes-heading]", count: 0
 
@@ -137,14 +138,50 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "has no recurring section without a recurring charge" do
+    add_two_full_months
     add(-1_549, "2026-09-03", "Spotify")
 
     get trends_url
 
+    assert_select "[aria-labelledby=glance-heading]"
     assert_select "[aria-labelledby=recurring-heading]", count: 0
   end
 
+  test "lists income sources with what they brought in and the days they usually arrive" do
+    [ "2026-08-01", "2026-09-01", "2026-10-01" ].each { |on| add 200_000, on, "Acme payroll" }
+    [ "2026-08-15", "2026-09-15", "2026-10-15" ].each { |on| add 200_000, on, "Acme payroll" }
+    add 12_345, "2026-09-09", "Interest"
+
+    get trends_url
+
+    assert_select "section[aria-labelledby=income-heading]" do
+      assert_select "h2", text: "Income"
+      assert_select "li", text: /Acme payroll/ do
+        assert_select "p.text-xs", text: "Usually arrives on the 1st and 15th"
+        assert_select "p.font-mono", text: "$12,000.00"
+      end
+      assert_select "li", text: /Interest/ do
+        assert_select "p.text-xs", count: 0
+        assert_select "p.font-mono", text: "$123.45"
+      end
+    end
+  end
+
+  test "has no income section without income" do
+    add_two_full_months
+
+    get trends_url
+
+    assert_select "[aria-labelledby=glance-heading]"
+    assert_select "[aria-labelledby=income-heading]", count: 0
+  end
+
   private
+    def add_two_full_months
+      add(-100, "2026-08-02", "Snack")
+      add(-200, "2026-09-02", "Snack")
+    end
+
     def add(cents, occurred_on, name, category = nil)
       users(:one).transactions.create!(name:, amount_in_cents: cents, occurred_on:, category:)
     end
