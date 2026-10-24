@@ -1,21 +1,15 @@
 <section class="flex flex-col gap-3" aria-labelledby="categories-heading">
   <div class="flex items-baseline justify-between border-b border-secondary pb-3">
-    <h2 id="categories-heading" class="text-heading">Categories</h2>
-    <p class="text-sm text-tertiary">Last <%= Trends::MONTHS %> months</p>
+    <h2 id="categories-heading" class="text-heading">Spending by category</h2>
   </div>
 
   <div class="flex gap-4 text-xs text-tertiary" aria-hidden="true">
     <span class="flex-1"></span>
-    <span class="w-24 shrink-0 md:w-[220px]">Oldest to newest</span>
+    <span class="w-24 shrink-0 md:w-[220px]"><%= month_abbreviation trends.months.first.month %>–<%= month_abbreviation trends.current %></span>
     <span class="w-24 shrink-0 text-right"><%= month_name trends.current %> so far</span>
   </div>
 
-  <% [ [ "Spending", trends.spending_lines ], [ "Income", trends.income_lines ] ].each do |group, lines| %>
-    <% if lines.any? %>
-      <h3 class="pt-2 text-sm font-medium text-secondary"><%= group %></h3>
-      <ul class="flex flex-col">
-        <%= render partial: "trends/line", collection: lines, as: :line, locals: { current: trends.current } %>
-      </ul>
-    <% end %>
-  <% end %>
+  <ul class="flex flex-col">
+    <%= render partial: "trends/line", collection: trends.spending_lines, as: :line, locals: { current: trends.current } %>
+  </ul>
 </section>

@@ -88,10 +88,6 @@ class Trends
     @spending_lines ||= lines_from(spending_series)
   end
 
-  def income_lines
-    @income_lines ||= lines_from(income_series)
-  end
-
   def months
     @months ||= periods.map do |period|
       Month.new(month: period, income: total_in(income_series, period), spent: total_in(spending_series, period))

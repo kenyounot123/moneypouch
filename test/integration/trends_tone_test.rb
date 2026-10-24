@@ -36,7 +36,7 @@ class TrendsToneTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "main", text: /Food/
-    assert_select "main", text: /now \$17.99, was \$15.49/
+    assert_select "main", text: /was \$15.49/
     assert_no_match MoneyHelper::MINUS, response.body
     assert_no_match BANNED_STYLES, response.body
     assert_no_match BANNED_WORDS, css_select("main").text

@@ -29,8 +29,9 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
 
     get trends_url
 
-    assert_select "main p", text: "Trends fill in after your first full month."
+    assert_select "main p", text: "Trends fill in once you have two full months of transactions."
     assert_select "[role=meter][aria-label='Full months'][aria-valuemin='0'][aria-valuemax='2'][aria-valuenow='1']"
+    assert_select "main p", text: "1 of 2 months"
     assert_select "main h2", count: 0
   end
 
@@ -44,7 +45,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     get trends_url
 
     assert_select "[role=meter]", count: 0
-    assert_select "section[aria-labelledby=glance-heading] > p", text: "Over the last 12 months you earned $6,000.00 and spent $5,012.50. You kept $987.50."
+    assert_select "section[aria-labelledby=glance-heading] > p", text: "You earned $6,000.00 and spent $5,012.50. You kept $987.50."
     assert_select "section[aria-labelledby=glance-heading] > p span.text-success", text: "$987.50"
   end
 
@@ -72,7 +73,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "lists spending categories largest first, then income, each with a sparkline, this month so far and its usual" do
+  test "lists spending categories largest first, each with a sparkline, this month so far and its usual" do
     [ "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09" ].each { |month| add(-10_000, "#{month}-10", "Meal", categories(:food)) }
     add(-2_550, "2026-10-03", "Lunch", categories(:food))
     add(-500, "2026-10-04", "Gum")
@@ -80,8 +81,8 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
 
     get trends_url
 
-    assert_select "section[aria-labelledby=categories-heading] h3", text: /Spending|Income/, count: 2
-    assert_select "section[aria-labelledby=categories-heading] ul:first-of-type li p.min-w-0", text: /\S/ do |names|
+    assert_select "section[aria-labelledby=categories-heading] > div[aria-hidden=true]", text: /Nov–Oct\s+October so far/
+    assert_select "section[aria-labelledby=categories-heading] li p.min-w-0", text: /\S/ do |names|
       assert_equal [ "Food", "Uncategorized" ], names.map { |name| name.text.strip }
     end
     assert_select "li", text: /Food/ do
@@ -94,10 +95,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
       assert_select "a", count: 0
       assert_select "p.text-tertiary", text: /usually/, count: 0
     end
-    assert_select "li", text: /Income/ do
-      assert_select "a[href='#{category_path(categories(:income), month: "2026-10")}']", text: "Income"
-      assert_select "p.font-mono", text: "$0.00"
-    end
+    assert_select "section[aria-labelledby=categories-heading] a", text: "Income", count: 0
   end
 
   test "shares good news in success green, linking to the month it is about, and hides the section without any" do
@@ -113,7 +111,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     get trends_url
 
     assert_select "section[aria-labelledby=notes-heading] h2", text: "Good news"
-    assert_select "section[aria-labelledby=notes-heading] li.text-success a[href='#{category_path(categories(:food), month: "2026-09")}']", text: "Food came in under your usual in September."
+    assert_select "section[aria-labelledby=notes-heading] li.text-success a[href='#{category_path(categories(:food), month: "2026-09")}']", text: "September was your lowest Food month in 6 months."
   end
 
   test "lists recurring charges largest first with their usual day, a price change, and what they come to a month" do
@@ -130,7 +128,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
         assert_equal [ "Rent", "Spotify" ], names.map { |name| name.text.strip }
       end
       assert_select "li", text: /Spotify/ do
-        assert_select "p.text-xs", text: "Usually on the 3rd · now $17.99, was $15.49"
+        assert_select "p.text-xs", text: "Usually on the 3rd · was $15.49"
         assert_select "p.font-mono", text: "$17.99"
       end
       assert_select "li p.text-xs", text: "Usually on the 1st"

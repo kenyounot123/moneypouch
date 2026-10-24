@@ -1,4 +1,5 @@
 # The things worth saying about the last few months. Each detector reads a Trends and returns a Trends::Note or nil.
+# Two notes about the same category and month say the same thing, so only the first is kept.
 module Trends::Notes
   LIMIT = 4
 
@@ -17,7 +18,7 @@ module Trends::Notes
 
       line, = below.max_by(&:last)
       if line
-        Trends::Note.new(kind: :below_usual, tone: :good, text: "#{line.label} came in under your usual in #{month.first_day.strftime("%B")}.",
+        Trends::Note.new(kind: :below_usual, tone: :good, text: "You spent less than usual on #{line.label} in #{month.first_day.strftime("%B")}.",
           path: Trends::Notes.category_path(line.category, month))
       end
     end
@@ -33,12 +34,13 @@ module Trends::Notes
         next unless line.category && lowest.positive?
 
         higher = earlier.take_while { |period| line.series.fetch(period) > lowest }
-        [ line, higher.size, earlier[higher.size] ] if higher.size >= MINIMUM_HISTORY
+        ended = earlier[higher.size] if earlier[higher.size] && line.series.fetch(earlier[higher.size]).positive?
+        [ line, higher.size, ended ] if higher.size >= MINIMUM_HISTORY
       end
 
       line, run, ended = runs.max_by { |line, run, _| [ run, line.total ] }
       if line
-        Trends::Note.new(kind: :lowest_since, tone: :good, text: "Your lowest #{line.label} month #{ended ? "since #{ended.first_day.strftime("%B")}" : "in the last #{run + 1} months"}.",
+        Trends::Note.new(kind: :lowest_since, tone: :good, text: "#{month.first_day.strftime("%B")} was your lowest #{line.label} month #{ended ? "since #{ended.first_day.strftime("%B")}" : "in #{run + 1} months"}.",
           path: Trends::Notes.category_path(line.category, month))
       end
     end
@@ -77,10 +79,10 @@ module Trends::Notes
     end
   end
 
-  DETECTORS = [ BelowUsual, LowestSince, KeptMonths, ChargeStopped, NewIncome ]
+  DETECTORS = [ LowestSince, BelowUsual, KeptMonths, ChargeStopped, NewIncome ]
 
   def self.for(trends, detectors: DETECTORS)
-    detectors.filter_map { |detector| detector.call(trends) }.first(LIMIT)
+    detectors.filter_map { |detector| detector.call(trends) }.uniq { |note| note.path || note.kind }.first(LIMIT)
   end
 
   def self.category_path(category, period)

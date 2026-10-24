@@ -12,7 +12,7 @@ class Trends::NotesTest < ActiveSupport::TestCase
 
     note = below_usual
 
-    assert_equal [ :below_usual, :good, "Food came in under your usual in September.", category_path(categories(:food), month: "2026-09") ], note.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :below_usual, :good, "You spent less than usual on Food in September.", category_path(categories(:food), month: "2026-09") ], note.to_h.values_at(:kind, :tone, :text, :path)
   end
 
   test "below usual: needs at least $20 under" do
@@ -50,7 +50,7 @@ class Trends::NotesTest < ActiveSupport::TestCase
 
     note = lowest_since
 
-    assert_equal [ :lowest_since, :good, "Your lowest Food month since March.", category_path(categories(:food), month: "2026-09") ], note.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :lowest_since, :good, "September was your lowest Food month since March.", category_path(categories(:food), month: "2026-09") ], note.to_h.values_at(:kind, :tone, :text, :path)
   end
 
   test "lowest since: needs four higher months right before" do
@@ -74,7 +74,13 @@ class Trends::NotesTest < ActiveSupport::TestCase
     (1..10).each { |back| add(-(10_000 + back), (Date.new(2026, 9, 10) << back).to_s, "Meal", categories(:food)) }
     add(-5_000, "2026-09-10", "Meal", categories(:food))
 
-    assert_equal "Your lowest Food month in the last 11 months.", lowest_since.text
+    assert_equal "September was your lowest Food month in 11 months.", lowest_since.text
+  end
+
+  test "lowest since: an empty month before the run counts the months instead of naming it" do
+    food_months 9_000, 8_000, 7_000, 6_000, 5_000, 4_000
+
+    assert_equal "September was your lowest Food month in 6 months.", lowest_since.text
   end
 
   test "lowest since: an empty last month is not a lowest month" do
@@ -139,6 +145,12 @@ class Trends::NotesTest < ActiveSupport::TestCase
     detectors = Array.new(6) { |index| ->(_) { Trends::Note.new(kind: :"k#{index}", tone: :good, text: "Note #{index}.") } }
 
     assert_equal %i[ k0 k1 k2 k3 ], Trends::Notes.for(trends, detectors:).map(&:kind)
+  end
+
+  test "keeps one note per category and month, the first in the registry" do
+    food_months 10_000, 10_000, 10_000, 10_000, 10_000, 5_000
+
+    assert_equal [ :lowest_since ], Trends::Notes.for(trends).map(&:kind)
   end
 
   test "drops the detectors with nothing to say" do

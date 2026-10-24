@@ -8,7 +8,7 @@ module TrendsHelper
 
   def charge_detail(charge)
     [ "Usually on the #{charge.day.ordinalize}",
-      ("now #{money charge.amount}, was #{money charge.previous_amount}" if charge.previous_amount) ].compact.join(" · ")
+      ("was #{money charge.previous_amount}" if charge.previous_amount) ].compact.join(" · ")
   end
 
   def income_rhythm(source)

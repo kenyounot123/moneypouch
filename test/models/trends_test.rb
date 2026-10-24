@@ -98,8 +98,6 @@ class TrendsTest < ActiveSupport::TestCase
     assert_nil lines.first.category
     assert_equal [ 15_000, 2_000, 17_000 ], lines.last.then { |line| [ line.series.fetch(period("2026-09")), line.current, line.total ] }
     assert_equal 12, lines.last.series.size
-    assert_equal [ "Income" ], trends_on(@today).income_lines.map(&:label)
-    assert_equal 400_000, trends_on(@today).income_lines.first.total
   end
 
   test "usual is the median of the six full months before this one, empty months counted" do
