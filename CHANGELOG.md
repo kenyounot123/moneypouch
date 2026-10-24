@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/kenyounot123/moneypouch/compare/v0.11.0...v0.12.0) (2026-10-24)
+
+
+### Features
+
+* **categories:** rename, merge, delete and move categories on a Categories page ([#139](https://github.com/kenyounot123/moneypouch/issues/139)) ([8ddd72c](https://github.com/kenyounot123/moneypouch/commit/8ddd72c8de062dde567cdd50b07341ffa8e47555))
+
 ## [0.11.0](https://github.com/kenyounot123/moneypouch/compare/v0.10.0...v0.11.0) (2026-10-23)
 
 
