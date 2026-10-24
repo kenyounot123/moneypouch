@@ -21,4 +21,51 @@ class CategoryTest < ActiveSupport::TestCase
 
     assert_equal [ "Lonely" ], user.categories.unused.pluck(:name)
   end
+
+  test "revise renames a category" do
+    assert categories(:food).revise(name: "  Eating   out ")
+    assert_equal "Eating out", categories(:food).reload.name
+  end
+
+  test "revise onto another category's name refuses and says to merge" do
+    assert_not categories(:food).revise(name: "income")
+    assert_equal [ "income is already a category. Merge into it instead." ], categories(:food).errors.full_messages
+    assert_equal "Food", categories(:food).reload.name
+  end
+
+  test "revise can count a category as income" do
+    assert_difference -> { users(:one).transactions.spent }, -550 do
+      categories(:food).revise(income: true)
+    end
+  end
+
+  test "merge_into moves transactions, deleted ones too, and rules, then drops the category" do
+    user = users(:one)
+    foods = user.categories.create!(name: "Foods")
+    tacos = user.transactions.create!(name: "Tacos", amount_in_cents: -900, occurred_on: "2026-10-02", category: foods)
+    gone = user.transactions.create!(name: "Ramen", amount_in_cents: -1400, occurred_on: "2026-10-03", category: foods)
+    gone.discard
+    rule = user.rules.create!(name_key: "tacos", name: "Tacos", category: foods)
+
+    foods.merge_into(categories(:food))
+
+    assert_not Category.exists?(foods.id)
+    assert_equal [ categories(:food) ] * 3, [ tacos, gone, rule ].map { it.reload.category }
+  end
+
+  test "merge_into refuses the category itself and another user's category" do
+    assert_raises(ArgumentError) { categories(:food).merge_into(categories(:food)) }
+    assert_raises(ArgumentError) { categories(:food).merge_into(categories(:income_two)) }
+    assert Category.exists?(categories(:food).id)
+  end
+
+  test "remove leaves its transactions uncategorized and forgets its rules" do
+    user = users(:one)
+    user.rules.create!(name_key: "blue bottle", name: "Blue Bottle", category: categories(:food))
+
+    categories(:food).remove
+
+    assert_nil transactions(:coffee).reload.category
+    assert_equal 0, user.rules.count
+  end
 end

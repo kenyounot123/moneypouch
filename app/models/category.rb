@@ -18,4 +18,32 @@ class Category < ApplicationRecord
   def named?(other_name)
     name.downcase(:ascii) == other_name.downcase(:ascii)
   end
+
+  # Another category's name trips the lower(name) index, not a validation.
+  def revise(attributes)
+    Transaction.broadcasting_once_for(user) { update(attributes) }
+  rescue ActiveRecord::RecordNotUnique
+    errors.add(:base, "#{name} is already a category. Merge into it instead.")
+    false
+  end
+
+  # Moves every transaction, deleted ones too, and every rule onto the other category, then drops this one.
+  def merge_into(other)
+    if other == self || other.user != user
+      raise ArgumentError, "a category merges into another category of the same user"
+    end
+
+    Transaction.broadcasting_once_for(user) do
+      transaction do
+        transactions.update_all(category_id: other.id, updated_at: Time.current)
+        rules.update_all(category_id: other.id, updated_at: Time.current)
+        destroy!
+      end
+    end
+  end
+
+  # Its transactions become uncategorized, and the database drops its rules.
+  def remove
+    Transaction.broadcasting_once_for(user) { destroy! }
+  end
 end

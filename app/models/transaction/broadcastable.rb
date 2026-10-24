@@ -8,8 +8,9 @@ module Transaction::Broadcastable
 
   class_methods do
     def broadcasting_once_for(user)
-      suppressing_turbo_broadcasts { yield }
-      Turbo::StreamsChannel.broadcast_refresh_to(user, :transactions)
+      suppressing_turbo_broadcasts { yield }.tap do
+        Turbo::StreamsChannel.broadcast_refresh_to(user, :transactions)
+      end
     end
   end
 end
