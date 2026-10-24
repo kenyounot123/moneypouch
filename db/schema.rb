@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_22_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_23_120000) do
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -41,10 +41,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_130000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "name_key", null: false
+    t.integer "transfer_partner_id"
     t.index ["bank_account_id", "external_id"], name: "index_bank_transactions_on_bank_account_id_and_external_id", unique: true
     t.index ["bank_account_id", "name_key"], name: "index_bank_transactions_on_bank_account_id_and_name_key"
     t.index ["simplefin_sync_id"], name: "index_bank_transactions_on_simplefin_sync_id"
     t.index ["transaction_id"], name: "index_bank_transactions_on_transaction_id", unique: true
+    t.index ["transfer_partner_id"], name: "index_bank_transactions_on_transfer_partner_id", unique: true
   end
 
   create_table "categories", force: :cascade do |t|
@@ -156,6 +158,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_130000) do
   add_foreign_key "bank_accounts", "simplefin_accesses"
   add_foreign_key "bank_accounts", "users"
   add_foreign_key "bank_transactions", "bank_accounts"
+  add_foreign_key "bank_transactions", "bank_transactions", column: "transfer_partner_id", on_delete: :nullify
   add_foreign_key "bank_transactions", "simplefin_syncs"
   add_foreign_key "bank_transactions", "transactions"
   add_foreign_key "categories", "imports", on_delete: :nullify
