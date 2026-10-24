@@ -1,10 +1,10 @@
-# One month of a user's transactions, narrowed by the filters on the Transactions page, and the totals shown above them.
+# The transactions over a period, one month on the Transactions page or a span on a category's page, narrowed by filters, and their totals.
 class Transaction::Listing
-  attr_reader :month, :filters
+  attr_reader :period, :filters
 
-  def initialize(user, month:, filters:, before:)
+  def initialize(user, period:, filters:, before:)
     @user = user
-    @month = month
+    @period = period
     @filters = filters
     @before = before
   end
@@ -53,7 +53,7 @@ class Transaction::Listing
     end
 
     def narrowed
-      in_chosen_category(from_chosen_account(user.transactions.occurred_in(month.range).matching(filters[:query])))
+      in_chosen_category(from_chosen_account(user.transactions.occurred_in(period.range).matching(filters[:query])))
     end
 
     def from_chosen_account(transactions)

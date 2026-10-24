@@ -1,32 +1,62 @@
 <% content_for :title, @category.name %>
 <%= turbo_stream_from Current.user, :transactions %>
+<% span = @usage.span %>
+<% kind = category_kind @category %>
 
 <div class="flex min-h-dvh max-md:flex-col">
   <%= render "shared/sidebar" %>
 
   <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14">
     <div class="flex flex-col gap-2">
-      <%= link_to "‹ Categories", categories_path, class: "self-start text-sm text-tertiary hover:text-primary" %>
-      <h1 class="text-title"><%= @category.name %></h1>
-    </div>
-
-    <div class="flex flex-wrap items-end justify-between gap-6">
-      <div class="flex flex-col gap-2.5">
-        <p class="text-secondary"><%= @category.income? ? "Received" : "Spent" %> in <%= month_name @month %></p>
-        <p class="text-display" data-field="total"><%= money(@category.income? ? @listing.income : @listing.spent) %></p>
-        <p class="text-sm text-tertiary"><%= pluralize number_with_delimiter(@listing.count), "transaction" %></p>
-      </div>
-
-      <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Month">
-        <%= link_to "‹ #{month_abbreviation @month.previous}", category_path(@category, month: month_param(@month.previous)), aria: { label: month_title(@month.previous) },
-          class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
-        <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true"><%= month_title @month %></span>
-        <% if @month.next %>
-          <%= link_to "#{month_abbreviation @month.next} ›", category_path(@category, month: month_param(@month.next)), aria: { label: month_title(@month.next) },
-            class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
+      <%= link_to "‹ Categories", categories_path(span_params(span)), class: "self-start text-sm text-tertiary hover:text-primary" %>
+      <div class="flex items-center gap-2">
+        <h1 class="text-title"><%= @category.name %></h1>
+        <% unless @category.default_income? %>
+          <%= render "categories/manage", category: @category, categories: @categories, usage: @usage, anchor: "--manage" %>
         <% end %>
-      </nav>
+      </div>
     </div>
+
+    <% if alert %>
+      <p id="alert" role="alert" class="text-sm text-danger"><%= alert %></p>
+    <% end %>
+
+    <%= render "categories/spans", span:, category: @category %>
+
+    <div class="flex flex-wrap gap-x-12 gap-y-6">
+      <div class="flex flex-col gap-1.5">
+        <p class="text-secondary"><%= kind %> <%= span_phrase span %></p>
+        <p class="text-display" data-field="total"><%= @usage.active?(@category) ? money(@usage.total(@category)) : "—" %></p>
+        <% if @usage.refunded(@category).positive? %>
+          <p class="text-sm text-tertiary" data-field="refunded">After <%= money @usage.refunded(@category) %> in refunds</p>
+        <% end %>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <p class="text-secondary">Monthly average</p>
+        <p class="font-amount text-lg" data-field="average"><%= money @usage.monthly_average(@category) %></p>
+        <p class="text-sm text-tertiary">Last 12 months</p>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <p class="text-secondary">Last transaction</p>
+        <p class="text-lg" data-field="last-transaction"><%= @usage.last_on(@category) ? short_date(@usage.last_on(@category)) : "None yet" %></p>
+      </div>
+    </div>
+
+    <% months = @usage.months(@category) %>
+    <% peak = months.values.max %>
+    <nav class="flex gap-1.5" aria-label="<%= kind %> by month">
+      <% months.each do |month, cents| %>
+        <% chosen = span.cover?(month) %>
+        <%= link_to category_path(@category, month: month_param(month)), aria: { label: "#{month_title month}: #{money cents}", current: (chosen && span.one_month?) ? "true" : nil },
+          title: "#{month_title month} · #{money cents}",
+          class: "group flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-sm pt-1.5 pb-1 hover:bg-level-3" do %>
+          <div class="flex h-[120px] w-full items-end justify-center px-1">
+            <div class="<%= class_names "w-full max-w-10 rounded-t-bar", month_bar_color(span, month, cents) %>" style="height: <%= [ month_bar_height(cents, peak), 2 ].max %>px"></div>
+          </div>
+          <span class="<%= class_names "text-xs", chosen ? "font-medium text-primary" : "text-tertiary group-hover:text-primary" %>"><%= month_abbreviation month %></span>
+        <% end %>
+      <% end %>
+    </nav>
 
     <div class="flex flex-col" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>">
       <% if @listing.count.positive? %>
@@ -45,12 +75,18 @@
           <% end %>
 
           <% if @listing.page.next_before %>
-            <%= turbo_frame_tag :days, @listing.page.next_before, src: category_path(@category, month: month_param(@month), before: @listing.page.next_before),
+            <%= turbo_frame_tag :days, @listing.page.next_before, src: category_path(@category, **span_params(span), before: @listing.page.next_before),
               loading: :lazy, refresh: :morph, target: "_top" %>
           <% end %>
         <% end %>
       <% else %>
-        <p class="text-sm text-tertiary">Nothing in <%= @category.name %> in <%= month_name @month %>.</p>
+        <p class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-tertiary" data-field="empty">
+          <span>No transactions <%= span_phrase span %>.<% if (last_on = @usage.last_on(@category)) %> The last one was on <%= short_date last_on %>.<% end %></span>
+          <% if last_on && !span.range.cover?(last_on) %>
+            <%= link_to "Show #{last_on.strftime("%B %Y")}", category_path(@category, month: last_on.strftime("%Y-%m")),
+              class: "rounded-full bg-level-3 px-3 py-1 text-sm font-medium text-secondary hover:text-primary" %>
+          <% end %>
+        </p>
       <% end %>
     </div>
 

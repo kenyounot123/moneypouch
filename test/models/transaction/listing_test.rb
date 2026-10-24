@@ -39,6 +39,6 @@ class Transaction::ListingTest < ActiveSupport::TestCase
 
   private
     def listing_for(filters)
-      Transaction::Listing.new(users(:one), month: @month, filters:, before: nil)
+      Transaction::Listing.new(users(:one), period: @month, filters:, before: nil)
     end
 end
