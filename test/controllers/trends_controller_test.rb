@@ -45,11 +45,11 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     get trends_url
 
     assert_select "[role=meter]", count: 0
-    assert_select "section[aria-labelledby=glance-heading] > p", text: "You earned $6,000.00 and spent $5,012.50. You kept $987.50."
-    assert_select "section[aria-labelledby=glance-heading] > p span.text-success", text: "$987.50"
+    assert_select "section[aria-labelledby=glance-heading] > p", text: "You earned $6,000.00 and spent $5,012.50, for a net of +$987.50."
+    assert_select "section[aria-labelledby=glance-heading] > p span.text-success", text: "+$987.50"
   end
 
-  test "charts the 12 months, each linking to its transactions, the current one so far" do
+  test "charts the 12 months, each linking to its transactions, the current one marked present" do
     add 500_000, "2026-09-01", "Pay"
     add(-200_000, "2026-09-02", "Rent")
     add 100_000, "2026-08-01", "Pay"
@@ -60,20 +60,20 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "[role=group][aria-label=Months] > a", count: 12
     assert_select "a[href='#{transactions_path(month: "2025-11")}']", count: 1
-    assert_select "a[href='#{transactions_path(month: "2026-10")}'][aria-label='Oct · income $0 · spent $13 so far']" do
+    assert_select "a[href='#{transactions_path(month: "2026-10")}'][aria-label='Oct (present) · income $0 · spent $13']" do
       assert_select "div.opacity-50"
-      assert_select "span", text: "so far"
+      assert_select "span", text: "present"
     end
     assert_select "a[href='#{transactions_path(month: "2026-09")}'][aria-label='Sep · income $5,000 · spent $2,000']" do
       assert_select "div.opacity-50", count: 0
-      assert_select "span.text-success", text: "$3,000"
+      assert_select "span.text-success", text: "+$3,000"
     end
     assert_select "a[href='#{transactions_path(month: "2026-08")}']" do
-      assert_select "span", text: /Kept/, count: 0
+      assert_select "span", text: "Net", count: 0
     end
   end
 
-  test "lists spending categories largest first, each with a sparkline, this month so far and its usual" do
+  test "lists spending categories largest first, each with a row of monthly cells, the present month and its usual" do
     [ "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09" ].each { |month| add(-10_000, "#{month}-10", "Meal", categories(:food)) }
     add(-2_550, "2026-10-03", "Lunch", categories(:food))
     add(-500, "2026-10-04", "Gum")
@@ -81,7 +81,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
 
     get trends_url
 
-    assert_select "section[aria-labelledby=categories-heading] > div[aria-hidden=true]", text: /Nov–Oct\s+October so far/
+    assert_select "section[aria-labelledby=categories-heading] > div[aria-hidden=true]", text: /\ANov\s+Dec.*Oct\s+Present month\z/m
     assert_select "section[aria-labelledby=categories-heading] li p.min-w-0", text: /\S/ do |names|
       assert_equal [ "Food", "Uncategorized" ], names.map { |name| name.text.strip }
     end
@@ -90,6 +90,13 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
       assert_select "div[aria-hidden=true] > div", count: 12
       assert_select "p.font-mono", text: "$25.50"
       assert_select "p.text-tertiary", text: "usually $100.00"
+    end
+    assert_select "section[aria-labelledby=categories-heading] table.sr-only" do
+      assert_select "thead th", count: 13
+      assert_select "thead th:last-child", text: "October 2026 (present)"
+      assert_select "tbody tr th[scope=row]", text: "Food"
+      assert_select "tbody tr:first-child td:nth-of-type(11)", text: "$100.00"
+      assert_select "tbody tr:first-child td:last-child", text: "$25.50"
     end
     assert_select "li", text: /Uncategorized/ do
       assert_select "a", count: 0

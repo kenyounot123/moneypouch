@@ -46,15 +46,15 @@ module Trends::Notes
     end
   end
 
-  module KeptMonths
+  module PositiveNetMonths
     RECENT = 6
     MINIMUM = 3
 
     def self.call(trends)
-      kept = trends.months[0...-1].last(RECENT).count(&:kept)
+      positive = trends.months[0...-1].last(RECENT).count(&:positive_net)
 
-      if kept >= MINIMUM
-        Trends::Note.new(kind: :kept_months, tone: :good, text: "You kept money in #{kept} of the last #{RECENT} months.")
+      if positive >= MINIMUM
+        Trends::Note.new(kind: :positive_net_months, tone: :good, text: "Your net was positive in #{positive} of the last #{RECENT} months.")
       end
     end
   end
@@ -79,7 +79,7 @@ module Trends::Notes
     end
   end
 
-  DETECTORS = [ LowestSince, BelowUsual, KeptMonths, ChargeStopped, NewIncome ]
+  DETECTORS = [ LowestSince, BelowUsual, PositiveNetMonths, ChargeStopped, NewIncome ]
 
   def self.for(trends, detectors: DETECTORS)
     detectors.filter_map { |detector| detector.call(trends) }.uniq { |note| note.path || note.kind }.first(LIMIT)

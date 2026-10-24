@@ -89,16 +89,16 @@ class Trends::NotesTest < ActiveSupport::TestCase
     assert_nil lowest_since
   end
 
-  test "kept months: counts the last six full months in which money was kept" do
-    kept_in "2026-09", "2026-07", "2026-04"
+  test "positive net months: counts the last six full months with a positive net" do
+    positive_net_in "2026-09", "2026-07", "2026-04"
 
-    assert_equal [ :kept_months, :good, "You kept money in 3 of the last 6 months.", nil ], kept_months.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :positive_net_months, :good, "Your net was positive in 3 of the last 6 months.", nil ], positive_net_months.to_h.values_at(:kind, :tone, :text, :path)
   end
 
-  test "kept months: stays quiet below three, and leaves out this month and the ones before the six" do
-    kept_in "2026-09", "2026-07", "2026-03", "2026-10"
+  test "positive net months: stays quiet below three, and leaves out this month and the ones before the six" do
+    positive_net_in "2026-09", "2026-07", "2026-03", "2026-10"
 
-    assert_nil kept_months
+    assert_nil positive_net_months
   end
 
   test "charge stopped: a monthly charge that last came the month before last month, once this month is past its day" do
@@ -184,8 +184,8 @@ class Trends::NotesTest < ActiveSupport::TestCase
       [ "2026-04-03", "2026-05-03", "2026-06-03", "2026-07-03", "2026-08-03" ].each { |on| add(-1_549, on, "Spotify") }
     end
 
-    def kept_months
-      Trends::Notes::KeptMonths.call(trends)
+    def positive_net_months
+      Trends::Notes::PositiveNetMonths.call(trends)
     end
 
     # Food spending per month, ending with September and going back.
@@ -195,7 +195,7 @@ class Trends::NotesTest < ActiveSupport::TestCase
       end
     end
 
-    def kept_in(*months)
+    def positive_net_in(*months)
       (4..9).each { |month| add(-1_000, format("2026-%02d-02", month), "Rent") }
       months.each { |month| add 5_000, "#{month}-01", "Pay" }
     end
