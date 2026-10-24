@@ -33,10 +33,11 @@ class CategoryTest < ActiveSupport::TestCase
     assert_equal "Food", categories(:food).reload.name
   end
 
-  test "revise can count a category as income" do
-    assert_difference -> { users(:one).transactions.spent }, -550 do
-      categories(:food).revise(income: true)
-    end
+  test "only the user's Income income category is the default one" do
+    assert categories(:income).default_income?
+    assert_not categories(:food).default_income?
+    assert_not users(:one).categories.create!(name: "Salary", income: true).default_income?
+    assert_equal [ "Food", "Salary" ], users(:one).categories.changeable.alphabetically.pluck(:name)
   end
 
   test "merge_into moves transactions, deleted ones too, and rules, then drops the category" do

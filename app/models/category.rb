@@ -1,4 +1,7 @@
 class Category < ApplicationRecord
+  # Money in with no category of its own lands here, so it keeps its name and can't be merged away or deleted.
+  INCOME = "Income"
+
   belongs_to :user
   belongs_to :import, optional: true
   has_many :transactions, dependent: :nullify
@@ -12,11 +15,17 @@ class Category < ApplicationRecord
   scope :unused, -> { where.missing(:transactions, :rules) }
   scope :income, -> { where(income: true) }
   scope :spending, -> { where(income: false) }
+  scope :default_income, -> { income.named(INCOME) }
+  scope :changeable, -> { where.not(id: default_income) }
 
   validates :name, presence: true
 
   def named?(other_name)
     name.downcase(:ascii) == other_name.downcase(:ascii)
+  end
+
+  def default_income?
+    income? && named?(INCOME)
   end
 
   # Another category's name trips the lower(name) index, not a validation.

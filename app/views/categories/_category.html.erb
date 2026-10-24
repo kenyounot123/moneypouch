@@ -1,28 +1,36 @@
 <li id="<%= dom_id category %>" class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-secondary py-3 last:border-b-0">
-  <%= form_with model: category, method: :patch, class: "flex min-w-0 flex-1 basis-48" do |form| %>
-    <%= form.text_field :name, autocomplete: "off", required: true, aria: { label: "Name" }, data: { controller: "auto-submit", action: "change->auto-submit#submit" },
-      class: "h-8 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-2 -ml-2 text-md font-medium outline-none hover:border-primary focus:border-(--ring-color-focus) focus:bg-level-2" %>
+  <% if category.default_income? %>
+    <p class="flex h-8 min-w-0 flex-1 basis-48 items-center gap-2.5" title="Money in with no other category lands in <%= category.name %>, so it keeps its name">
+      <%= link_to category.name, category, class: "truncate text-md font-medium hover:underline" %>
+      <span class="text-xs text-tertiary">Default</span>
+    </p>
+  <% else %>
+    <%= form_with model: category, method: :patch, class: "flex min-w-0 flex-1 basis-48" do |form| %>
+      <%= form.text_field :name, autocomplete: "off", required: true, aria: { label: "Name" }, data: { controller: "auto-submit", action: "change->auto-submit#submit" },
+        class: "h-8 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-2 -ml-2 text-md font-medium outline-none hover:border-primary focus:border-(--ring-color-focus) focus:bg-level-2" %>
+    <% end %>
   <% end %>
 
   <div class="flex items-center justify-between gap-4 max-sm:w-full">
-    <%= link_to category_holdings(category, usage), transactions_path(category: category.id), class: "text-sm whitespace-nowrap text-tertiary hover:text-primary" %>
+    <%= link_to category_holdings(category, usage), category, class: "text-sm whitespace-nowrap text-tertiary hover:text-primary" %>
     <p class="w-22 shrink-0 text-right font-mono" title="<%= month_title usage.period %>"><%= money usage.total(category) %></p>
   </div>
 
-  <div class="flex items-center gap-1 max-sm:-ml-2 max-sm:w-full" role="group" aria-label="Actions">
-    <%= button_to category.income? ? "Count as spending" : "Count as income", category_path(category), method: :patch, params: { category: { income: !category.income? } }, form: { class: "flex sm:w-34 sm:justify-end" },
-      class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium whitespace-nowrap text-secondary hover:bg-level-3 hover:text-primary" %>
-
-    <% others = categories.reject { |other| other == category } %>
-    <% if others.any? %>
-      <%= form_with url: category_merge_path(category), method: :post, data: { turbo_confirm: merge_category_question(category, usage) }, class: "relative flex" do %>
-        <%= select_tag :into, options_from_collection_for_select(others, :id, :name), prompt: "Merge into…", required: true, aria: { label: "Merge #{category.name} into" },
-          data: { controller: "auto-submit", action: "change->auto-submit#submit" },
-          class: "h-7 cursor-pointer appearance-none rounded-sm border-0 bg-transparent pr-6 pl-2 text-sm font-medium text-secondary field-sizing-content hover:bg-level-3 hover:text-primary" %>
-        <span class="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-xs text-tertiary" aria-hidden="true">▾</span>
+  <% if category.default_income? %>
+    <div class="hidden w-40 sm:block"></div>
+  <% else %>
+    <div class="flex items-center gap-1 max-sm:-ml-2 max-sm:w-full sm:w-40 sm:justify-end" role="group" aria-label="Actions">
+      <% others = categories.reject { |other| other == category } %>
+      <% if others.any? %>
+        <%= form_with url: category_merge_path(category), method: :post, data: { turbo_confirm: merge_category_question(category, usage) }, class: "relative flex" do %>
+          <%= select_tag :into, options_from_collection_for_select(others, :id, :name), prompt: "Merge into…", required: true, aria: { label: "Merge #{category.name} into" },
+            data: { controller: "auto-submit", action: "change->auto-submit#submit" },
+            class: "h-7 cursor-pointer appearance-none rounded-sm border-0 bg-transparent pr-6 pl-2 text-sm font-medium text-secondary field-sizing-content hover:bg-level-3 hover:text-primary" %>
+          <span class="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-xs text-tertiary" aria-hidden="true">▾</span>
+        <% end %>
       <% end %>
-    <% end %>
 
-    <%= icon_button_to "Delete #{category.name}", :delete, category_path(category), method: :delete, form: { class: "max-sm:ml-auto" }, data: { turbo_confirm: delete_category_question(category, usage) } %>
-  </div>
+      <%= icon_button_to "Delete #{category.name}", :delete, category_path(category), method: :delete, form: { class: "max-sm:ml-auto" }, data: { turbo_confirm: delete_category_question(category, usage) } %>
+    </div>
+  <% end %>
 </li>
