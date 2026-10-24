@@ -226,6 +226,19 @@
   @apply size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary pointer-coarse:size-10;
 }
 
+/* The Categories list's columns: name, the last 12 months, share of the section, total, and the row's menu. */
+@utility category-columns {
+  @apply grid grid-cols-[minmax(0,1fr)_6.5rem_2rem] items-center gap-x-4 md:grid-cols-[minmax(0,1fr)_7.5rem_6rem_6.5rem_2rem];
+}
+
+/* A popover menu that opens under the button anchored to it, and flips above near the bottom of the page. */
+@utility anchored-menu {
+  @apply m-0 mt-1 w-64 flex-col gap-3 rounded-md border border-primary bg-level-2 p-3 text-primary shadow-control open:flex;
+  inset: auto;
+  position-area: bottom span-left;
+  position-try-fallbacks: flip-block;
+}
+
 @utility category-field-slot {
   @apply flex min-w-24 max-w-[140px] flex-1;
 }
@@ -293,6 +306,7 @@
   .icon--external { --svg: url("icons/external.svg"); }
   .icon--import { --svg: url("icons/import.svg"); }
   .icon--include { --svg: url("icons/include.svg"); }
+  .icon--more { --svg: url("icons/more.svg"); }
   .icon--note { --svg: url("icons/note.svg"); }
   .icon--overview { --svg: url("icons/overview.svg"); }
   .icon--plus { --svg: url("icons/plus.svg"); }

@@ -3,21 +3,21 @@ class CategoriesController < ApplicationController
 
   def index
     @categories = Current.user.categories.alphabetically
-    @usage = Category::Usage.new(Current.user, Period.new("month", today: Date.current))
+    @usage = Category::Usage.new(Current.user, span)
   end
 
   def show
     @category = Current.user.categories.find(params.expect(:id))
-    @month = Period.month(params[:month], today: Date.current)
-    @listing = Transaction::Listing.new(Current.user, month: @month, filters: { category: @category.id }, before:)
+    @usage = Category::Usage.new(Current.user, span)
+    @listing = Transaction::Listing.new(Current.user, period: span, filters: { category: @category.id }, before:)
     @categories = Current.user.categories.alphabetically
   end
 
   def update
     if @category.revise(params.expect(category: [ :name ]))
-      redirect_to categories_path, status: :see_other
+      redirect_back_or_to categories_path, status: :see_other
     else
-      redirect_to categories_path, alert: @category.errors.full_messages.to_sentence, status: :see_other
+      redirect_back_or_to categories_path, alert: @category.errors.full_messages.to_sentence, status: :see_other
     end
   end
 
@@ -29,6 +29,10 @@ class CategoriesController < ApplicationController
   private
     def set_category
       @category = Current.user.categories.changeable.find(params.expect(:id))
+    end
+
+    def span
+      @span ||= Category::Span.from(params, today: Date.current)
     end
 
     def before

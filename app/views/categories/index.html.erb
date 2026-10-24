@@ -4,24 +4,49 @@
 <div class="flex min-h-dvh max-md:flex-col">
   <%= render "shared/sidebar" %>
 
-  <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
+  <main class="flex min-w-0 flex-1 flex-col gap-8 px-5 py-9 md:px-14">
     <div class="flex flex-col gap-2">
       <h1 class="text-title">Categories</h1>
-      <p class="text-sm text-tertiary">Every category your transactions are filed under. Rename, merge, or delete one here, or open it to see its transactions.</p>
+      <p class="text-sm text-tertiary">Spent and income by category. Refunds come off what you spent. Open a category to see its transactions.</p>
     </div>
 
     <% if alert %>
       <p id="alert" role="alert" class="text-sm text-danger"><%= alert %></p>
     <% end %>
 
-    <section class="flex max-w-[860px] flex-col" aria-label="Categories">
-      <div class="flex items-baseline justify-end border-b border-secondary pb-3">
-        <p class="text-sm text-tertiary"><%= month_name @usage.period %></p>
+    <%= render "categories/spans", span: @usage.span, category: nil %>
+
+    <div class="flex max-w-[860px] flex-col gap-2">
+      <div class="category-columns px-2 text-xs text-tertiary" aria-hidden="true">
+        <span></span>
+        <span class="max-md:hidden">By month</span>
+        <span class="max-md:hidden">Share</span>
+        <span class="text-right"><%= span_label @usage.span %></span>
+        <span></span>
       </div>
 
-      <ul class="flex flex-col">
-        <%= render partial: "categories/category", collection: @categories, locals: { categories: @categories, usage: @usage } %>
-      </ul>
-    </section>
+      <div class="flex flex-col gap-8">
+        <% @categories.partition { |category| !category.income? }.each do |categories| %>
+          <% next if categories.empty? %>
+          <% kind = category_kind categories.first %>
+          <% section_total = categories.sum { |category| @usage.total(category) } %>
+          <section aria-label="<%= kind %>">
+            <div class="category-columns border-b border-primary px-2 pb-2">
+              <h2 class="text-heading"><%= kind %></h2>
+              <span class="max-md:hidden"></span>
+              <span class="max-md:hidden"></span>
+              <p class="text-right font-amount text-secondary" data-field="section-total"><%= categories.any? { |category| @usage.active?(category) } ? money(section_total) : "—" %></p>
+              <span></span>
+            </div>
+
+            <ul class="flex flex-col">
+              <% categories.sort_by { |category| [ @usage.active?(category) ? 0 : 1, -@usage.total(category), category.name.downcase ] }.each do |category| %>
+                <%= render "categories/category", category:, usage: @usage, categories: @categories, section_total: %>
+              <% end %>
+            </ul>
+          </section>
+        <% end %>
+      </div>
+    </div>
   </main>
 </div>

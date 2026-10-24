@@ -1,0 +1,7 @@
+<nav class="flex gap-1 self-start rounded-[10px] bg-level-3 p-1" aria-label="Period">
+  <% span_choices(span.last.today).each do |choice| %>
+    <% chosen = choice == span %>
+    <%= link_to span_label(choice), category ? category_path(category, span_params(choice)) : categories_path(span_params(choice)), aria: { current: chosen ? "true" : nil },
+      class: [ "rounded-sm px-3 py-1.5 text-sm whitespace-nowrap", chosen ? "bg-level-2 font-medium text-primary shadow-control" : "text-secondary hover:text-primary" ] %>
+  <% end %>
+</nav>
