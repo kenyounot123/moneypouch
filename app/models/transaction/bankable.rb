@@ -52,6 +52,10 @@ module Transaction::Bankable
     from_bank? && bank_transaction.paired?
   end
 
+  def paired_account_name
+    bank_transaction.transfer_partner.bank_account_full_name
+  end
+
   def needs_category?
     added_by_bank? && category_id.nil? && !transfer?
   end

@@ -14,7 +14,7 @@ class Transaction::Listing
   end
 
   def transactions
-    @transactions ||= page.transactions.listed.includes(bank_transaction: :bank_account)
+    @transactions ||= page.transactions.listed.includes(bank_transaction: [ :bank_account, { transfer_partner: :bank_account } ])
   end
 
   def count
