@@ -10,9 +10,9 @@
         <li class="flex items-baseline justify-between gap-4 py-2">
           <div class="min-w-0">
             <p class="truncate"><%= charge.name %></p>
-            <p class="text-xs text-tertiary"><%= charge_detail charge %></p>
+            <p class="text-sm text-tertiary"><%= charge_detail charge %></p>
           </div>
-          <p class="shrink-0 font-mono"><%= money charge.amount %></p>
+          <p class="shrink-0 font-amount"><%= money charge.amount %></p>
         </li>
       <% end %>
     </ul>

@@ -60,17 +60,17 @@
             <% if tally.already_here.positive? %>
               <div class="flex flex-col-reverse gap-1">
                 <dt class="text-sm text-tertiary">New</dt>
-                <dd class="font-mono text-md"><%= number_with_delimiter tally.adding %></dd>
+                <dd class="font-amount text-md"><%= number_with_delimiter tally.adding %></dd>
               </div>
               <div class="col-span-2 flex flex-col-reverse gap-1">
                 <dt class="text-sm text-tertiary">Already here</dt>
-                <dd class="font-mono text-md text-tertiary"><%= number_with_delimiter tally.already_here %></dd>
+                <dd class="font-amount text-md text-tertiary"><%= number_with_delimiter tally.already_here %></dd>
               </div>
             <% else %>
               <% tally_counts(tally).each do |term, count| %>
                 <div class="flex flex-col-reverse gap-1">
                   <dt class="text-sm text-tertiary"><%= term %></dt>
-                  <dd class="font-mono text-md"><%= number_with_delimiter count %></dd>
+                  <dd class="font-amount text-md"><%= number_with_delimiter count %></dd>
                 </div>
               <% end %>
             <% end %>
@@ -80,7 +80,7 @@
                   <button type="button" aria-expanded="false" aria-controls="unreadable_rows" data-disclosure-target="button" data-action="disclosure#toggle"
                     class="category-link block text-sm">Can't read</button>
                 </dt>
-                <dd class="font-mono text-md text-danger"><%= number_with_delimiter unreadable_rows.size %></dd>
+                <dd class="font-amount text-md text-danger"><%= number_with_delimiter unreadable_rows.size %></dd>
               </div>
             <% end %>
           </dl>

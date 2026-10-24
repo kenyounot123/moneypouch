@@ -15,12 +15,12 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "li#category_#{categories(:food).id}" do
       assert_select "input[name='category[name]'][value=Food]"
       assert_select "a[href='#{category_path(categories(:food))}']", text: "1 transaction"
-      assert_select "p.font-mono", text: "$5.50"
+      assert_select "p.font-amount", text: "$5.50"
       assert_select "select[name=into]"
       assert_select "button[aria-label='Delete Food']"
     end
     assert_select "li#category_#{categories(:income).id}" do
-      assert_select "p.font-mono", text: "$2,000.00"
+      assert_select "p.font-amount", text: "$2,000.00"
       assert_select "input[name='category[name]']", count: 0
       assert_select "select[name=into]", count: 0
       assert_select "button[aria-label='Delete Income']", count: 0

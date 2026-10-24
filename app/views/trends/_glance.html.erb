@@ -30,8 +30,8 @@
             <span class="text-tertiary">present</span>
           <% end %>
           <% if month.positive_net %>
-            <span class="text-success">Net</span>
-            <span class="font-mono text-success"><%= signed_money month.positive_net, whole: true %></span>
+            <span class="text-sm text-success">Net</span>
+            <span class="font-amount text-sm text-success"><%= signed_money month.positive_net, whole: true %></span>
           <% end %>
         </div>
       <% end %>

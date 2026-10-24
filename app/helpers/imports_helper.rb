@@ -85,7 +85,7 @@ module ImportsHelper
   end
 
   def sheet_cell_classes(kind)
-    [ sheet_header_classes(kind), ("font-mono" if kind.in?(%w[ date amount ])), ("text-tertiary" if kind == "skip") ]
+    [ sheet_header_classes(kind), ("font-amount" if kind.in?(%w[ date amount ])), ("text-tertiary" if kind == "skip") ]
   end
 
   def categories_lead(matched, unmatched)

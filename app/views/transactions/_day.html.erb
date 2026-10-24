@@ -2,7 +2,7 @@
   <div class="-mx-5 flex items-center justify-between gap-4 border-y border-secondary bg-level-1 px-5 py-2 md:-mx-14 md:px-14
     @xl:mx-0 @xl:w-24 @xl:shrink-0 @xl:flex-col @xl:items-start @xl:justify-start @xl:gap-0.75 @xl:border-y-0 @xl:bg-transparent @xl:px-0 @xl:py-2.75">
     <h2 class="font-semibold"><%= day_heading date %></h2>
-    <p data-field="day-total" class="font-mono text-xs <%= money_color total, otherwise: "text-tertiary" %>"><%= money_flow total %></p>
+    <p data-field="day-total" class="font-amount text-xs <%= money_color total, otherwise: "text-tertiary" %>"><%= money_flow total %></p>
   </div>
   <ul class="min-w-0 flex-1">
     <%= render partial: "transactions/row", collection: transactions, as: :transaction %>

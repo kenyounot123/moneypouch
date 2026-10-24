@@ -28,7 +28,7 @@
               <%= link_to simplefin_review_path(show: list), aria: { current: list == @list ? "true" : nil },
                 class: [ "flex shrink-0 items-baseline gap-2 rounded-sm px-3 py-1.5 text-sm whitespace-nowrap", list == @list ? "bg-level-2 font-medium text-primary shadow-control" : "text-secondary hover:text-primary" ] do %>
                 <%= review_list_title list %>
-                <span class="font-mono text-xs font-normal text-tertiary"><%= @review.transactions_in(list).count %></span>
+                <span class="font-amount text-xs font-normal text-tertiary"><%= @review.transactions_in(list).count %></span>
               <% end %>
             <% end %>
           </nav>

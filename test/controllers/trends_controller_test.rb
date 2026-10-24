@@ -88,7 +88,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /Food/ do
       assert_select "a[href='#{category_path(categories(:food), month: "2026-10")}']", text: "Food"
       assert_select "div[aria-hidden=true] > div", count: 12
-      assert_select "p.font-mono", text: "$25.50"
+      assert_select "p.font-amount", text: "$25.50"
       assert_select "p.text-tertiary", text: "usually $100.00"
     end
     assert_select "section[aria-labelledby=categories-heading] table.sr-only" do
@@ -135,10 +135,10 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
         assert_equal [ "Rent", "Spotify" ], names.map { |name| name.text.strip }
       end
       assert_select "li", text: /Spotify/ do
-        assert_select "p.text-xs", text: "Usually on the 3rd · was $15.49"
-        assert_select "p.font-mono", text: "$17.99"
+        assert_select "p.text-sm", text: "Usually on the 3rd · was $15.49"
+        assert_select "p.font-amount", text: "$17.99"
       end
-      assert_select "li p.text-xs", text: "Usually on the 1st"
+      assert_select "li p.text-sm", text: "Usually on the 1st"
     end
   end
 
@@ -163,11 +163,11 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
       assert_select "h2", text: "Income"
       assert_select "li", text: /Acme payroll/ do
         assert_select "p.text-xs", text: "Usually arrives on the 1st and 15th"
-        assert_select "p.font-mono", text: "$12,000.00"
+        assert_select "p.font-amount", text: "$12,000.00"
       end
       assert_select "li", text: /Interest/ do
         assert_select "p.text-xs", count: 0
-        assert_select "p.font-mono", text: "$123.45"
+        assert_select "p.font-amount", text: "$123.45"
       end
     end
   end
