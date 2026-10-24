@@ -89,6 +89,7 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
 
   test "Done marks every sync reviewed and goes to the Overview" do
     sync_again(@access)
+    Simplefin::Sync.added_transactions.update_all(category_id: categories(:food).id)
 
     post simplefin_review_completion_url
 
@@ -97,6 +98,20 @@ class Simplefin::ReviewsControllerTest < ActionDispatch::IntegrationTest
 
     get simplefin_review_url
     assert_select "main", text: /Nothing new from your bank/
+  end
+
+  test "Done keeps the rows that still need a category" do
+    added_by_bank(-13_550).categorize(Transaction::Categorization.new(category: categories(:food)))
+    added_by_bank(-1_000).categorize(Transaction::Categorization.transfer)
+
+    post simplefin_review_completion_url
+    get simplefin_review_url
+
+    assert_equal [ "Need a category 7", "Categorized for you 0", "Transfers 0" ], css_select("nav[aria-label=Lists] a").map { _1.text.squish }
+    assert_select "nav[aria-label=Lists] a[aria-current=true]", text: /Need a category/
+    assert_select "turbo-frame#needing_category_page_1 li", 7
+    assert_select "main", text: /Nothing new from your bank/, count: 0
+    assert_select "form[action=?]", simplefin_review_completion_path, count: 0
   end
 
   test "a user with no bank connection gets not found" do

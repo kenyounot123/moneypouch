@@ -83,6 +83,17 @@ class BankRowsTest < ActionDispatch::IntegrationTest
 
     post simplefin_review_completion_url
     get root_url
+    assert_select "#bank_review span[aria-label='9 need a category']", text: "9"
+    assert_select "#bank_review li", 3
+  end
+
+  test "the overview drops the block after Done once nothing needs a category" do
+    activate(connect_simplefin)
+    Simplefin::Sync.added_transactions.update_all(category_id: categories(:food).id)
+
+    post simplefin_review_completion_url
+    get root_url
+
     assert_select "#bank_review", count: 0
   end
 
