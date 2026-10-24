@@ -1,0 +1,146 @@
+require "test_helper"
+
+class Trends::NotesTest < ActiveSupport::TestCase
+  setup do
+    @user = users(:one)
+    @user.transactions.destroy_all
+    @today = Date.new(2026, 10, 15)
+  end
+
+  test "below usual: names the category furthest under its usual last month, linking to that month" do
+    food_months 10_000, 10_000, 10_000, 10_000, 10_000, 7_900
+
+    note = below_usual
+
+    assert_equal [ :below_usual, :good, "Food came in under your usual in September.", category_path(categories(:food), month: "2026-09") ], note.to_h.values_at(:kind, :tone, :text, :path)
+  end
+
+  test "below usual: needs at least $20 under" do
+    food_months 10_000, 10_000, 10_000, 10_000, 10_000, 8_000
+    assert below_usual
+
+    @user.transactions.destroy_all
+    food_months 10_000, 10_000, 10_000, 10_000, 10_000, 8_001
+    assert_nil below_usual
+  end
+
+  test "below usual: needs at least 10% under" do
+    food_months 50_000, 50_000, 50_000, 50_000, 50_000, 45_000
+    assert below_usual
+
+    @user.transactions.destroy_all
+    food_months 50_000, 50_000, 50_000, 50_000, 50_000, 45_001
+    assert_nil below_usual
+  end
+
+  test "below usual: says nothing without a usual, for uncategorized money, or when this month is the low one" do
+    add(-5_000, "2026-09-12", "One month only", categories(:food))
+    add(-10_000, "2026-08-12", "Mystery")
+    add(-10_000, "2026-07-12", "Mystery")
+    add(-10_000, "2026-06-12", "Mystery")
+    add(-10_000, "2026-05-12", "Mystery")
+    add(-10_000, "2026-04-12", "Mystery")
+
+    assert_nil below_usual
+  end
+
+  test "lowest since: the last full month is below the four before it, back to the month that was as low" do
+    add(-1_000, "2026-03-10", "Meal", categories(:food))
+    food_months 9_000, 8_000, 7_000, 6_000, 5_000, 4_000
+
+    note = lowest_since
+
+    assert_equal [ :lowest_since, :good, "Your lowest Food month since March.", category_path(categories(:food), month: "2026-09") ], note.to_h.values_at(:kind, :tone, :text, :path)
+  end
+
+  test "lowest since: needs four higher months right before" do
+    add(-1_000, "2026-05-10", "Meal", categories(:food))
+    food_months 0, 7_000, 6_000, 5_000, 4_000
+    assert_nil lowest_since
+
+    @user.transactions.destroy_all
+    add(-1_000, "2026-04-10", "Meal", categories(:food))
+    food_months 0, 7_000, 6_000, 5_000, 4_000, 3_000
+    assert lowest_since
+  end
+
+  test "lowest since: a month as low as the last one ends the run" do
+    food_months 5_000, 5_000, 6_000, 7_000, 8_000, 5_000
+
+    assert_nil lowest_since
+  end
+
+  test "lowest since: with nothing as low in the whole window, counts the months it can see" do
+    (1..10).each { |back| add(-(10_000 + back), (Date.new(2026, 9, 10) << back).to_s, "Meal", categories(:food)) }
+    add(-5_000, "2026-09-10", "Meal", categories(:food))
+
+    assert_equal "Your lowest Food month in the last 11 months.", lowest_since.text
+  end
+
+  test "lowest since: an empty last month is not a lowest month" do
+    food_months 9_000, 8_000, 7_000, 6_000, 5_000, 0
+
+    assert_nil lowest_since
+  end
+
+  test "kept months: counts the last six full months in which money was kept" do
+    kept_in "2026-09", "2026-07", "2026-04"
+
+    assert_equal [ :kept_months, :good, "You kept money in 3 of the last 6 months.", nil ], kept_months.to_h.values_at(:kind, :tone, :text, :path)
+  end
+
+  test "kept months: stays quiet below three, and leaves out this month and the ones before the six" do
+    kept_in "2026-09", "2026-07", "2026-03", "2026-10"
+
+    assert_nil kept_months
+  end
+
+  test "keeps at most four, in the order of the registry" do
+    detectors = Array.new(6) { |index| ->(_) { Trends::Note.new(kind: :"k#{index}", tone: :good, text: "Note #{index}.") } }
+
+    assert_equal %i[ k0 k1 k2 k3 ], Trends::Notes.for(trends, detectors:).map(&:kind)
+  end
+
+  test "drops the detectors with nothing to say" do
+    detectors = [ ->(_) { }, ->(_) { Trends::Note.new(kind: :only, tone: :neutral, text: "Fine.") } ]
+
+    assert_equal [ :only ], Trends::Notes.for(trends, detectors:).map(&:kind)
+  end
+
+  private
+    def trends
+      Trends.new(@user.transactions, today: @today)
+    end
+
+    def below_usual
+      Trends::Notes::BelowUsual.call(trends)
+    end
+
+    def lowest_since
+      Trends::Notes::LowestSince.call(trends)
+    end
+
+    def kept_months
+      Trends::Notes::KeptMonths.call(trends)
+    end
+
+    # Food spending per month, ending with September and going back.
+    def food_months(*cents)
+      cents.reverse.each_with_index do |amount, back|
+        add(-amount, (Date.new(2026, 9, 10) << back).to_s, "Meal", categories(:food)) if amount.positive?
+      end
+    end
+
+    def kept_in(*months)
+      (4..9).each { |month| add(-1_000, format("2026-%02d-02", month), "Rent") }
+      months.each { |month| add 5_000, "#{month}-01", "Pay" }
+    end
+
+    def add(cents, occurred_on, name, category = nil)
+      @user.transactions.create!(name:, amount_in_cents: cents, occurred_on:, category:)
+    end
+
+    def category_path(...)
+      Rails.application.routes.url_helpers.category_path(...)
+    end
+end

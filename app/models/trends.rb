@@ -48,6 +48,14 @@ class Trends
     periods.last
   end
 
+  def last_full
+    periods[-2]
+  end
+
+  def notes
+    @notes ||= Notes.for(self)
+  end
+
   def spending_lines
     @spending_lines ||= lines_from(spending_series)
   end

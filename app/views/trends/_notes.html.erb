@@ -1,0 +1,19 @@
+<% if trends.notes.any? %>
+  <section class="flex flex-col gap-3" aria-labelledby="notes-heading">
+    <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+      <h2 id="notes-heading" class="text-heading">Good news</h2>
+    </div>
+
+    <ul class="flex flex-col gap-2">
+      <% trends.notes.each do |note| %>
+        <li class="<%= note_color note %>">
+          <% if note.path %>
+            <%= link_to note.text, note.path, class: "hover:underline" %>
+          <% else %>
+            <%= note.text %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>

@@ -100,6 +100,21 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "shares good news in success green, linking to the month it is about, and hides the section without any" do
+    get trends_url
+    assert_select "[aria-labelledby=notes-heading]", count: 0
+
+    [ 10_000, 10_000, 10_000, 10_000, 10_000, 7_000 ].each_with_index do |cents, index|
+      add(-cents, (Date.new(2026, 4, 10) >> index).to_s, "Meal", categories(:food))
+    end
+    add 500_000, "2026-08-01", "Pay"
+
+    get trends_url
+
+    assert_select "section[aria-labelledby=notes-heading] h2", text: "Good news"
+    assert_select "section[aria-labelledby=notes-heading] li.text-success a[href='#{category_path(categories(:food), month: "2026-09")}']", text: "Food came in under your usual in September."
+  end
+
   private
     def add(cents, occurred_on, name, category = nil)
       users(:one).transactions.create!(name:, amount_in_cents: cents, occurred_on:, category:)
