@@ -43,7 +43,7 @@ class TrendsToneTest < ActionDispatch::IntegrationTest
     assert_no_match ARROWS, css_select("main").text
     assert_no_match "%", css_select("main").text
     assert_select "a[aria-label^='Aug']" do
-      assert_select "span", text: /Kept/, count: 0
+      assert_select "span", text: "Net", count: 0
     end
   end
 

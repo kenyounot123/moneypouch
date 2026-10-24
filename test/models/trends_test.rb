@@ -36,8 +36,8 @@ class TrendsTest < ActiveSupport::TestCase
 
     months = trends_on(@today).months
 
-    assert_equal [ 300_000, 300_000 ], [ months[-2].net, months[-2].kept ]
-    assert_equal [ -200_000, nil ], [ months[-3].net, months[-3].kept ]
+    assert_equal [ 300_000, 300_000 ], [ months[-2].net, months[-2].positive_net ]
+    assert_equal [ -200_000, nil ], [ months[-3].net, months[-3].positive_net ]
   end
 
   test "totals the year and keeps money only when it is positive" do
@@ -46,11 +46,11 @@ class TrendsTest < ActiveSupport::TestCase
 
     trends = trends_on(@today)
 
-    assert_equal [ 500_000, 200_000, 300_000 ], [ trends.income, trends.spent, trends.kept ]
+    assert_equal [ 500_000, 200_000, 300_000 ], [ trends.income, trends.spent, trends.positive_net ]
 
     add(-400_000, "2026-10-02", "Trip")
 
-    assert_nil trends_on(@today).kept
+    assert_nil trends_on(@today).positive_net
   end
 
   test "a refund bigger than the month's spending reads as nothing spent" do

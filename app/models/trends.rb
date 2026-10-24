@@ -11,7 +11,7 @@ class Trends
       income - spent
     end
 
-    def kept
+    def positive_net
       net if net.positive?
     end
 
@@ -102,7 +102,7 @@ class Trends
     months.sum(&:spent)
   end
 
-  def kept
+  def positive_net
     net = income - spent
     net if net.positive?
   end
