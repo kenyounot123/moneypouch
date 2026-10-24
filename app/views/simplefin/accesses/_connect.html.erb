@@ -8,20 +8,28 @@
       <span class="flex size-5.5 shrink-0 items-center justify-center rounded-sm bg-level-3 font-amount text-xs text-secondary">1</span>
       <div class="flex min-w-0 flex-1 flex-col gap-1 pt-0.5">
         <p class="text-md font-medium">Get a setup token from SimpleFIN</p>
-        <p class="text-sm text-tertiary">Add your bank there, then copy the token.</p>
+        <ol class="flex list-decimal flex-col gap-1 pl-4 text-sm text-tertiary">
+          <li>Sign up with your email, then open the login link SimpleFIN sends you.</li>
+          <li>Subscribe, then add your bank under Financial Institutions.</li>
+          <li>Under Apps, choose New Connection, name it MoneyPouch, and click Create Setup Token.</li>
+          <li>Copy the token. Each one works only once.</li>
+        </ol>
       </div>
       <%= link_to_simplefin "Open SimpleFIN", SimplefinHelper::SIMPLEFIN_CREATE_URL %>
     </div>
 
-    <%= form_with url: simplefin_access_path, scope: :simplefin_access, class: "flex items-start gap-3.5 p-5", data: { controller: "paste-submit" } do |form| %>
+    <%= form_with url: simplefin_access_path, scope: :simplefin_access, class: "flex items-start gap-3.5 p-5" do |form| %>
       <span class="flex size-5.5 shrink-0 items-center justify-center rounded-sm bg-level-3 font-amount text-xs text-secondary">2</span>
       <div class="flex min-w-0 flex-1 flex-col gap-2.5 pt-0.5">
-        <%= form.label :setup_token, "Paste it here", class: "text-md font-medium" %>
-        <%= form.text_field :setup_token, value: setup_token, placeholder: "Setup token", autofocus: true, autocomplete: "off", spellcheck: false,
-          aria: { describedby: "simplefin_access_setup_token_help", invalid: error.present? }, data: { action: "input->paste-submit#submit" },
-          class: [ "h-11 min-w-0 rounded-md border bg-level-2 px-3.5 font-mono text-base placeholder:font-ui placeholder:text-md placeholder:text-tertiary focus:outline-none",
-            error ? "border-(--text-color-danger) ring-3 ring-(--text-color-danger)/18" : "border-primary focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22" ] %>
-        <p id="simplefin_access_setup_token_help" class="text-sm <%= error ? "text-danger" : "text-tertiary" %>"><%= error || "Connects as soon as you paste." %></p>
+        <%= form.label :setup_token, "Paste the token", class: "text-md font-medium" %>
+        <div class="flex flex-wrap gap-2.5">
+          <%= form.text_field :setup_token, value: setup_token, placeholder: "Setup token", autofocus: true, autocomplete: "off", spellcheck: false,
+            aria: { describedby: "simplefin_access_setup_token_help", invalid: error.present? },
+            class: [ "h-11 min-w-0 flex-1 rounded-md border bg-level-2 px-3.5 font-mono text-base placeholder:font-ui placeholder:text-md placeholder:text-tertiary focus:outline-none",
+              error ? "border-(--text-color-danger) ring-3 ring-(--text-color-danger)/18" : "border-primary focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22" ] %>
+          <%= form.button "Connect", class: "h-11 shrink-0 cursor-pointer rounded-md bg-action px-4 text-button whitespace-nowrap text-on-action hover:brightness-95 disabled:cursor-default disabled:opacity-60", data: { turbo_submits_with: "Connecting…" } %>
+        </div>
+        <p id="simplefin_access_setup_token_help" class="text-sm <%= error ? "text-danger" : "text-tertiary" %>"><%= error || "Connecting checks the token with SimpleFIN and lists your accounts." %></p>
       </div>
     <% end %>
   </div>

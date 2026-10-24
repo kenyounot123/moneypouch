@@ -19,8 +19,9 @@ class Simplefin::AccessesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "a[href='https://bridge.simplefin.org/simplefin/create'][target=_blank]", text: "Open SimpleFIN"
-    assert_select "form[data-controller=paste-submit] input[name='simplefin_access[setup_token]'][data-action='input->paste-submit#submit']"
-    assert_select "p#simplefin_access_setup_token_help", text: "Connects as soon as you paste."
+    assert_select "form input[name='simplefin_access[setup_token]']"
+    assert_select "form button[data-turbo-submits-with='Connecting…']", text: "Connect"
+    assert_select "p#simplefin_access_setup_token_help", text: "Connecting checks the token with SimpleFIN and lists your accounts."
     assert_select "a[href=?]", settings_path, text: "Cancel"
   end
 
