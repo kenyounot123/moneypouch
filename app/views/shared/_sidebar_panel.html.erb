@@ -8,7 +8,7 @@
   <nav class="flex flex-col gap-0.5 md:in-data-[sidebar=collapsed]:items-center">
     <%= sidebar_link_to "Overview", root_path, icon: :overview %>
     <%= sidebar_link_to "Transactions", transactions_path, icon: :transactions %>
-    <%= sidebar_link_to "Categories", "#", icon: :categories %>
+    <%= sidebar_link_to "Categories", categories_path, icon: :categories %>
     <%= sidebar_link_to "Trends", "#", icon: :trends %>
     <%= sidebar_link_to "Import", new_import_path, icon: :import, active: request.path.start_with?(imports_path) %>
   </nav>
