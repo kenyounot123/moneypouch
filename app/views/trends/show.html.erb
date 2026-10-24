@@ -10,6 +10,7 @@
     <% if @trends.ready? %>
       <div class="flex max-w-[960px] flex-col gap-12">
         <%= render "trends/glance", trends: @trends %>
+        <%= render "trends/categories", trends: @trends %>
       </div>
     <% else %>
       <%= render "trends/empty", trends: @trends %>

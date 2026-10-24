@@ -85,9 +85,73 @@ class TrendsTest < ActiveSupport::TestCase
     assert_equal [ 2, true ], [ trends_on(@today).full_months_with_data, trends_on(@today).ready? ]
   end
 
+  test "sums a category's money per month and lists the largest category first" do
+    add(-10_000, "2026-09-02", "Meals", categories(:food))
+    add(-5_000, "2026-09-20", "More meals", categories(:food))
+    add(-2_000, "2026-10-03", "Lunch", categories(:food))
+    add(-30_000, "2026-08-03", "Mystery")
+    add 400_000, "2026-09-01", "Pay", categories(:income)
+
+    lines = trends_on(@today).spending_lines
+
+    assert_equal [ "Uncategorized", "Food" ], lines.map(&:label)
+    assert_nil lines.first.category
+    assert_equal [ 15_000, 2_000, 17_000 ], lines.last.then { |line| [ line.series.fetch(period("2026-09")), line.current, line.total ] }
+    assert_equal 12, lines.last.series.size
+    assert_equal [ "Income" ], trends_on(@today).income_lines.map(&:label)
+    assert_equal 400_000, trends_on(@today).income_lines.first.total
+  end
+
+  test "usual is the median of the six full months before this one, empty months counted" do
+    [ [ "2026-04", 1_000 ], [ "2026-05", 2_000 ], [ "2026-06", 3_000 ], [ "2026-07", 4_000 ], [ "2026-08", 5_000 ], [ "2026-09", 6_000 ] ].each do |month, cents|
+      add(-cents, "#{month}-10", "Meal", categories(:food))
+    end
+    add(-90_000, "2026-10-02", "Big month so far", categories(:food))
+    add(-99_000, "2026-03-10", "Too far back", categories(:food))
+
+    line = trends_on(@today).spending_lines.first
+
+    assert_equal [ 3_500, 90_000 ], [ line.usual, line.current ]
+  end
+
+  test "usual counts months with nothing as zero" do
+    add(-6_000, "2026-09-10", "Meal", categories(:food))
+    add(-8_000, "2026-08-10", "Meal", categories(:food))
+
+    assert_equal 0, trends_on(@today).spending_lines.first.usual
+
+    add(-4_000, "2026-07-10", "Meal", categories(:food))
+    add(-9_000, "2026-06-10", "Meal", categories(:food))
+
+    assert_equal 5_000, trends_on(@today).spending_lines.first.usual
+  end
+
+  test "usual waits for two of the six months to have money" do
+    add(-6_000, "2026-09-10", "Meal", categories(:food))
+    add(-8_000, "2026-10-10", "This month", categories(:food))
+    add(-8_000, "2026-02-10", "Too far back", categories(:food))
+
+    assert_nil trends_on(@today).spending_lines.first.usual
+
+    add(-2_000, "2026-08-10", "Meal", categories(:food))
+
+    assert_equal 0, trends_on(@today).spending_lines.first.usual
+  end
+
+  test "a refund bigger than a category's month leaves that month at zero, and a category with nothing is dropped" do
+    add(-1_000, "2026-09-02", "Shoes", categories(:food))
+    add 4_000, "2026-09-05", "Shoes back", categories(:food)
+
+    assert_equal [], trends_on(@today).spending_lines
+  end
+
   private
     def trends_on(today)
       Trends.new(@user.transactions, today:)
+    end
+
+    def period(month)
+      Period.new("month", today: @today, on: "#{month}-01")
     end
 
     def add(cents, occurred_on, name, category = nil)

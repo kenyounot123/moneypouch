@@ -1,6 +1,7 @@
 class Trends
   MONTHS = 12
   FULL_MONTHS_NEEDED = 2
+  USUAL_MONTHS = 6
 
   Month = Data.define(:month, :income, :spent) do
     def net
@@ -13,6 +14,18 @@ class Trends
 
     def partial?
       month.current?
+    end
+  end
+
+  # series maps each of the 12 months to cents. usual is the median of the 6 full months before this one,
+  # counting empty months, and stays nil until the category has money in at least 2 of them.
+  Line = Data.define(:category, :series, :current, :usual) do
+    def label
+      category&.name || "Uncategorized"
+    end
+
+    def total
+      series.values.sum
     end
   end
 
@@ -29,6 +42,18 @@ class Trends
   # The 12 calendar months ending with the current one, oldest first.
   def periods
     @periods ||= (1...MONTHS).each_with_object([ Period.new("month", today:) ]) { |_, periods| periods.unshift(periods.first.previous) }
+  end
+
+  def current
+    periods.last
+  end
+
+  def spending_lines
+    @spending_lines ||= lines_from(spending_series)
+  end
+
+  def income_lines
+    @income_lines ||= lines_from(income_series)
   end
 
   def months
@@ -90,6 +115,29 @@ class Trends
           series.transform_values { |cents| [ cents, 0 ].max }
         end
         .select { |_, series| series.values.any?(&:positive?) }
+    end
+
+    def lines_from(all_series)
+      categories = Category.where(id: all_series.keys.compact).index_by(&:id)
+
+      all_series.map { |category_id, series| Line.new(category: categories[category_id], series:, current: series.fetch(current), usual: usual_of(series)) }
+        .sort_by { |line| [ -line.total, line.label.downcase ] }
+    end
+
+    def usual_of(series)
+      recent = periods[0...-1].last(USUAL_MONTHS).map { |period| series.fetch(period) }
+      median(recent) if recent.count(&:positive?) >= 2
+    end
+
+    def median(values)
+      sorted = values.sort
+      middle = sorted.size / 2
+
+      if sorted.size.odd?
+        sorted[middle]
+      else
+        (sorted[middle - 1] + sorted[middle]) / 2
+      end
     end
 
     def total_in(all_series, period)

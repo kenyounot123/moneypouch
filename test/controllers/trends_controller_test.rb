@@ -72,6 +72,34 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "lists spending categories largest first, then income, each with a sparkline, this month so far and its usual" do
+    [ "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09" ].each { |month| add(-10_000, "#{month}-10", "Meal", categories(:food)) }
+    add(-2_550, "2026-10-03", "Lunch", categories(:food))
+    add(-500, "2026-10-04", "Gum")
+    add 300_000, "2026-09-01", "Pay", categories(:income)
+
+    get trends_url
+
+    assert_select "section[aria-labelledby=categories-heading] h3", text: /Spending|Income/, count: 2
+    assert_select "section[aria-labelledby=categories-heading] ul:first-of-type li p.min-w-0", text: /\S/ do |names|
+      assert_equal [ "Food", "Uncategorized" ], names.map { |name| name.text.strip }
+    end
+    assert_select "li", text: /Food/ do
+      assert_select "a[href='#{category_path(categories(:food), month: "2026-10")}']", text: "Food"
+      assert_select "div[aria-hidden=true] > div", count: 12
+      assert_select "p.font-mono", text: "$25.50"
+      assert_select "p.text-tertiary", text: "usually $100.00"
+    end
+    assert_select "li", text: /Uncategorized/ do
+      assert_select "a", count: 0
+      assert_select "p.text-tertiary", text: /usually/, count: 0
+    end
+    assert_select "li", text: /Income/ do
+      assert_select "a[href='#{category_path(categories(:income), month: "2026-10")}']", text: "Income"
+      assert_select "p.font-mono", text: "$0.00"
+    end
+  end
+
   private
     def add(cents, occurred_on, name, category = nil)
       users(:one).transactions.create!(name:, amount_in_cents: cents, occurred_on:, category:)
