@@ -37,7 +37,7 @@ module Transaction::Bankable
   end
 
   def bank_account_name
-    bank_transaction&.bank_account_name
+    bank_transaction&.bank_account_full_name
   end
 
   def from_bank?

@@ -77,6 +77,7 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     assert_select "#bank_review span[aria-label='9 need a category']", text: "9"
     assert_select "#bank_review li", 3
     assert_select "#bank_review li button[data-action='category-picker#open']", text: "Category", count: 3
+    assert_select "#bank_review li span", text: /· SimpleFIN (Savings|Checking)\z/, count: 3
     assert_select "#bank_review a[href=?][data-turbo-frame=_top]", simplefin_review_path, text: "Show all", count: 1
     assert_select "#bank_review form", count: 0
 

@@ -13,7 +13,7 @@
   <% if rows.any? %>
     <ul class="flex flex-col">
       <% rows.each do |transaction| %>
-        <%= render "transactions/transaction", transaction:, field: true %>
+        <%= render "transactions/transaction", transaction:, field: true, account: true %>
       <% end %>
     </ul>
   <% end %>

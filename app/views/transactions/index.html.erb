@@ -88,7 +88,7 @@
 
       <div class="hidden w-full gap-2 peer-checked:flex @xl:flex @xl:w-auto">
         <% [
-          [ :account, "All accounts", @bank_accounts.map { |account| [ account.name, account.id ] } + [ [ "Typed in", "typed" ] ] ],
+          [ :account, "All accounts", @bank_accounts.map { |account| [ account.full_name, account.id ] } + [ [ "Typed in", "typed" ] ] ],
           [ :category, "All categories", @categories.map { |category| [ category.name, category.id ] } + [ [ "Uncategorized", "none" ] ] ]
         ].each do |name, blank, choices| %>
           <span class="relative flex min-w-0 flex-1 @xl:flex-none">

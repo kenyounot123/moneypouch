@@ -17,6 +17,14 @@ class BankAccount < ApplicationRecord
     end
   end
 
+  def full_name
+    if institution.blank? || names_bank?
+      name
+    else
+      "#{institution} #{name}"
+    end
+  end
+
   def start_syncing(from: Date.current)
     update!(status: :synced, starts_on: from)
   end
@@ -40,6 +48,11 @@ class BankAccount < ApplicationRecord
   end
 
   private
+    def names_bank?
+      words = ->(text) { text.downcase.scan(/\p{Alnum}{3,}/) }
+      words.(name).intersect?(words.(institution))
+    end
+
     # The access's user, which one sync shares across its accounts, so their rules load once.
     def owner
       simplefin_access.user
