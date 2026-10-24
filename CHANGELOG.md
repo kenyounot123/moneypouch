@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.0](https://github.com/kenyounot123/moneypouch/compare/v0.11.0...v0.12.0) (2026-10-24)
+
+
+### Features
+
+* **categories:** open a category's transactions on its own page and lock Income ([#141](https://github.com/kenyounot123/moneypouch/issues/141)) ([34ce6b4](https://github.com/kenyounot123/moneypouch/commit/34ce6b4d80ca7f56cc62bca9510b99859b91a39d))
+* **categories:** rename, merge, delete and move categories on a Categories page ([#139](https://github.com/kenyounot123/moneypouch/issues/139)) ([8ddd72c](https://github.com/kenyounot123/moneypouch/commit/8ddd72c8de062dde567cdd50b07341ffa8e47555))
+* **trends:** shade each category's months in a heatmap and say net like the rest of the app ([#143](https://github.com/kenyounot123/moneypouch/issues/143)) ([9f7994c](https://github.com/kenyounot123/moneypouch/commit/9f7994c1516d667e215d97ede049335f592540e8))
+* **trends:** show how spending and income change over 12 months on a Trends page ([#142](https://github.com/kenyounot123/moneypouch/issues/142)) ([4dacb59](https://github.com/kenyounot123/moneypouch/commit/4dacb5970e10acbd55266007e7c29d64ac49fc09))
+
 ## [0.11.0](https://github.com/kenyounot123/moneypouch/compare/v0.10.0...v0.11.0) (2026-10-23)
 
 
