@@ -29,6 +29,16 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "section[aria-label='Fri, Oct 2'] [data-field=day-total]", text: "$3.00", count: 1
   end
 
+  test "a day of only transfers shows no money moved" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      users(:one).transactions.create!(name: "Card payment", amount_in_cents: -50_000, occurred_on: "2026-10-02", transfer: true)
+
+      get transactions_url
+    end
+
+    assert_select "section[aria-label='Fri, Oct 2'] [data-field=day-total]", text: "$0.00", count: 1
+  end
+
   test "shows the requested month only" do
     travel_to Time.utc(2026, 10, 13, 12) do
       users(:one).transactions.create!(name: "Rent", amount_in_cents: -150_000, occurred_on: "2026-09-30")
