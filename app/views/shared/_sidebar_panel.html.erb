@@ -9,7 +9,7 @@
     <%= sidebar_link_to "Overview", root_path, icon: :overview %>
     <%= sidebar_link_to "Transactions", transactions_path, icon: :transactions %>
     <%= sidebar_link_to "Categories", categories_path, icon: :categories, active: request.path.start_with?(categories_path) %>
-    <%= sidebar_link_to "Trends", "#", icon: :trends %>
+    <%= sidebar_link_to "Trends", trends_path, icon: :trends %>
     <%= sidebar_link_to "Import", new_import_path, icon: :import, active: request.path.start_with?(imports_path) %>
   </nav>
 </div>

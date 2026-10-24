@@ -1,0 +1,40 @@
+<% months = trends.months %>
+<% peak = months.flat_map { |month| [ month.income, month.spent ] }.max %>
+<section class="flex flex-col gap-[18px]" aria-labelledby="glance-heading">
+  <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+    <h2 id="glance-heading" class="text-heading">Year at a glance</h2>
+    <p class="text-sm text-tertiary"><%= short_month_title months.first.month %>–<%= short_month_title months.last.month %></p>
+  </div>
+
+  <p>Over the last <%= Trends::MONTHS %> months you earned <%= money trends.income %> and spent <%= money trends.spent %>.<% if trends.kept %> You kept <span class="text-success"><%= money trends.kept %></span>.<% end %></p>
+
+  <div class="flex gap-4 text-xs text-tertiary" aria-hidden="true">
+    <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-[2px] bg-data-soft"></span>Income</span>
+    <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-[2px] bg-data"></span>Spent</span>
+  </div>
+
+  <div class="flex flex-row-reverse gap-1.5 overflow-x-auto" role="group" aria-label="Months">
+    <% months.reverse_each do |month| %>
+      <%= link_to transactions_path(month: month_param(month.month)), aria: { label: month_readout(month) },
+        class: "group flex min-w-14 flex-1 flex-col items-center gap-1.5 rounded-sm py-1.5 hover:bg-level-3" do %>
+        <div class="<%= class_names "flex h-[132px] shrink-0 items-end gap-1", "opacity-50": month.partial? %>">
+          <% [ [ month.income, "bg-data-soft" ], [ month.spent, "bg-data" ] ].each do |cents, color| %>
+            <% if cents.positive? %>
+              <div class="w-[18px] shrink-0 rounded-bar <%= color %>" style="height: <%= summary_bar_height cents, peak %>px"></div>
+            <% end %>
+          <% end %>
+        </div>
+        <div class="flex flex-col items-center text-xs">
+          <span class="text-secondary group-hover:font-medium group-hover:text-primary"><%= month_abbreviation month.month %></span>
+          <% if month.partial? %>
+            <span class="text-tertiary">so far</span>
+          <% end %>
+          <% if month.kept %>
+            <span class="text-success">Kept</span>
+            <span class="font-mono text-success"><%= money month.kept, whole: true %></span>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</section>
