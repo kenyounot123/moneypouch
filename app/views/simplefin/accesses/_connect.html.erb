@@ -4,9 +4,9 @@
   <% end %>
 
   <div class="flex flex-col rounded-lg border border-secondary bg-level-2 shadow-control">
-    <div class="flex items-start gap-3.5 border-b border-secondary p-5">
+    <div class="flex flex-wrap items-start gap-3.5 border-b border-secondary p-5">
       <span class="flex size-5.5 shrink-0 items-center justify-center rounded-sm bg-level-3 font-amount text-xs text-secondary">1</span>
-      <div class="flex min-w-0 flex-1 flex-col gap-1 pt-0.5">
+      <div class="flex min-w-0 flex-1 basis-[240px] flex-col gap-1 pt-0.5">
         <p class="text-md font-medium">Get a setup token from SimpleFIN</p>
         <ol class="flex list-decimal flex-col gap-1 pl-4 text-sm text-tertiary">
           <li>Sign up with your email, then open the login link SimpleFIN sends you.</li>
@@ -15,7 +15,7 @@
           <li>Copy the token. Each one works only once.</li>
         </ol>
       </div>
-      <%= link_to_simplefin "Open SimpleFIN", SimplefinHelper::SIMPLEFIN_CREATE_URL %>
+      <div class="shrink-0 max-sm:pl-9"><%= link_to_simplefin "Open SimpleFIN", SimplefinHelper::SIMPLEFIN_CREATE_URL %></div>
     </div>
 
     <%= form_with url: simplefin_access_path, scope: :simplefin_access, class: "flex items-start gap-3.5 p-5" do |form| %>
