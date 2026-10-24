@@ -94,11 +94,17 @@ class User < ApplicationRecord
   end
 
   # Reads the loaded rules, so one sync that shares this user across its accounts loads them once.
-  def categorization_for(name)
-    rule = rules.find { |rule| rule.matches?(name) }
+  def rule_for(name)
+    rules.find { |rule| rule.matches?(name) }
+  end
+
+  def categorization_for(name, paired: false)
+    rule = rule_for(name)
 
     if rule
       rule.categorization
+    elsif paired
+      Transaction::Categorization.transfer
     else
       Transaction::Categorization.new(category: transactions.last_category_for(name.to_s))
     end

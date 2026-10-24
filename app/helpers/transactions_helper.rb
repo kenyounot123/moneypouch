@@ -8,10 +8,19 @@ module TransactionsHelper
   end
 
   def categorization_label(transaction)
+    if transaction.transfer? && transaction.paired?
+      "Transfer #{transaction.money_in? ? "from" : "to"} #{transaction.paired_account_name}"
+    else
+      category_field_value(transaction) || "Uncategorized"
+    end
+  end
+
+  # What the category picker opens with, so a paired transfer's longer label is never read back as a new category.
+  def category_field_value(transaction)
     if transaction.transfer?
       "Transfer"
     else
-      transaction.category&.name || "Uncategorized"
+      transaction.category&.name
     end
   end
 

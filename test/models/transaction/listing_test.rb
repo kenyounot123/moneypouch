@@ -12,6 +12,17 @@ class Transaction::ListingTest < ActiveSupport::TestCase
     assert_equal({ Date.new(2026, 10, 1) => 199_450 }, listing.day_totals)
   end
 
+  test "day totals leave out transfers and excluded rows, so a day of only those reads zero" do
+    user = users(:one)
+    user.transactions.create!(name: "To savings", amount_in_cents: -10_000, occurred_on: "2026-10-02", transfer: true)
+    user.transactions.create!(name: "Work trip", amount_in_cents: -30_000, occurred_on: "2026-10-02", excluded: true)
+    user.transactions.create!(name: "Lunch", amount_in_cents: -1_200, occurred_on: "2026-10-03")
+    listing = listing_for({})
+
+    assert_equal [ 199_450, -1_200, 0 ], [ Date.new(2026, 10, 1), Date.new(2026, 10, 3), Date.new(2026, 10, 2) ].map { |date| listing.day_totals[date] }
+    assert_equal listing.net, listing.day_totals.values.sum
+  end
+
   test "narrows by query and category" do
     assert_equal [ "Blue Bottle" ], listing_for(query: "bottle").transactions.map(&:name)
     assert_equal [ "Paycheck" ], listing_for(category: categories(:income).id.to_s).transactions.map(&:name)

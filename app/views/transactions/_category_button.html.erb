@@ -1,3 +1,3 @@
 <button type="button" class="<%= local_assigns[:class] %>" data-action="category-picker#open" data-category-picker-url-param="<%= transaction_categorization_path(transaction) %>"
-  data-category-picker-category-param="<%= categorization_label(transaction) unless transaction.categorization.none? %>"
+  data-category-picker-category-param="<%= category_field_value(transaction) %>"
   data-category-picker-money-in-param="<%= transaction.money_in? %>"><%= label %></button>

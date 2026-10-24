@@ -14,7 +14,7 @@ class Transaction::Listing
   end
 
   def transactions
-    @transactions ||= page.transactions.listed.includes(bank_transaction: :bank_account)
+    @transactions ||= page.transactions.listed.includes(bank_transaction: [ :bank_account, { transfer_partner: :bank_account } ])
   end
 
   def count
@@ -38,7 +38,7 @@ class Transaction::Listing
   end
 
   def day_totals
-    @day_totals ||= shown.group(:occurred_on).sum(:amount_in_cents)
+    @day_totals ||= Hash.new(0).merge(shown.counted.group(:occurred_on).sum(:amount_in_cents))
   end
 
   private

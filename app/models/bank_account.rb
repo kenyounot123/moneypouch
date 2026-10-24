@@ -58,8 +58,15 @@ class BankAccount < ApplicationRecord
       simplefin_access.user
     end
 
-    def add_new(simplefin_transaction)
-      owner.transactions.add_from_bank(simplefin_transaction, currency:, categorization: owner.categorization_for(simplefin_transaction.name))
+    # A rule on the name decides the row, so only a row without one looks for its other half.
+    def partner_for(simplefin_transaction)
+      unless owner.rule_for(simplefin_transaction.name)
+        owner.bank_transactions.partner_for(simplefin_transaction.amount_in_cents, currency, simplefin_transaction.occurred_on, other_than: self)
+      end
+    end
+
+    def add_new(simplefin_transaction, partner:)
+      owner.transactions.add_from_bank(simplefin_transaction, currency:, categorization: owner.categorization_for(simplefin_transaction.name, paired: partner.present?))
     end
 
     def add_transaction(simplefin_transaction, sync:)
@@ -72,10 +79,11 @@ class BankAccount < ApplicationRecord
       unless bank_transactions.exists?(external_id: simplefin_transaction.id)
         transaction do
           match = owner.transactions.match_for(simplefin_transaction.amount_in_cents, currency, simplefin_transaction.occurred_on)
+          partner = partner_for(simplefin_transaction) unless match
 
-          bank_transactions.create!(
+          bank_transaction = bank_transactions.create!(
             simplefin_sync: sync,
-            transaction_id: (match || add_new(simplefin_transaction)).id,
+            transaction_id: (match || add_new(simplefin_transaction, partner:)).id,
             matched: match.present?,
             external_id: simplefin_transaction.id,
             amount_in_cents: simplefin_transaction.amount_in_cents,
@@ -84,6 +92,8 @@ class BankAccount < ApplicationRecord
             payee: simplefin_transaction.payee,
             name_key: simplefin_transaction.name.key
           )
+
+          bank_transaction.pair_with(partner) if partner
         end
       end
     end

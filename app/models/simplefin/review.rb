@@ -47,6 +47,6 @@ class Simplefin::Review
 
   private
     def transactions
-      @syncs.added_transactions.listed.includes(bank_transaction: :bank_account)
+      @syncs.added_transactions.listed.includes(bank_transaction: [ :bank_account, { transfer_partner: :bank_account } ])
     end
 end

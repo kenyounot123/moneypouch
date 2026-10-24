@@ -48,12 +48,20 @@ module Transaction::Bankable
     from_bank? && bank_transaction.unmatched?
   end
 
+  def paired?
+    from_bank? && bank_transaction.paired?
+  end
+
+  def paired_account_name
+    bank_transaction.transfer_partner.bank_account_full_name
+  end
+
   def needs_category?
     added_by_bank? && category_id.nil? && !transfer?
   end
 
   def offers_rule?
-    added_by_bank? && !categorization.none? && !user.remembers?(bank_transaction_name, categorization)
+    added_by_bank? && !paired? && !categorization.none? && !user.remembers?(bank_transaction_name, categorization)
   end
 
   def make_rule
