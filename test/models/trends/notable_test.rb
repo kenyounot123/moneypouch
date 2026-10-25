@@ -1,6 +1,6 @@
 require "test_helper"
 
-class Trends::NotesTest < ActiveSupport::TestCase
+class Trends::NotableTest < ActiveSupport::TestCase
   setup do
     @user = users(:one)
     @user.transactions.destroy_all
@@ -12,7 +12,7 @@ class Trends::NotesTest < ActiveSupport::TestCase
 
     note = below_usual
 
-    assert_equal [ :below_usual, :good, "You spent less than usual on Food in September.", category_path(categories(:food), month: "2026-09") ], note.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :below_usual, :good, "You spent less than usual on Food in September.", categories(:food), september ], note.to_h.values_at(:kind, :tone, :text, :category, :month)
   end
 
   test "below usual: needs at least $20 under" do
@@ -50,7 +50,7 @@ class Trends::NotesTest < ActiveSupport::TestCase
 
     note = lowest_since
 
-    assert_equal [ :lowest_since, :good, "September was your lowest Food month since March.", category_path(categories(:food), month: "2026-09") ], note.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :lowest_since, :good, "September was your lowest Food month since March.", categories(:food), september ], note.to_h.values_at(:kind, :tone, :text, :category, :month)
   end
 
   test "lowest since: needs four higher months right before" do
@@ -92,7 +92,7 @@ class Trends::NotesTest < ActiveSupport::TestCase
   test "positive net months: counts the last six full months with a positive net" do
     positive_net_in "2026-09", "2026-07", "2026-04"
 
-    assert_equal [ :positive_net_months, :good, "Your net was positive in 3 of the last 6 months.", nil ], positive_net_months.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :positive_net_months, :good, "Your net was positive in 3 of the last 6 months.", nil ], positive_net_months.to_h.values_at(:kind, :tone, :text, :category)
   end
 
   test "positive net months: stays quiet below three, and leaves out this month and the ones before the six" do
@@ -104,7 +104,7 @@ class Trends::NotesTest < ActiveSupport::TestCase
   test "charge stopped: a monthly charge that last came the month before last month, once this month is past its day" do
     spotify
 
-    assert_equal [ :charge_stopped, :neutral, "Your Spotify charge stopped.", nil ], charge_stopped.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :charge_stopped, :neutral, "Your Spotify charge stopped.", nil ], charge_stopped.to_h.values_at(:kind, :tone, :text, :category)
   end
 
   test "charge stopped: waits for this month to pass the usual day" do
@@ -130,7 +130,7 @@ class Trends::NotesTest < ActiveSupport::TestCase
     add 5_000, "2026-09-02", "Side gig"
     add 9_000, "2026-10-02", "Refund"
 
-    assert_equal [ :new_income, :good, "New income from Refund.", nil ], new_income.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :new_income, :good, "New income from Refund.", nil ], new_income.to_h.values_at(:kind, :tone, :text, :category)
   end
 
   test "new income: says nothing for a source seen before last month" do
@@ -141,22 +141,27 @@ class Trends::NotesTest < ActiveSupport::TestCase
     assert_nil new_income
   end
 
-  test "keeps at most four, in the order of the registry" do
-    detectors = Array.new(6) { |index| ->(_) { Trends::Note.new(kind: :"k#{index}", tone: :good, text: "Note #{index}.") } }
+  test "keeps at most four, lowest since first and new income last" do
+    fun = @user.categories.create!(name: "Fun")
+    food_months 9_000, 8_000, 7_000, 6_000, 5_000, 4_000
+    [ 10_000, 10_000, 10_000, 4_000, 10_000, 5_000 ].each.with_index(4) { |cents, month| add(-cents, format("2026-%02d-10", month), "Show", fun) }
+    (4..9).each { |month| add 50_000, format("2026-%02d-01", month), "Pay" }
+    spotify
+    add 5_000, "2026-10-02", "Side gig"
 
-    assert_equal %i[ k0 k1 k2 k3 ], Trends::Notes.for(trends, detectors:).map(&:kind)
+    assert_equal %i[ lowest_since below_usual positive_net_months charge_stopped ], trends.notes.map(&:kind)
   end
 
-  test "keeps one note per category and month, the first in the registry" do
+  test "keeps one note per category and month, lowest since over below usual" do
     food_months 10_000, 10_000, 10_000, 10_000, 10_000, 5_000
 
-    assert_equal [ :lowest_since ], Trends::Notes.for(trends).map(&:kind)
+    assert_equal [ :lowest_since ], trends.notes.map(&:kind)
   end
 
-  test "drops the detectors with nothing to say" do
-    detectors = [ ->(_) { }, ->(_) { Trends::Note.new(kind: :only, tone: :neutral, text: "Fine.") } ]
+  test "leaves out the notes with nothing to say" do
+    spotify
 
-    assert_equal [ :only ], Trends::Notes.for(trends, detectors:).map(&:kind)
+    assert_equal [ :charge_stopped ], trends.notes.map(&:kind)
   end
 
   private
@@ -165,19 +170,19 @@ class Trends::NotesTest < ActiveSupport::TestCase
     end
 
     def below_usual
-      Trends::Notes::BelowUsual.call(trends)
+      trends.below_usual_note
     end
 
     def lowest_since
-      Trends::Notes::LowestSince.call(trends)
+      trends.lowest_since_note
     end
 
     def new_income
-      Trends::Notes::NewIncome.call(trends)
+      trends.new_income_note
     end
 
     def charge_stopped(today = @today)
-      Trends::Notes::ChargeStopped.call(Trends.new(@user.transactions, today:))
+      Trends.new(@user.transactions, today:).charge_stopped_note
     end
 
     def spotify
@@ -185,10 +190,9 @@ class Trends::NotesTest < ActiveSupport::TestCase
     end
 
     def positive_net_months
-      Trends::Notes::PositiveNetMonths.call(trends)
+      trends.positive_net_months_note
     end
 
-    # Food spending per month, ending with September and going back.
     def food_months(*cents)
       cents.reverse.each_with_index do |amount, back|
         add(-amount, (Date.new(2026, 9, 10) << back).to_s, "Meal", categories(:food)) if amount.positive?
@@ -204,7 +208,7 @@ class Trends::NotesTest < ActiveSupport::TestCase
       @user.transactions.create!(name:, amount_in_cents: cents, occurred_on:, category:)
     end
 
-    def category_path(...)
-      Rails.application.routes.url_helpers.category_path(...)
+    def september
+      Period.month("2026-09", today: @today)
     end
 end

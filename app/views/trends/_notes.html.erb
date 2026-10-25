@@ -7,8 +7,8 @@
     <ul class="flex flex-col gap-2">
       <% trends.notes.each do |note| %>
         <li class="<%= note_color note %>">
-          <% if note.path %>
-            <%= link_to note.text, note.path, class: "hover:underline" %>
+          <% if note.category %>
+            <%= link_to note.text, category_path(note.category, month: month_param(note.month)), class: "hover:underline" %>
           <% else %>
             <%= note.text %>
           <% end %>
