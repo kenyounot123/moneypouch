@@ -124,14 +124,14 @@
   --text-*: initial;
   --text-xs: 12px;
   --text-xs--line-height: 16px;
-  --text-sm: 13px;
-  --text-sm--line-height: 16px;
-  --text-base: 14px;
-  --text-base--line-height: 18px;
+  --text-sm: 14px;
+  --text-sm--line-height: 20px;
+  --text-base: 15px;
+  --text-base--line-height: 22px;
   --text-md: 16px;
-  --text-md--line-height: 20px;
+  --text-md--line-height: 24px;
   --text-lg: 18px;
-  --text-lg--line-height: 22px;
+  --text-lg--line-height: 26px;
 
   --tracking-*: initial;
 
@@ -341,15 +341,6 @@
 
   :root[data-mode="dark"] {
     color-scheme: dark;
-  }
-
-  @media (max-width: 639px) {
-    :root {
-      --text-sm: 14px;
-      --text-sm--line-height: 18px;
-      --text-base: 15px;
-      --text-base--line-height: 20px;
-    }
   }
 
   body {
