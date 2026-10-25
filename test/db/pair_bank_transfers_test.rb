@@ -70,6 +70,16 @@ class PairBankTransfersTest < ActiveSupport::TestCase
     assert_equal 4, Transaction.transfers.count
   end
 
+  test "a row a rule already marked as a transfer pairs too" do
+    out = add(@checking, -5_000, 3)
+    incoming = add(@card, 5_000, 3, transfer: true)
+
+    pair_existing_rows
+
+    assert_equal [ incoming.id, out.id ], [ out.reload.transfer_partner_id, incoming.reload.transfer_partner_id ]
+    assert out.linked_transaction.transfer?
+  end
+
   test "rows the sync would not pair are left alone" do
     other = connect_simplefin(users(:two))
     stranger = other.bank_accounts.find_by!(external_id: "Demo Checking")
@@ -79,7 +89,6 @@ class PairBankTransfersTest < ActiveSupport::TestCase
       add(@card, 5_000, 3, matched: true),
       add(@card, 5_000, 3, discarded_at: Time.current),
       add(@card, 5_000, 3, category: categories(:food)),
-      add(@card, 5_000, 3, transfer: true),
       add(@card, 5_000, 9),
       add(@card, 5_000, 3, currency: "EUR"),
       add(stranger, 5_000, 3, owner: users(:two)),
@@ -92,7 +101,7 @@ class PairBankTransfersTest < ActiveSupport::TestCase
     end
 
     assert_equal [ out, *ineligible, *zeros ].map { |bank_row| bank_row.linked_transaction.transfer? },
-      [ false, false, false, false, false, true, false, false, false, false, false, false ]
+      [ false, false, false, false, false, false, false, false, false, false, false ]
   end
 
   private
