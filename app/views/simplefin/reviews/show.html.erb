@@ -26,7 +26,7 @@
           <nav class="flex flex-wrap gap-1 self-start rounded-[10px] bg-level-3 p-1" aria-label="Lists">
             <% Simplefin::Review::LISTS.each do |list| %>
               <%= link_to simplefin_review_path(show: list), aria: { current: list == @list ? "true" : nil },
-                class: [ "flex shrink-0 items-baseline gap-2 rounded-sm px-3 py-1.5 text-sm whitespace-nowrap", list == @list ? "bg-level-2 font-medium text-primary shadow-control" : "text-secondary hover:text-primary" ] do %>
+                class: [ "flex shrink-0 items-baseline gap-2 rounded-sm px-3 py-1.5 text-sm whitespace-nowrap", list == @list ? "bg-level-2 text-primary shadow-control" : "text-secondary hover:text-primary" ] do %>
                 <%= review_list_title list %>
                 <span class="font-amount text-xs font-normal text-tertiary"><%= @review.transactions_in(list).count %></span>
               <% end %>

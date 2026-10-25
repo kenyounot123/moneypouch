@@ -15,8 +15,8 @@
         <div class="flex items-center justify-between gap-6">
           <p class="text-md">Mode</p>
           <div class="flex w-[200px] gap-1 rounded-md bg-level-3 p-1">
-            <%= button_to "Light", mode_path, method: :patch, params: { mode: "light" }, form: { class: "flex-1" }, data: { action: "click->theme#chooseMode", mode: "light" }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary in-data-[mode=light]:bg-level-2 in-data-[mode=light]:font-medium in-data-[mode=light]:text-primary in-data-[mode=light]:shadow-control" %>
-            <%= button_to "Dark", mode_path, method: :patch, params: { mode: "dark" }, form: { class: "flex-1" }, data: { action: "click->theme#chooseMode", mode: "dark" }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary in-data-[mode=dark]:bg-level-2 in-data-[mode=dark]:font-medium in-data-[mode=dark]:text-primary in-data-[mode=dark]:shadow-control" %>
+            <%= button_to "Light", mode_path, method: :patch, params: { mode: "light" }, form: { class: "flex-1" }, data: { action: "click->theme#chooseMode", mode: "light" }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary in-data-[mode=light]:bg-level-2 in-data-[mode=light]:text-primary in-data-[mode=light]:shadow-control" %>
+            <%= button_to "Dark", mode_path, method: :patch, params: { mode: "dark" }, form: { class: "flex-1" }, data: { action: "click->theme#chooseMode", mode: "dark" }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary in-data-[mode=dark]:bg-level-2 in-data-[mode=dark]:text-primary in-data-[mode=dark]:shadow-control" %>
           </div>
         </div>
 
@@ -27,7 +27,7 @@
           </div>
           <div class="grid grid-cols-4 gap-2 sm:grid-cols-7">
             <% User::THEMES.each do |theme| %>
-              <%= button_to theme_path, method: :patch, params: { theme: }, form: { class: "flex" }, data: { action: "click->theme#chooseTheme", theme: }, aria: { pressed: Current.user.theme == theme }, class: "group flex w-full cursor-pointer flex-col items-center gap-2 rounded-md p-1.5 text-sm text-secondary hover:bg-level-3 hover:text-primary aria-pressed:font-medium aria-pressed:text-primary" do %>
+              <%= button_to theme_path, method: :patch, params: { theme: }, form: { class: "flex" }, data: { action: "click->theme#chooseTheme", theme: }, aria: { pressed: Current.user.theme == theme }, class: "group flex w-full cursor-pointer flex-col items-center gap-2 rounded-md p-1.5 text-sm text-secondary hover:bg-level-3 hover:text-primary aria-pressed:text-primary" do %>
                 <span class="block aspect-square w-full rounded-sm border border-primary bg-linear-135 from-(--swatch-light) from-50% to-(--swatch-dark) to-50% shadow-control group-aria-pressed:outline-2 group-aria-pressed:outline-offset-2 group-aria-pressed:outline-(--text-color-primary)"></span>
                 <%= theme.capitalize %>
               <% end %>

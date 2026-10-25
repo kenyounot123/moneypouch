@@ -4,7 +4,7 @@
       <% Chart::KINDS.each do |kind| %>
         <% active = kind == chart.kind %>
         <%= link_to kind.capitalize, root_path(period: period.kind, chart: Chart.new(kind)), aria: { current: active ? "true" : nil },
-          class: [ "rounded-sm px-2.5 py-1.25 text-sm", active ? "bg-level-2 font-medium text-primary shadow-control" : "text-secondary hover:text-primary" ] %>
+          class: [ "rounded-sm px-2.5 py-1.25 text-sm", active ? "bg-level-2 text-primary shadow-control" : "text-secondary hover:text-primary" ] %>
       <% end %>
     </nav>
     <div class="text-sm text-tertiary">
