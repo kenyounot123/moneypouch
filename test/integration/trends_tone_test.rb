@@ -38,7 +38,7 @@ class TrendsToneTest < ActionDispatch::IntegrationTest
     assert_select "main", text: /Food/
     assert_select "main", text: /was \$15.49/
     assert_no_match MoneyHelper::MINUS, response.body
-    assert_no_match BANNED_STYLES, response.body
+    assert_no_match BANNED_STYLES, css_select("main").to_html
     assert_no_match BANNED_WORDS, css_select("main").text
     assert_no_match ARROWS, css_select("main").text
     assert_no_match "%", css_select("main").text

@@ -14,6 +14,23 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[data-mode=dark]", text: "Dark"
   end
 
+  test "the sidebar opens the add palette here too" do
+    get settings_url
+
+    assert_select "aside button[aria-haspopup=dialog][data-action='dialog-opener#open'][data-dialog-opener-id-param=palette]", text: /Add transaction/
+    assert_select "header button[data-dialog-opener-id-param=palette]", text: /Add/
+    assert_select "dialog#palette form[action=?] input[name=shorthand]", transactions_path
+  end
+
+  test "an add from here returns here with its undo" do
+    post transactions_url, params: { shorthand: "tea 3", idempotency_key: "key-1" }, headers: { "HTTP_REFERER" => settings_url }
+
+    assert_redirected_to settings_url
+    follow_redirect!
+    assert_select "#toast_transaction_#{Transaction.order(:id).last.id}", text: /Added\s+tea\s+\$3.00\s+Undo/
+    assert_select "dialog#palette input[name=shorthand][value='']"
+  end
+
   test "offers every theme and marks the chosen one" do
     users(:one).choose_theme("moss")
 
