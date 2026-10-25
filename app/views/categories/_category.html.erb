@@ -8,9 +8,6 @@
     <% if category.default_income? %>
       <span class="text-xs text-tertiary" title="Money in with no other category lands in <%= category.name %>, so it keeps its name">Default</span>
     <% end %>
-    <% unless active %>
-      <span class="shrink-0 text-xs text-tertiary" data-field="last-transaction"><%= last_transaction usage.last_on(category) %></span>
-    <% end %>
   </p>
 
   <div class="grid h-5 grid-cols-12 items-end gap-0.5 max-md:hidden" aria-hidden="true">
