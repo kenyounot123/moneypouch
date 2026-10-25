@@ -4,19 +4,19 @@
   </div>
 
   <div class="flex items-center gap-4 text-xs text-tertiary" aria-hidden="true">
-    <span class="flex-1 max-md:hidden"></span>
-    <div class="grid flex-1 grid-cols-12 gap-0.5 text-center md:w-[22rem] md:flex-none">
+    <span class="flex-1 max-lg:hidden"></span>
+    <div class="grid flex-1 grid-cols-12 gap-0.5 text-center lg:w-[22rem] lg:flex-initial">
       <% trends.periods.each do |period| %>
-        <span><%= month_abbreviation(period).first %><span class="max-md:hidden"><%= month_abbreviation(period)[1..] %></span></span>
+        <span><%= month_abbreviation(period).first %><span class="max-lg:hidden"><%= month_abbreviation(period)[1..] %></span></span>
       <% end %>
     </div>
-    <span class="w-28 shrink-0 text-right max-md:hidden">Present month</span>
+    <span class="w-28 shrink-0 text-right max-lg:hidden">Present month</span>
   </div>
 
   <ul class="flex flex-col gap-3">
     <% trends.spending_lines.each do |line| %>
       <% peak = line.series.values.max %>
-      <li class="flex flex-wrap items-center gap-x-4 gap-y-1.5 md:flex-nowrap">
+      <li class="flex flex-wrap items-center gap-x-4 gap-y-1.5 lg:flex-nowrap">
         <p class="min-w-0 flex-1 truncate">
           <% if line.category %>
             <%= link_to line.label, category_path(line.category, month: month_param(trends.current)), class: "hover:underline" %>
@@ -24,7 +24,7 @@
             <%= line.label %>
           <% end %>
         </p>
-        <div class="order-last grid w-full grid-cols-12 gap-0.5 md:order-none md:w-[22rem]" aria-hidden="true">
+        <div class="order-last grid w-full grid-cols-12 gap-0.5 lg:order-none lg:w-[22rem]" aria-hidden="true">
           <% line.series.each do |period, cents| %>
             <div class="<%= class_names "h-6 rounded-[3px]", heat_class(cents, peak), "outline-1 outline-dashed outline-offset-1 outline-(--background-color-data)": period.current? %>" title="<%= month_abbreviation period %> · <%= money cents %>"></div>
           <% end %>
@@ -39,25 +39,27 @@
     <% end %>
   </ul>
 
-  <table class="sr-only">
-    <caption>Spending by category and month</caption>
-    <thead>
-      <tr>
-        <th scope="col">Category</th>
-        <% trends.periods.each do |period| %>
-          <th scope="col"><%= month_title period %><%= " (present)" if period.current? %></th>
-        <% end %>
-      </tr>
-    </thead>
-    <tbody>
-      <% trends.spending_lines.each do |line| %>
+  <div class="sr-only">
+    <table>
+      <caption>Spending by category and month</caption>
+      <thead>
         <tr>
-          <th scope="row"><%= line.label %></th>
-          <% line.series.each_value do |cents| %>
-            <td><%= money cents %></td>
+          <th scope="col">Category</th>
+          <% trends.periods.each do |period| %>
+            <th scope="col"><%= month_title period %><%= " (present)" if period.current? %></th>
           <% end %>
         </tr>
-      <% end %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <% trends.spending_lines.each do |line| %>
+          <tr>
+            <th scope="row"><%= line.label %></th>
+            <% line.series.each_value do |cents| %>
+              <td><%= money cents %></td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 </section>
