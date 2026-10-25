@@ -6,14 +6,16 @@
         <p class="text-sm text-tertiary">Last synced <%= short_date synced_at.to_date %></p>
       <% end %>
     <% else %>
-      <div class="flex items-baseline gap-3">
+      <div class="flex items-center gap-3">
         <% if synced_at %>
           <p class="text-sm text-tertiary"><%= synced_ago synced_at %></p>
         <% end %>
         <% if access.syncing? %>
-          <button type="button" disabled class="header-button">Syncing…</button>
+          <button type="button" disabled class="header-button flex items-center gap-1.5"><%= icon_tag "sync", class: "size-3.5 animate-spin" %>Syncing…</button>
         <% elsif access.syncable? %>
-          <%= button_to "Sync now", simplefin_sync_path, form: { data: { turbo_frame: "_top" } }, class: "header-button" %>
+          <%= button_to simplefin_sync_path, form: { data: { turbo_frame: "_top" } }, class: "header-button flex items-center gap-1.5" do %>
+            <%= icon_tag "sync", class: "size-3.5" %>Sync now
+          <% end %>
         <% end %>
       </div>
     <% end %>

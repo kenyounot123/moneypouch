@@ -226,7 +226,7 @@
   @apply size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary pointer-coarse:size-10;
 }
 
-/* The Categories list's columns: name, the last 12 months, share of the section, total, and the row's menu. */
+/* The Categories list's columns: name, the last 12 months, its part of the section's total, total, and the row's menu. */
 @utility category-columns {
   @apply grid grid-cols-[minmax(0,1fr)_6.5rem_2rem] items-center gap-x-4 md:grid-cols-[minmax(0,1fr)_7.5rem_6rem_6.5rem_2rem];
 }
@@ -314,6 +314,7 @@
   .icon--settings { --svg: url("icons/settings.svg"); }
   .icon--sidebar { --svg: url("icons/sidebar.svg"); }
   .icon--spinner { --svg: url("icons/spinner.svg"); }
+  .icon--sync { --svg: url("icons/sync.svg"); }
   .icon--transactions { --svg: url("icons/transactions.svg"); }
   .icon--transfer { --svg: url("icons/transfer.svg"); }
   .icon--trends { --svg: url("icons/trends.svg"); }
