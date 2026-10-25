@@ -41,7 +41,7 @@
             <div class="flex items-center gap-4">
               <p class="w-28 shrink-0 truncate"><%= category&.name || "Uncategorized" %></p>
               <div class="h-2.5 flex-1 rounded-bar bg-data-track">
-                <div data-field="category-bar" class="h-full rounded-bar <%= category_color category, index %>" style="width: max(3px, round(<%= (cents * 100.0 / categories.first.last).round(1) %>%, 1px))"></div>
+                <div data-field="category-bar" class="h-full rounded-bar <%= category_color index %>" style="width: max(3px, round(<%= (cents * 100.0 / categories.first.last).round(1) %>%, 1px))"></div>
               </div>
               <p class="w-22 shrink-0 text-right font-amount"><%= money cents %></p>
               <p class="w-10 shrink-0 text-right text-sm text-tertiary"><%= share_of cents, categories.sum(&:last) %></p>

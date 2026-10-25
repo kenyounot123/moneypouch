@@ -45,9 +45,8 @@ class WelcomeHelperTest < ActionView::TestCase
     assert_equal "bg-data-soft", column_color(day, day - 1, day + 1)
   end
 
-  test "colors uncategorized spending gold and the biggest category dark" do
-    assert_equal [ "bg-highlight", "bg-highlight", "bg-data-strong", "bg-data" ],
-      [ category_color(nil, 0), category_color(nil, 3), category_color(categories(:food), 0), category_color(categories(:food), 1) ]
+  test "colors the biggest category dark and the rest a step lighter" do
+    assert_equal [ "bg-data-strong", "bg-data", "bg-data" ], [ category_color(0), category_color(1), category_color(3) ]
   end
 
   test "labels every column of a short period" do
