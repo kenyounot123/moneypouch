@@ -23,6 +23,24 @@ class Transaction::ListingTest < ActiveSupport::TestCase
     assert_equal listing.net, listing.day_totals.values.sum
   end
 
+  test "totals agree with the per-scope sums over transfers, excluded rows, uncategorized money and both kinds of category" do
+    user = users(:one)
+    user.transactions.create!(name: "To savings", amount_in_cents: -10_000, occurred_on: "2026-10-02", transfer: true)
+    user.transactions.create!(name: "Work trip", amount_in_cents: -30_000, occurred_on: "2026-10-02", excluded: true)
+    user.transactions.create!(name: "Cash out", amount_in_cents: -1_200, occurred_on: "2026-10-03")
+    user.transactions.create!(name: "Cash in", amount_in_cents: 700, occurred_on: "2026-10-03")
+    user.transactions.create!(name: "Groceries refund", amount_in_cents: 900, occurred_on: "2026-10-04", category: categories(:food))
+    user.transactions.create!(name: "Bonus clawback", amount_in_cents: -4_000, occurred_on: "2026-10-04", category: categories(:income))
+    user.transactions.create!(name: "Unspent", amount_in_cents: 0, occurred_on: "2026-10-05")
+    shown = user.transactions.occurred_in(@month.range)
+    listing = listing_for("")
+
+    assert_equal [ shown.count, shown.spent, shown.income, shown.net ], [ listing.count, listing.spent, listing.income, listing.net ]
+    counted_days = shown.counted.group(:occurred_on).sum(:amount_in_cents)
+    assert_equal counted_days, listing.day_totals.slice(*counted_days.keys)
+    assert_equal [ 9, 550 + 1_200 - 900, 200_000 + 700 - 4_000, 199_450 - 1_200 + 700 + 900 - 4_000 ], [ listing.count, listing.spent, listing.income, listing.net ]
+  end
+
   test "narrows by name, note and category" do
     assert_equal [ "Blue Bottle" ], listing_for("bottle").transactions.map(&:name)
     assert_equal [ "Paycheck" ], listing_for("#income").transactions.map(&:name)

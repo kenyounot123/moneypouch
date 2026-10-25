@@ -8,7 +8,7 @@ class Transaction::PageTest < ActiveSupport::TestCase
   end
 
   test "fills a page with whole days until it holds at least 100 rows" do
-    page = Transaction::Page.new(@month, before: nil)
+    page = page_for(@month, before: nil)
 
     assert_equal 120, page.transactions.count
     assert_equal [ Date.new(2025, 3, 28), Date.new(2025, 3, 30) ], page.transactions.pluck(:occurred_on).minmax
@@ -16,14 +16,14 @@ class Transaction::PageTest < ActiveSupport::TestCase
   end
 
   test "the next page starts the day before the last one" do
-    page = Transaction::Page.new(@month, before: Date.new(2025, 3, 28))
+    page = page_for(@month, before: Date.new(2025, 3, 28))
 
     assert_equal 50, page.transactions.count
     assert_nil page.next_before
   end
 
   test "a month that fits on one page has no next page" do
-    page = Transaction::Page.new(@user.transactions.occurred_in(Date.new(2025, 3, 26)..Date.new(2025, 3, 27)), before: nil)
+    page = page_for(@user.transactions.occurred_in(Date.new(2025, 3, 26)..Date.new(2025, 3, 27)), before: nil)
 
     assert_equal 50, page.transactions.count
     assert_nil page.next_before
@@ -32,13 +32,17 @@ class Transaction::PageTest < ActiveSupport::TestCase
   test "a page that no longer starts where the one before ends shows nothing" do
     add_rows "2025-03-30" => 100
 
-    page = Transaction::Page.new(@month, before: Date.new(2025, 3, 28))
+    page = page_for(@month, before: Date.new(2025, 3, 28))
 
     assert_empty page.transactions
     assert_nil page.next_before
   end
 
   private
+    def page_for(transactions, before:)
+      Transaction::Page.new(transactions, counts: transactions.group(:occurred_on).order(occurred_on: :desc).count, before:)
+    end
+
     def add_rows(counts)
       rows = counts.flat_map do |date, count|
         Array.new(count) { |index| { user_id: @user.id, name: "Row #{index}", amount_in_cents: -100, occurred_on: date } }
