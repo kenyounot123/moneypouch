@@ -6,8 +6,6 @@ class TransactionsController < ApplicationController
   def index
     @month = Period.month(params[:month], today: Date.current)
     @listing = Transaction::Listing.new(Current.user, period: @month, filters:, before:)
-    @voucher = Voucher.new(flash[:shorthand], user: Current.user, today: Date.current)
-    @added = Current.user.transactions.find_by(id: flash[:added_id])
     @import = Current.user.imports.completed.find_by(id: flash[:import_id])
     @categories = Current.user.categories.alphabetically
     @bank_accounts = Current.user.bank_accounts.order(:name)

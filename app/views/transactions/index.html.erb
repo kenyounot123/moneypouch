@@ -4,15 +4,11 @@
 <div class="flex min-h-dvh max-md:flex-col">
   <%= render "shared/sidebar" %>
 
-  <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14" data-composer="docked">
+  <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14">
     <button type="button" aria-label="Back to top" data-controller="back-to-top" data-action="scroll@window->back-to-top#toggle:passive back-to-top#scroll"
-      class="invisible sticky bottom-20 z-20 order-last -mb-4 flex size-9 cursor-pointer items-center justify-center self-end rounded-full border border-primary bg-level-2 text-secondary opacity-0 shadow-control transition-[opacity,visibility] hover:border-(--ring-color-focus) hover:text-primary data-shown:visible data-shown:opacity-100 md:bottom-8 md:mb-0 lg:mt-2 lg:-mb-18">
+      class="invisible sticky bottom-6 z-20 order-last flex size-9 cursor-pointer items-center justify-center self-end rounded-full border border-primary bg-level-2 text-secondary opacity-0 shadow-control transition-[opacity,visibility] hover:border-(--ring-color-focus) hover:text-primary data-shown:visible data-shown:opacity-100 md:bottom-8">
       <%= icon_tag "arrow-up" %>
     </button>
-
-    <div class="sticky bottom-4 z-20 order-last mt-auto md:contents">
-      <%= render "shared/palette", voucher: @voucher, added: @added, category_names: @categories.map(&:name) %>
-    </div>
 
     <% if @import %>
       <%= render layout: "shared/toast", locals: { id: dom_id(@import, :toast) } do %>
