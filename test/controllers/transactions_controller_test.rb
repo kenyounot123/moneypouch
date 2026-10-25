@@ -265,6 +265,185 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "sorts by date either way and keeps the days, their totals and the day pages" do
+    add_sortable_rows
+
+    get transactions_url(month: "2026-10", sort: "date", direction: "desc")
+    assert_equal [ "Wed, Oct 7", "Tue, Oct 6", "Sat, Oct 3", "Fri, Oct 2", "Thu, Oct 1" ], css_select("main section h2").map(&:text)
+    assert_equal [ "avocado", "Card payment", "Dentist", "Cherry", "Paycheck", "Blue Bottle" ], row_names
+    assert_select "main section[aria-label='Sat, Oct 3'] [data-field=day-total]", text: "$380.00"
+
+    get transactions_url(month: "2026-10", sort: "date", direction: "asc")
+    assert_equal [ "Thu, Oct 1", "Fri, Oct 2", "Sat, Oct 3", "Tue, Oct 6", "Wed, Oct 7" ], css_select("main section h2").map(&:text)
+    assert_equal [ "Blue Bottle", "Paycheck", "Dentist", "Cherry", "Card payment", "avocado" ], row_names
+  end
+
+  test "sorts by name without regard to case" do
+    add_sortable_rows
+
+    get transactions_url(month: "2026-10", sort: "name")
+    assert_equal [ "avocado", "Blue Bottle", "Card payment", "Cherry", "Dentist", "Paycheck" ], row_names
+
+    get transactions_url(month: "2026-10", sort: "name", direction: "desc")
+    assert_equal [ "Paycheck", "Dentist", "Cherry", "Card payment", "Blue Bottle", "avocado" ], row_names
+  end
+
+  test "sorts by category and leaves the uncategorized and transfers last either way" do
+    add_sortable_rows
+
+    get transactions_url(month: "2026-10", sort: "category")
+    assert_equal [ "Cherry", "Blue Bottle", "Dentist", "Paycheck", "avocado", "Card payment" ], row_names
+
+    get transactions_url(month: "2026-10", sort: "category", direction: "desc")
+    assert_equal [ "Paycheck", "Dentist", "Cherry", "Blue Bottle", "avocado", "Card payment" ], row_names
+  end
+
+  test "sorts by account as shown, institution first, and leaves rows the bank never saw last either way" do
+    add_sortable_rows
+
+    get transactions_url(month: "2026-10", sort: "account")
+    assert_equal [ "Cherry", "avocado", "Dentist", "Card payment", "Paycheck", "Blue Bottle" ], row_names
+
+    get transactions_url(month: "2026-10", sort: "account", direction: "desc")
+    assert_equal [ "avocado", "Dentist", "Cherry", "Card payment", "Paycheck", "Blue Bottle" ], row_names
+  end
+
+  test "sorts by amount with the biggest outflow first, or the biggest inflow" do
+    add_sortable_rows
+
+    get transactions_url(month: "2026-10", sort: "amount")
+    assert_equal [ "Cherry", "Dentist", "Card payment", "avocado", "Blue Bottle", "Paycheck" ], row_names
+
+    get transactions_url(month: "2026-10", sort: "amount", direction: "desc")
+    assert_equal [ "Paycheck", "Blue Bottle", "avocado", "Card payment", "Dentist", "Cherry" ], row_names
+  end
+
+  test "a sort other than the date lists one row after another and dates each row" do
+    add_sortable_rows
+
+    get transactions_url(month: "2026-10", sort: "name")
+
+    assert_select "main section", 0
+    assert_select "main h2", text: /Oct/, count: 0
+    assert_select "li##{ActionView::RecordIdentifier.dom_id(transactions(:paycheck))} p", text: "Oct 2"
+    assert_select "li##{ActionView::RecordIdentifier.dom_id(transactions(:paycheck))} span", text: "· Oct 2"
+    assert_select "[data-field=spent]", text: "$397.50"
+  end
+
+  test "an unknown sort reads as the newest first" do
+    add_sortable_rows
+
+    get transactions_url(month: "2026-10", sort: "balance", direction: "asc")
+
+    assert_response :success
+    assert_equal [ "Wed, Oct 7", "Tue, Oct 6", "Sat, Oct 3", "Fri, Oct 2", "Thu, Oct 1" ], css_select("main section h2").map(&:text)
+    assert_select "[role=columnheader][aria-sort=descending]", text: "Date"
+  end
+
+  test "the headers sort the list, and the one in use says which way" do
+    travel_to Time.utc(2026, 10, 13, 12)
+
+    get transactions_url
+
+    assert_select "[role=columnheader][aria-sort=descending]", text: "Date"
+    assert_select "[role=columnheader][aria-sort]", 1
+    assert_select "[role=columnheader] a[href=?]", transactions_path(month: "2026-10", sort: "date", direction: "asc"), text: "Date"
+    assert_select "[role=columnheader] a[href=?]", transactions_path(month: "2026-10", sort: "name"), text: "Name"
+    assert_select "[role=columnheader] a[href=?]", transactions_path(month: "2026-10", sort: "amount"), text: "Amount"
+
+    get transactions_url(sort: "name")
+
+    assert_select "[role=columnheader][aria-sort=ascending]", text: "Name"
+    assert_select "[role=columnheader] a[href=?]", transactions_path(month: "2026-10", sort: "name", direction: "desc"), text: "Name"
+    assert_select "[role=columnheader] a[href=?]", transactions_path(month: "2026-10"), text: "Date"
+    assert_select "[aria-hidden=true]", text: "Name", count: 0
+  end
+
+  test "a phone sorts from a menu that names the sort in use" do
+    travel_to Time.utc(2026, 10, 13, 12)
+
+    get transactions_url(sort: "amount", direction: "desc")
+
+    assert_select "details summary", text: /Sort: Amount/
+    assert_select "details a[aria-current=true][href=?]", transactions_path(month: "2026-10", sort: "amount"), text: "Amount"
+    assert_select "details a[href=?]", transactions_path(month: "2026-10", sort: "name"), text: "Name"
+    assert_select "details a[href=?]", transactions_path(month: "2026-10"), text: "Date"
+  end
+
+  test "the sort follows the search, its tokens, the month steps and the needs-a-category toggle" do
+    add_sortable_rows
+
+    get transactions_url(q: "#food @2026-10", sort: "name", direction: "desc")
+
+    assert_select "form input[type=hidden][name=sort][value=name]"
+    assert_select "form input[type=hidden][name=direction][value=desc]"
+    assert_select "[data-field=token] a[aria-label='Remove Food'][href=?]", transactions_path(q: "@2026-10", month: "2026-10", sort: "name", direction: "desc")
+    assert_select "nav[aria-label=Month] a[href=?]", transactions_path(q: "#food @2026-09", sort: "name", direction: "desc"), text: "‹ Sep"
+
+    get transactions_url(q: ">1", month: "2026-10", sort: "name", direction: "desc")
+
+    assert_select "a[aria-pressed=false][href*='sort=name'][href*='direction=desc']", text: /Needs a category/
+  end
+
+  test "the sort follows a search across every month" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url(q: "rent", sort: "amount")
+    end
+
+    assert_select "nav[aria-label='Months searched'] a[href=?]", transactions_path(q: "rent @2026-10", month: "2026-10", sort: "amount"), text: "October 2026"
+  end
+
+  test "the default sort leaves every link and field without sort params" do
+    travel_to Time.utc(2026, 10, 13, 12)
+
+    get transactions_url
+
+    assert_select "form input[name=sort]", 0
+    assert_select "form input[name=direction]", 0
+    assert_select "nav[aria-label=Month] a[href*=sort]", 0
+  end
+
+  test "a long list in another sort pages by rows and keeps the sort on every page" do
+    rows = Array.new(60) { |index| { user_id: users(:one).id, name: format("Row %02d", index), amount_in_cents: -1_000, occurred_on: "2026-09-#{format("%02d", index % 28 + 1)}" } }
+    Transaction.insert_all!(rows)
+
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url(month: "2026-09", sort: "name")
+      assert_equal (0..49).map { |index| format("Row %02d", index) }, row_names
+      assert_select "turbo-frame#rows_2[loading=lazy][refresh=morph][src=?]", transactions_path(month: "2026-09", sort: "name", page: 2)
+      assert_equal [ "60" ], css_select("dl dd").map(&:text).last(1)
+
+      get transactions_url(month: "2026-09", sort: "name", page: 2)
+      assert_select "turbo-frame#rows_2 li", 10
+      assert_equal (50..59).map { |index| format("Row %02d", index) }, css_select("turbo-frame#rows_2 li [data-field=name]").map(&:text)
+      assert_select "turbo-frame#rows_2 turbo-frame", 0
+
+      get transactions_url(month: "2026-09", sort: "name", direction: "desc", page: 2)
+      assert_equal (0..9).map { |index| format("Row %02d", index) }.reverse, css_select("turbo-frame#rows_2 li [data-field=name]").map(&:text)
+
+      get transactions_url(month: "2026-09", sort: "name", page: 3)
+      assert_select "turbo-frame#rows_3 li", 0
+    end
+  end
+
+  test "an oldest-first list loads its later days as it scrolls" do
+    rows = { "2026-09-28" => 5, "2026-09-29" => 45, "2026-09-30" => 45 }.flat_map do |date, count|
+      Array.new(count) { { user_id: users(:one).id, name: "Lunch", amount_in_cents: -1_000, occurred_on: date } }
+    end
+    Transaction.insert_all!(rows)
+
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url(month: "2026-09", sort: "date", direction: "asc")
+      assert_select "main section li", 50
+      assert_equal [ "Mon, Sep 28", "Tue, Sep 29" ], css_select("main section h2").map(&:text)
+      assert_select "turbo-frame#days_2026-09-29[loading=lazy][src=?]", transactions_path(month: "2026-09", sort: "date", direction: "asc", before: "2026-09-29")
+
+      get transactions_url(month: "2026-09", sort: "date", direction: "asc", before: "2026-09-29")
+      assert_equal [ "Wed, Sep 30" ], css_select("turbo-frame#days_2026-09-29 section h2").map(&:text)
+      assert_select "turbo-frame#days_2026-09-29 turbo-frame", 0
+    end
+  end
+
   test "marks Transactions as the current page in the sidebar" do
     get transactions_url
 
@@ -362,4 +541,27 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert @transaction.reload.discarded_at
     assert_equal "Blue Bottle 5.50", flash[:shorthand]
   end
+
+  private
+    def row_names
+      css_select("main li [data-field=name]").map(&:text)
+    end
+
+    def add_sortable_rows
+      travel_to Time.utc(2026, 10, 13, 12)
+      transactions(:paycheck).update!(occurred_on: "2026-10-02")
+      user = users(:one)
+      health = user.categories.create!(name: "Health")
+      access = connect_simplefin(user)
+      amex = access.bank_accounts.create!(external_id: "amex", name: "Amex Gold", institution: "Zeta Bank", currency: "USD")
+      chase = access.bank_accounts.create!(external_id: "chase", name: "Chase Checking", currency: "USD")
+      sync = access.syncs.create!
+
+      [ [ "avocado", "2026-10-07", -1_200, nil, amex ], [ "Cherry", "2026-10-03", -30_000, categories(:food), chase ],
+        [ "Dentist", "2026-10-03", -8_000, health, amex ], [ "Card payment", "2026-10-06", -5_000, nil, nil ] ].each do |name, date, cents, category, account|
+        transaction = user.transactions.create!(name:, occurred_on: date, amount_in_cents: cents, category:, transfer: name == "Card payment")
+        account&.bank_transactions&.create!(simplefin_sync: sync, transaction_id: transaction.id, external_id: SecureRandom.hex(4), amount_in_cents: cents,
+          occurred_on: date, description: name, name_key: name.downcase)
+      end
+    end
 end

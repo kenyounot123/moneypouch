@@ -38,9 +38,23 @@ class Transaction::PageTest < ActiveSupport::TestCase
     assert_nil page.next_before
   end
 
+  test "an oldest-first list fills a page with whole days from the oldest and then continues after the last one" do
+    page = page_for(@month, before: nil, order: :asc)
+
+    assert_equal 65, page.transactions.count
+    assert_equal [ Date.new(2025, 3, 26), Date.new(2025, 3, 29) ], page.transactions.pluck(:occurred_on).minmax
+    assert_equal Date.new(2025, 3, 29), page.next_before
+
+    later = page_for(@month, before: Date.new(2025, 3, 29), order: :asc)
+
+    assert_equal 20, later.transactions.count
+    assert_equal [ Date.new(2025, 3, 30), Date.new(2025, 3, 30) ], later.transactions.pluck(:occurred_on).minmax
+    assert_nil later.next_before
+  end
+
   private
-    def page_for(transactions, before:)
-      Transaction::Page.new(transactions, counts: transactions.group(:occurred_on).order(occurred_on: :desc).count, before:)
+    def page_for(transactions, before:, order: :desc)
+      Transaction::Page.new(transactions, counts: transactions.group(:occurred_on).order(occurred_on: order).count, before:)
     end
 
     def add_rows(counts)

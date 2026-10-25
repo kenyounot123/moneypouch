@@ -2,21 +2,27 @@
 class Transaction::Listing
   Day = Data.define(:on, :rows, :net, :spending, :income)
 
-  attr_reader :period, :query
+  attr_reader :period, :query, :sort
 
-  def initialize(transactions, period:, query:, before:)
+  def initialize(transactions, period:, query:, before:, sort: Transaction::Sort.default, number: 1)
     @transactions = transactions
     @period = period
     @query = query
     @before = before
+    @sort = sort
+    @number = number
   end
 
   def page
-    @page ||= Transaction::Page.new(shown, counts: days.to_h { |day| [ day.on, day.rows ] }, before: @before)
+    @page ||= if sort.grouped_by_day?
+      Transaction::Page.new(shown, counts: days.to_h { |day| [ day.on, day.rows ] }, before: @before)
+    else
+      Transaction::FlatPage.new(shown, count:, number: @number)
+    end
   end
 
   def transactions
-    @transactions_on_page ||= page.transactions.listed.includes(bank_transaction: [ :bank_account, { transfer_partner: :bank_account } ])
+    @transactions_on_page ||= sort.order(page.transactions.listed).includes(bank_transaction: [ :bank_account, { transfer_partner: :bank_account } ])
   end
 
   def count
@@ -45,7 +51,7 @@ class Transaction::Listing
 
   private
     def days
-      @days ||= shown.group(:occurred_on).order(occurred_on: :desc).pluck(:occurred_on, *totals).map { |values| Day.new(*values) }
+      @days ||= shown.group(:occurred_on).order(occurred_on: sort.direction).pluck(:occurred_on, *totals).map { |values| Day.new(*values) }
     end
 
     def totals

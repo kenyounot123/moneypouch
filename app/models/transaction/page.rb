@@ -11,7 +11,7 @@ class Transaction::Page
 
   def transactions
     if days.any?
-      @transactions.occurred_in(days.last..days.first)
+      @transactions.occurred_in(Range.new(*days.minmax))
     else
       @transactions.none
     end
@@ -20,6 +20,20 @@ class Transaction::Page
   def next_before
     if index && index < runs.size - 1
       days.last
+    end
+  end
+
+  def frame_id
+    [ "days", before ].compact.join("_")
+  end
+
+  def next_frame_id
+    "days_#{next_before}"
+  end
+
+  def next_params
+    if next_before
+      { before: next_before }
     end
   end
 

@@ -152,7 +152,7 @@ export default class extends Controller {
     const url = new URL(this.formTarget.action)
     const query = [...this.raws, ...words].join(" ")
     if (query) url.searchParams.set("q", query)
-    url.searchParams.set("month", this.formTarget.elements.month.value)
+    for (const field of this.formTarget.querySelectorAll("input[type=hidden]:not([data-search-target])")) url.searchParams.set(field.name, field.value)
     Turbo.visit(url)
   }
 

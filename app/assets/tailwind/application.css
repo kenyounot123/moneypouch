@@ -281,6 +281,18 @@
     grid-template-columns: 0.5rem minmax(0, 1fr) 150px 190px 100px;
     grid-template-areas: "dot name category account amount";
   }
+
+  &[data-dated] {
+    @variant @xl {
+      grid-template-columns: 6rem 0.5rem minmax(0, 1fr) 150px 100px;
+      grid-template-areas: "date dot name category amount";
+    }
+
+    @variant @4xl {
+      grid-template-columns: 6rem 0.5rem minmax(0, 1fr) 150px 190px 100px;
+      grid-template-areas: "date dot name category account amount";
+    }
+  }
 }
 
 @layer components {

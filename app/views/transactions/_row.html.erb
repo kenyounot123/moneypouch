@@ -1,7 +1,11 @@
 <% offering_rule = offering_rule?(transaction) %>
 <li id="<%= dom_id transaction %>" class="group border-b border-secondary last:border-b-0 <%= "pb-3" if offering_rule %>">
-  <div class="transaction-row relative">
+  <div class="transaction-row relative" <%= tag.attributes data: { dated: local_assigns[:dated] } %>>
     <%= link_to "", edit_transaction_path(transaction), aria: { label: transaction.name }, data: { turbo_frame: "sheet" }, class: "absolute inset-0 @xl:hidden" %>
+
+    <% if local_assigns[:dated] %>
+      <p class="hidden text-sm text-secondary [grid-area:date] @xl:block"><%= short_date transaction.occurred_on %></p>
+    <% end %>
 
     <div class="flex justify-center [grid-area:dot]">
       <% if transaction.needs_category? %>
@@ -37,6 +41,9 @@
       <% end %>
       <% if transaction.from_bank? %>
         <span class="truncate @xl:hidden @4xl:block @4xl:[grid-area:account]"><span class="@xl:hidden">· </span><span data-field="account"><%= pivot_label transaction.bank_account_name, Transaction::Query.account_token(transaction.bank_transaction.bank_account), title: "Show all in #{transaction.bank_account_name}", pivot: local_assigns[:pivot] %></span></span>
+      <% end %>
+      <% if local_assigns[:dated] %>
+        <span class="shrink-0 whitespace-nowrap @xl:hidden">· <%= short_date transaction.occurred_on %></span>
       <% end %>
     </div>
 
