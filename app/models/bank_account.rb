@@ -58,9 +58,9 @@ class BankAccount < ApplicationRecord
       simplefin_access.user
     end
 
-    # A rule on the name decides the row, so only a row without one looks for its other half.
+    # A rule that gives the name a category decides the row. A rule that marks it a transfer still lets it find its other half.
     def partner_for(simplefin_transaction)
-      unless owner.rule_for(simplefin_transaction.name)
+      unless owner.rule_for(simplefin_transaction.name)&.category
         owner.bank_transactions.partner_for(simplefin_transaction.amount_in_cents, currency, simplefin_transaction.occurred_on, other_than: self)
       end
     end

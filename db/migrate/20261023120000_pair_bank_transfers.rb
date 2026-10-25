@@ -34,7 +34,6 @@ class PairBankTransfers < ActiveRecord::Migration[8.1]
         AND bank_transactions.amount_in_cents <> 0
         AND transactions.discarded_at IS NULL
         AND transactions.category_id IS NULL
-        AND transactions.transfer = FALSE
     SQL
     execute "CREATE INDEX temp.transfer_candidates_by_amount ON transfer_candidates (user_id, currency, magnitude, day)"
 

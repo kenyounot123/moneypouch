@@ -15,6 +15,7 @@ module Transaction::Bankable
     scope :typed_in, -> { where.not(id: BankTransaction.select(:transaction_id)) }
     scope :added_by_bank, -> { behind(BankTransaction.unmatched) }
     scope :needing_category, -> { kept.added_by_bank.uncategorized }
+    scope :pairable, -> { kept.added_by_bank.where(category_id: nil) }
     scope :from_bank_account, ->(bank_account) { merge(bank_account.transactions) }
   end
 

@@ -96,13 +96,32 @@ class BankAccount::PairingTest < ActiveSupport::TestCase
     assert_equal [ true, false ], [ checking_row("out").linked_transaction.category.present?, card_row("in").linked_transaction.transfer? ]
   end
 
-  test "a partner that is already a transfer never pairs" do
+  test "a partner already marked as a transfer pairs" do
     sync checking: [ row("out", -5_000, 3) ]
     checking_row("out").linked_transaction.categorize(Transaction::Categorization.transfer)
     sync_again @access, report: report(card: [ row("in", 5_000, 3) ])
 
-    assert_not_paired checking_row("out"), card_row("in")
-    assert_not card_row("in").linked_transaction.transfer?
+    assert_equal checking_row("out"), card_row("in").transfer_partner
+    assert card_row("in").linked_transaction.transfer?
+  end
+
+  test "a rule marking a payment as a transfer pairs it with its other half in either order" do
+    @user.rules.create!(name: "Payment", name_key: "payment", transfer: true)
+    sync checking: [ row("out", -5_000, 3, "Chase Credit Card") ], card: [ row("in", 5_000, 3, "Payment") ]
+    sync_again @access, report: report(card: [ row("in-2", 7_000, 4, "Payment") ], checking: [ row("out-2", -7_000, 4, "Chase Credit Card") ])
+
+    assert_equal [ card_row("in"), card_row("in-2") ], [ checking_row("out").transfer_partner, checking_row("out-2").transfer_partner ]
+    assert_equal [ true, true ], [ checking_row("out"), checking_row("out-2") ].map { |bank_row| bank_row.linked_transaction.transfer? }
+  end
+
+  test "breaking a pair leaves the other side with what its rule says" do
+    @user.rules.create!(name: "Payment", name_key: "payment", transfer: true)
+    sync checking: [ row("out", -5_000, 3, "Chase Credit Card") ], card: [ row("in", 5_000, 3, "Payment") ]
+
+    checking_row("out").linked_transaction.categorize(Transaction::Categorization.new(category: categories(:food)))
+
+    assert_not card_row("in").reload.paired?
+    assert card_row("in").linked_transaction.transfer?
   end
 
   test "a partner that is already paired is not taken again" do
