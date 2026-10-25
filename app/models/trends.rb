@@ -1,4 +1,6 @@
 class Trends
+  include Notable
+
   MONTHS = 12
   FULL_MONTHS_NEEDED = 2
   USUAL_MONTHS = 6
@@ -60,10 +62,6 @@ class Trends
 
   def last_full
     periods[-2]
-  end
-
-  def notes
-    @notes ||= Notes.for(self)
   end
 
   def recurring
