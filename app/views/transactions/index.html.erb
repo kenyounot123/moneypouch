@@ -20,7 +20,7 @@
       <% end %>
     <% end %>
 
-    <%= render "transactions/months", query: @query, month: @month, this_month: @this_month, short: true, visibility: "flex md:hidden" %>
+    <%= render "transactions/months", query: @query, month: @month, this_month: @this_month, sort: @sort, short: true, visibility: "flex md:hidden" %>
 
     <div class="flex flex-wrap items-end justify-between gap-6">
       <div class="flex min-w-0 flex-col gap-2.5 @xl:flex-row @xl:items-end @xl:gap-12">
@@ -39,29 +39,38 @@
         <p class="text-sm text-tertiary @xl:hidden">Income <%= money @listing.income %> · Net <%= tag.span signed_money(@listing.net), class: money_color(@listing.net) %> · <%= pluralize @listing.count, "transaction" %></p>
       </div>
 
-      <%= render "transactions/months", query: @query, month: @month, this_month: @this_month, short: false, visibility: "hidden md:flex" %>
+      <%= render "transactions/months", query: @query, month: @month, this_month: @this_month, sort: @sort, short: false, visibility: "hidden md:flex" %>
     </div>
 
-    <%= render "transactions/search", query: @query, month: @month, listing: @listing %>
+    <%= render "transactions/search", query: @query, month: @month, sort: @sort, listing: @listing %>
 
     <div class="flex flex-col" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>">
       <% if @listing.count.positive? %>
-        <div class="hidden items-center gap-4 border-b border-primary pb-2 text-xs text-tertiary @xl:flex" aria-hidden="true">
-          <p class="w-24 shrink-0">Date</p>
+        <%= render "transactions/sort_menu", sort: @sort, query: @query, month: @month %>
+
+        <div role="row" class="hidden items-center gap-4 border-b border-primary pb-2 text-xs text-tertiary @xl:flex">
+          <%= sort_header "date", sort: @sort, query: @query, month: @month, class: "w-24 shrink-0" %>
           <p class="w-2 shrink-0"></p>
-          <p class="min-w-0 flex-1">Name</p>
-          <p class="w-37.5 shrink-0">Category</p>
-          <p class="hidden w-47.5 shrink-0 @4xl:block">Account</p>
-          <p class="w-25 shrink-0 text-right">Amount</p>
+          <%= sort_header "name", sort: @sort, query: @query, month: @month, class: "min-w-0 flex-1" %>
+          <%= sort_header "category", sort: @sort, query: @query, month: @month, class: "w-37.5 shrink-0" %>
+          <%= sort_header "account", sort: @sort, query: @query, month: @month, class: "hidden w-47.5 shrink-0 @4xl:block" %>
+          <%= sort_header "amount", sort: @sort, query: @query, month: @month, class: "w-25 shrink-0 text-right" %>
         </div>
 
-        <%= turbo_frame_tag [ :days, @listing.page.before ].compact.join("_"), target: "_top" do %>
-          <% @listing.transactions.group_by(&:occurred_on).each do |date, transactions| %>
-            <%= render "transactions/day", date:, transactions:, total: @listing.day_totals[date], pivot: true %>
+        <% page = @listing.page %>
+        <%= turbo_frame_tag page.frame_id, target: "_top" do %>
+          <% if @sort.grouped_by_day? %>
+            <% @listing.transactions.group_by(&:occurred_on).each do |date, transactions| %>
+              <%= render "transactions/day", date:, transactions:, total: @listing.day_totals[date], pivot: true %>
+            <% end %>
+          <% else %>
+            <ul class="border-b border-secondary">
+              <%= render partial: "transactions/row", collection: @listing.transactions, as: :transaction, locals: { pivot: true, dated: true } %>
+            </ul>
           <% end %>
 
-          <% if @listing.page.next_before %>
-            <%= turbo_frame_tag :days, @listing.page.next_before, src: transactions_path(q: @query.to_s.presence, month: month_param(@month), before: @listing.page.next_before),
+          <% if page.next_params %>
+            <%= turbo_frame_tag page.next_frame_id, src: transactions_path(q: @query.to_s.presence, month: month_param(@month), **@sort.params, **page.next_params),
               loading: :lazy, refresh: :morph, target: "_top" %>
           <% end %>
         <% end %>
@@ -69,7 +78,7 @@
         <p class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-tertiary">
           <span>No transactions match.</span>
           <% if @query.month %>
-            <%= link_to "Search all months", search_path(@query.without_dates, @month), class: "rounded-full bg-level-3 px-3 py-1 text-sm font-medium text-secondary hover:text-primary" %>
+            <%= link_to "Search all months", search_path(@query.without_dates, @month, @sort), class: "rounded-full bg-level-3 px-3 py-1 text-sm font-medium text-secondary hover:text-primary" %>
           <% end %>
         </p>
       <% else %>

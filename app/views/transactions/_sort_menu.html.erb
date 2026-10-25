@@ -1,0 +1,17 @@
+<%# Narrow, where the column headers are hidden, the sort lives in this menu. %>
+<details class="relative mb-3 self-end @xl:hidden">
+  <summary class="flex h-9 cursor-pointer list-none items-center gap-1.75 rounded-lg border border-primary bg-level-2 px-3 text-sm whitespace-nowrap text-primary shadow-control hover:border-(--ring-color-focus) [&::-webkit-details-marker]:hidden">
+    Sort: <%= sort_label sort.key %>
+    <%= sort_direction_icon sort %>
+  </summary>
+  <div class="absolute right-0 z-10 mt-1 flex w-44 flex-col rounded-lg border border-primary bg-level-2 p-1.5 shadow-control">
+    <% Transaction::Sort::COLUMNS.each_key do |key| %>
+      <% current = sort.key == key %>
+      <%= link_to search_path(query.to_s, month, sort.toggle(key)), aria: { current: (current ? "true" : nil) },
+        class: class_names("flex items-center justify-between rounded-sm px-2.5 py-2 text-sm hover:bg-level-3", "font-medium text-primary" => current, "text-secondary" => !current) do %>
+        <%= sort_label key %>
+        <%= sort_direction_icon sort if current %>
+      <% end %>
+    <% end %>
+  </div>
+</details>

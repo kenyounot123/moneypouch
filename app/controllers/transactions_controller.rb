@@ -5,7 +5,8 @@ class TransactionsController < ApplicationController
     @query = Transaction::Query.parse(params.permit(:q)[:q], user: Current.user, today: Date.current)
     @month = @query.month || Period.month(params[:month], today: Date.current)
     @this_month = Period.new("month", today: Date.current)
-    @listing = Transaction::Listing.new(Current.user.transactions, period: @month, query: @query, before:)
+    @sort = Transaction::Sort.parse(params[:sort], params[:direction])
+    @listing = Transaction::Listing.new(Current.user.transactions, period: @month, query: @query, before:, sort: @sort, number: page_number)
     @import = Current.user.imports.completed.find_by(id: flash[:import_id])
     @categories = Current.user.categories.alphabetically
     @bank_accounts = Current.user.bank_accounts.order(:name)
@@ -47,10 +48,14 @@ class TransactionsController < ApplicationController
       nil
     end
 
+    def page_number
+      [ params[:page].to_i, 1 ].max
+    end
+
     def keep_categorized_for_later_page
       id = flash[:categorized_id]
 
-      if id && @listing.page.next_before && @listing.transactions.none? { |transaction| transaction.id == id }
+      if id && @listing.page.next_params && @listing.transactions.none? { |transaction| transaction.id == id }
         flash.keep(:categorized_id)
       end
     end

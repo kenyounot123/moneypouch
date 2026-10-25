@@ -12,15 +12,33 @@ module TransactionsHelper
     class_names(TOKEN_STYLES.fetch(part.kind), "underline decoration-(--text-color-danger) decoration-wavy underline-offset-3" => part.problem)
   end
 
-  def search_path(query, month)
-    transactions_path(q: query.presence, month: month_param(month))
+  def search_path(query, month, sort)
+    transactions_path(q: query.presence, month: month_param(month), **sort.params)
   end
 
-  def month_step_path(query, month)
+  def month_step_path(query, month, sort)
     if query.month
-      transactions_path(q: query.with_month(month))
+      transactions_path(q: query.with_month(month), **sort.params)
     else
-      search_path(query.to_s, month)
+      search_path(query.to_s, month, sort)
+    end
+  end
+
+  def sort_label(key)
+    key.humanize
+  end
+
+  def sort_direction_icon(sort, **options)
+    icon_tag "arrow-up", class: class_names("size-3", { "rotate-180" => !sort.ascending? }, options[:class])
+  end
+
+  def sort_header(key, sort:, query:, month:, **options)
+    current = sort.key == key
+
+    tag.p role: "columnheader", aria: { sort: (sort.ascending? ? "ascending" : "descending" if current) }, class: options[:class] do
+      link_to search_path(query.to_s, month, sort.toggle(key)), class: class_names("inline-flex items-center gap-1 hover:text-primary", "font-medium text-primary" => current) do
+        safe_join [ sort_label(key), (sort_direction_icon(sort) if current) ]
+      end
     end
   end
 

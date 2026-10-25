@@ -2,24 +2,24 @@
 <% if query.filtering? && !query.month %>
   <nav class="gap-1 rounded-[10px] bg-level-3 p-1 <%= visibility %>" aria-label="Months searched">
     <% if query.dates %>
-      <%= link_to "All months", search_path(query.without_dates, month), class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
+      <%= link_to "All months", search_path(query.without_dates, month, sort), class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
     <% else %>
       <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true">All months</span>
     <% end %>
-    <%= link_to short ? short_month_title(this_month) : month_title(this_month), search_path(query.with_month(this_month), this_month),
+    <%= link_to short ? short_month_title(this_month) : month_title(this_month), search_path(query.with_month(this_month), this_month, sort),
       class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
   </nav>
 <% else %>
   <div class="items-center gap-3 <%= visibility %>">
     <% if query.month %>
-      <%= link_to "All months", search_path(query.without_dates, month), class: "rounded-sm px-2 py-1.5 text-sm text-secondary hover:text-primary" %>
+      <%= link_to "All months", search_path(query.without_dates, month, sort), class: "rounded-sm px-2 py-1.5 text-sm text-secondary hover:text-primary" %>
     <% end %>
     <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Month">
-      <%= link_to short ? "‹" : "‹ #{month_abbreviation month.previous}", month_step_path(query, month.previous), aria: ({ label: month_title(month.previous) } if short),
+      <%= link_to short ? "‹" : "‹ #{month_abbreviation month.previous}", month_step_path(query, month.previous, sort), aria: ({ label: month_title(month.previous) } if short),
         class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
       <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true"><%= short ? short_month_title(month) : month_title(month) %></span>
       <% if month.next %>
-        <%= link_to short ? "›" : "#{month_abbreviation month.next} ›", month_step_path(query, month.next), aria: ({ label: month_title(month.next) } if short),
+        <%= link_to short ? "›" : "#{month_abbreviation month.next} ›", month_step_path(query, month.next, sort), aria: ({ label: month_title(month.next) } if short),
           class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
       <% end %>
     </nav>

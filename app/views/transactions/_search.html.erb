@@ -1,5 +1,8 @@
 <%= form_with url: transactions_path, method: :get, class: "flex flex-wrap items-center gap-2", data: { search_target: "form", action: "submit->search#submit" } do %>
   <%= hidden_field_tag :month, month_param(month), id: nil %>
+  <% sort.params.each do |name, value| %>
+    <%= hidden_field_tag name, value, id: nil %>
+  <% end %>
   <%= hidden_field_tag :q, query.to_s, id: nil, data: { search_target: "query" } %>
 
   <div class="relative flex min-w-0 flex-1 basis-24">
@@ -10,7 +13,7 @@
         <span class="inline-flex h-6 items-center gap-0.5 rounded-sm pr-1 pl-2 text-sm whitespace-nowrap <%= token_style part %>" data-field="token" data-kind="<%= part.kind %>"
           data-raw="<%= part.raw %>" data-search-target="token" <%= tag.attributes title: part.problem %>>
           <%= part.label %>
-          <%= link_to search_path(query.without(index), month), aria: { label: "Remove #{part.label}" }, data: { search_target: "remove", action: "search#keepFocus" },
+          <%= link_to search_path(query.without(index), month, sort), aria: { label: "Remove #{part.label}" }, data: { search_target: "remove", action: "search#keepFocus" },
             class: "flex size-4.5 items-center justify-center rounded-sm opacity-60 hover:bg-current/15 hover:opacity-100" do %>
             <%= icon_tag "close", class: "size-2.5" %>
           <% end %>
@@ -28,7 +31,7 @@
   <% needing = listing.needing_category_count %>
   <% needs = query.include?(Transaction::Query::NEEDS) %>
   <% if needing.positive? || needs %>
-    <%= link_to search_path(query.toggle(Transaction::Query::NEEDS), month), aria: { pressed: needs },
+    <%= link_to search_path(query.toggle(Transaction::Query::NEEDS), month, sort), aria: { pressed: needs },
       class: [ "flex h-9 shrink-0 items-center gap-1.75 rounded-lg border px-3 text-sm whitespace-nowrap @xl:order-last @xl:h-8.5",
         needs ? "border-(--ring-color-focus) bg-level-3 font-medium text-primary" : "border-primary bg-level-2 text-primary shadow-control hover:border-(--ring-color-focus)" ] do %>
       <span class="size-1.5 shrink-0 rounded-[1px] bg-highlight"></span>
