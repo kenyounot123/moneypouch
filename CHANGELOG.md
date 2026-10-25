@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.13.0](https://github.com/kenyounot123/moneypouch/compare/v0.12.0...v0.13.0) (2026-10-24)
+
+
+### Features
+
+* **bank-sync:** list the SimpleFIN token steps and connect with a button ([#145](https://github.com/kenyounot123/moneypouch/issues/145)) ([837db4f](https://github.com/kenyounot123/moneypouch/commit/837db4f4830fc8a336d81ec9290399751eaf2d23))
+* **bank-sync:** name the bank on each row in the overview's From your bank block ([#147](https://github.com/kenyounot123/moneypouch/issues/147)) ([4eabf6b](https://github.com/kenyounot123/moneypouch/commit/4eabf6be6b4fdfed00b416824b71530c79135ff5))
+* **bank-sync:** pair a card payment with its other half as a transfer ([#148](https://github.com/kenyounot123/moneypouch/issues/148)) ([1332910](https://github.com/kenyounot123/moneypouch/commit/133291065dca4cf0eb2eb32bffedf432d6f3d3fd))
+* **categories:** add up one span of months on both category pages ([#150](https://github.com/kenyounot123/moneypouch/issues/150)) ([c29026d](https://github.com/kenyounot123/moneypouch/commit/c29026d2597b44513b10c68f82eab77d227c773d))
+
+
+### Bug Fixes
+
+* **bank-sync:** keep rows that need a category on From your bank after Done ([#149](https://github.com/kenyounot123/moneypouch/issues/149)) ([9991052](https://github.com/kenyounot123/moneypouch/commit/9991052762d17be8fcf8730f668c6c52fc9433a8))
+
 ## [0.12.0](https://github.com/kenyounot123/moneypouch/compare/v0.11.0...v0.12.0) (2026-10-24)
 
 
