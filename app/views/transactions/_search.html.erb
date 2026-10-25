@@ -1,0 +1,39 @@
+<%= form_with url: transactions_path, method: :get, class: "flex flex-wrap items-center gap-2", data: { search_target: "form", action: "submit->search#submit" } do %>
+  <%= hidden_field_tag :month, month_param(month), id: nil %>
+  <%= hidden_field_tag :q, query.to_s, id: nil, data: { search_target: "query" } %>
+
+  <div class="relative flex min-w-0 flex-1 basis-24">
+    <div class="flex min-h-9 w-full cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-primary bg-level-2 px-3 py-1 shadow-control hover:border-(--ring-color-focus) focus-within:border-(--ring-color-focus) @xl:min-h-8.5"
+      data-action="click->search#focus">
+      <%= icon_tag "search", class: "size-3.5 text-secondary" %>
+      <% query.parts.each_with_index do |part, index| %>
+        <span class="inline-flex h-6 items-center gap-0.5 rounded-sm pr-1 pl-2 text-sm whitespace-nowrap <%= token_style part %>" data-field="token" data-kind="<%= part.kind %>"
+          data-raw="<%= part.raw %>" data-search-target="token" <%= tag.attributes title: part.problem %>>
+          <%= part.label %>
+          <%= link_to search_path(query.without(index), month), aria: { label: "Remove #{part.label}" }, data: { search_target: "remove" },
+            class: "flex size-4.5 items-center justify-center rounded-sm opacity-60 hover:bg-current/15 hover:opacity-100" do %>
+            <%= icon_tag "close", class: "size-2.5" %>
+          <% end %>
+        </span>
+      <% end %>
+      <%= tag.input type: "text", placeholder: query.parts.any? ? "Add more" : "Search merchants, categories, amounts, dates", autocomplete: "off", spellcheck: false,
+        role: "combobox", aria: { label: "Search transactions", autocomplete: "list", expanded: false, controls: "search-popup" },
+        class: "min-w-24 flex-1 bg-transparent py-1 text-md outline-none placeholder:text-tertiary @xl:text-base",
+        data: { search_target: "input", action: "input->search#suggest focus->search#suggest blur->search#close keydown->search#keydown" } %>
+    </div>
+    <div id="search-popup" hidden role="listbox" aria-label="Suggestions" class="absolute top-full left-0 z-10 mt-1 max-h-[420px] w-full max-w-md overflow-y-auto rounded-lg border border-primary bg-level-2 p-1.5 shadow-control"
+      data-search-target="popup" data-action="mousedown->search#press"></div>
+  </div>
+
+  <% needing = listing.needing_category_count %>
+  <% needs = query.include?(Transaction::Query::NEEDS) %>
+  <% if needing.positive? || needs %>
+    <%= link_to search_path(query.toggle(Transaction::Query::NEEDS), month), aria: { pressed: needs },
+      class: [ "flex h-9 shrink-0 items-center gap-1.75 rounded-lg border px-3 text-sm whitespace-nowrap @xl:order-last @xl:h-8.5",
+        needs ? "border-(--ring-color-focus) bg-level-3 font-medium text-primary" : "border-primary bg-level-2 text-primary shadow-control hover:border-(--ring-color-focus)" ] do %>
+      <span class="size-1.5 shrink-0 rounded-[1px] bg-highlight"></span>
+      <span class="@xl:hidden"><%= needing %> uncategorized</span>
+      <span class="hidden @xl:inline">Needs a category · <%= needing %></span>
+    <% end %>
+  <% end %>
+<% end %>

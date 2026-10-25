@@ -4,7 +4,9 @@
 <div class="flex min-h-dvh max-md:flex-col">
   <%= render "shared/sidebar" %>
 
-  <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14">
+  <main class="@container flex min-w-0 flex-1 flex-col gap-7 px-5 py-9 md:px-14"
+    <%= tag.attributes data: { controller: "search", search_categories_value: search_categories(@categories, @category_counts), search_accounts_value: search_accounts(@bank_accounts),
+      search_suggestions_url_value: transactions_suggestions_path, search_today_value: Date.current.iso8601 } %>>
     <button type="button" aria-label="Back to top" data-controller="back-to-top" data-action="scroll@window->back-to-top#toggle:passive back-to-top#scroll"
       class="invisible sticky bottom-6 z-20 order-last flex size-9 cursor-pointer items-center justify-center self-end rounded-full border border-primary bg-level-2 text-secondary opacity-0 shadow-control transition-[opacity,visibility] hover:border-(--ring-color-focus) hover:text-primary data-shown:visible data-shown:opacity-100 md:bottom-8">
       <%= icon_tag "arrow-up" %>
@@ -18,22 +20,12 @@
       <% end %>
     <% end %>
 
-    <div class="flex md:hidden">
-      <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Month">
-        <%= link_to "‹", transactions_path(filters.merge(month: month_param(@month.previous))), aria: { label: month_title(@month.previous) },
-          class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
-        <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true"><%= short_month_title @month %></span>
-        <% if @month.next %>
-          <%= link_to "›", transactions_path(filters.merge(month: month_param(@month.next))), aria: { label: month_title(@month.next) },
-            class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
-        <% end %>
-      </nav>
-    </div>
+    <%= render "transactions/months", query: @query, month: @month, this_month: @this_month, short: true, visibility: "flex md:hidden" %>
 
     <div class="flex flex-wrap items-end justify-between gap-6">
       <div class="flex min-w-0 flex-col gap-2.5 @xl:flex-row @xl:items-end @xl:gap-12">
         <div class="flex flex-col gap-2.5">
-          <p class="text-secondary">Spent in <%= month_name @month %></p>
+          <p class="text-secondary"><%= @query.filtering? && !@query.month ? "Spent across matches" : "Spent in #{month_name @month}" %></p>
           <p class="text-display" data-field="spent"><%= money @listing.spent %></p>
         </div>
         <dl class="hidden gap-8 pb-1.5 @xl:flex">
@@ -47,54 +39,10 @@
         <p class="text-sm text-tertiary @xl:hidden">Income <%= money @listing.income %> · Net <%= tag.span signed_money(@listing.net), class: money_color(@listing.net) %> · <%= pluralize @listing.count, "transaction" %></p>
       </div>
 
-      <nav class="hidden gap-1 rounded-[10px] bg-level-3 p-1 md:flex" aria-label="Month">
-        <%= link_to "‹ #{month_abbreviation @month.previous}", transactions_path(filters.merge(month: month_param(@month.previous))),
-          class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
-        <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true"><%= month_title @month %></span>
-        <% if @month.next %>
-          <%= link_to "#{month_abbreviation @month.next} ›", transactions_path(filters.merge(month: month_param(@month.next))),
-            class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
-        <% end %>
-      </nav>
+      <%= render "transactions/months", query: @query, month: @month, this_month: @this_month, short: false, visibility: "hidden md:flex" %>
     </div>
 
-    <%= form_with url: transactions_path, method: :get, class: "flex flex-wrap items-center gap-2" do %>
-      <%= hidden_field_tag :month, month_param(@month), id: nil %>
-      <% if filters[:needs] %>
-        <%= hidden_field_tag :needs, filters[:needs], id: nil %>
-      <% end %>
-      <label class="flex h-9 min-w-0 flex-1 basis-24 items-center gap-2 rounded-lg border border-primary bg-level-2 px-3 shadow-control hover:border-(--ring-color-focus) focus-within:border-(--ring-color-focus) @xl:h-8.5">
-        <%= icon_tag "search", class: "size-3.5 text-secondary" %>
-        <%= search_field_tag :query, filters[:query], placeholder: "Search", autocomplete: "off", aria: { label: "Search names and notes" },
-          class: "min-w-0 flex-1 bg-transparent text-md outline-none placeholder:text-tertiary @xl:text-base [&::-webkit-search-cancel-button]:hidden" %>
-      </label>
-
-      <% if @listing.needing_category_count.positive? || filters[:needs] %>
-        <%= link_to transactions_path(filters.merge(month: month_param(@month), needs: (filters[:needs] ? nil : "1"))), aria: { pressed: filters[:needs].present? },
-          class: [ "flex h-9 shrink-0 items-center gap-1.75 rounded-lg border px-3 text-sm whitespace-nowrap @xl:order-last @xl:h-8.5",
-            filters[:needs] ? "border-(--ring-color-focus) bg-level-3 font-medium text-primary" : "border-primary bg-level-2 text-primary shadow-control hover:border-(--ring-color-focus)" ] do %>
-          <span class="size-1.5 shrink-0 rounded-[1px] bg-highlight"></span>
-          <span class="@xl:hidden"><%= @listing.needing_category_count %> uncategorized</span>
-          <span class="hidden @xl:inline">Needs a category · <%= @listing.needing_category_count %></span>
-        <% end %>
-      <% end %>
-
-      <%= tag.input type: "checkbox", id: "filters_toggle", checked: filters[:account].present? || filters[:category].present?, class: "peer sr-only" %>
-      <label for="filters_toggle" class="flex h-9 shrink-0 cursor-pointer items-center rounded-lg border border-primary bg-level-2 px-3 text-sm text-primary shadow-control peer-checked:bg-level-3 peer-checked:text-primary peer-focus-visible:border-(--ring-color-focus) @xl:hidden">Filters</label>
-
-      <div class="hidden w-full gap-2 peer-checked:flex @xl:flex @xl:w-auto">
-        <% [
-          [ :account, "All accounts", @bank_accounts.map { |account| [ account.full_name, account.id ] } + [ [ "Typed in", "typed" ] ] ],
-          [ :category, "All categories", @categories.map { |category| [ category.name, category.id ] } + [ [ "Uncategorized", "none" ] ] ]
-        ].each do |name, blank, choices| %>
-          <span class="relative flex min-w-0 flex-1 @xl:flex-none">
-            <%= select_tag name, options_for_select(choices, filters[name]), include_blank: blank, data: { controller: "auto-submit", action: "change->auto-submit#submit" },
-              class: "h-9 w-full min-w-0 cursor-pointer appearance-none @xl:field-sizing-content rounded-lg border border-primary bg-level-2 pr-7 pl-3 text-md text-primary shadow-control hover:border-(--ring-color-focus) @xl:h-8.5 @xl:text-sm" %>
-            <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-secondary" aria-hidden="true">▾</span>
-          </span>
-        <% end %>
-      </div>
-    <% end %>
+    <%= render "transactions/search", query: @query, month: @month, listing: @listing %>
 
     <div class="flex flex-col" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>">
       <% if @listing.count.positive? %>
@@ -109,16 +57,21 @@
 
         <%= turbo_frame_tag [ :days, @listing.page.before ].compact.join("_"), target: "_top" do %>
           <% @listing.transactions.group_by(&:occurred_on).each do |date, transactions| %>
-            <%= render "transactions/day", date:, transactions:, total: @listing.day_totals[date] %>
+            <%= render "transactions/day", date:, transactions:, total: @listing.day_totals[date], pivot: true %>
           <% end %>
 
           <% if @listing.page.next_before %>
-            <%= turbo_frame_tag :days, @listing.page.next_before, src: transactions_path(filters.merge(month: month_param(@month), before: @listing.page.next_before)),
+            <%= turbo_frame_tag :days, @listing.page.next_before, src: transactions_path(q: @query.to_s.presence, month: month_param(@month), before: @listing.page.next_before),
               loading: :lazy, refresh: :morph, target: "_top" %>
           <% end %>
         <% end %>
-      <% elsif filters.any? %>
-        <p class="text-sm text-tertiary">No transactions match.</p>
+      <% elsif @query.parts.any? %>
+        <p class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-tertiary">
+          <span>No transactions match.</span>
+          <% if @query.month %>
+            <%= link_to "Search all months", search_path(@query.without_dates, @month), class: "rounded-full bg-level-3 px-3 py-1 text-sm font-medium text-secondary hover:text-primary" %>
+          <% end %>
+        </p>
       <% else %>
         <p class="text-sm text-tertiary">Nothing in <%= month_name @month %>.</p>
       <% end %>

@@ -1,14 +1,15 @@
 class TransactionsController < ApplicationController
   before_action :set_transaction, only: %i[ edit destroy ]
 
-  helper_method :filters
-
   def index
-    @month = Period.month(params[:month], today: Date.current)
-    @listing = Transaction::Listing.new(Current.user, period: @month, filters:, before:)
+    @query = Transaction::Query.parse(params.permit(:q)[:q], user: Current.user, today: Date.current)
+    @month = @query.month || Period.month(params[:month], today: Date.current)
+    @this_month = Period.new("month", today: Date.current)
+    @listing = Transaction::Listing.new(Current.user.transactions, period: @month, query: @query, before:)
     @import = Current.user.imports.completed.find_by(id: flash[:import_id])
     @categories = Current.user.categories.alphabetically
     @bank_accounts = Current.user.bank_accounts.order(:name)
+    @category_counts = Current.user.transactions.group(:category_id).count
     keep_categorized_for_later_page
   end
 
@@ -38,10 +39,6 @@ class TransactionsController < ApplicationController
   private
     def set_transaction
       @transaction = Current.user.transactions.find(params.expect(:id))
-    end
-
-    def filters
-      params.permit(:query, :account, :category, :needs).to_h.compact_blank.symbolize_keys
     end
 
     def before

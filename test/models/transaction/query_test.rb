@@ -247,6 +247,11 @@ class Transaction::QueryTest < ActiveSupport::TestCase
     assert_equal "#food", parse("#food ?").toggle("?")
   end
 
+  test "without_dates drops every date token, readable or not" do
+    assert_equal "#food tea", parse("#food @30d tea @whenever").without_dates
+    assert_equal "", Transaction::Query.blank.without_dates
+  end
+
   test "with_month swaps any date token for the month, or appends one" do
     september = Period.month("2026-09", today: TODAY)
 

@@ -48,24 +48,35 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     get transactions_url
     assert_select "a[aria-pressed=false]", text: /Needs a category · 9/
 
-    get transactions_url(needs: "1")
+    get transactions_url(q: "?")
     assert_select "a[aria-pressed=true]", text: /Needs a category · 9/
+    assert_select "[data-field=token][data-kind=status]", text: /Needs a category/
     assert_select "main section li", 9
     assert_select "main section [role=img][aria-label='Needs a category']", 9
   end
 
-  test "the account filter narrows to one bank account, or to rows typed in" do
+  test "the account token narrows to one bank account, or to rows typed in" do
     activate(connect_simplefin)
-    savings = BankAccount.find_by!(external_id: "Demo Savings")
 
-    get transactions_url(account: savings.id)
+    get transactions_url(q: "in:savings")
     assert_select "main section li", 5
     assert_select "main section li [data-field=account]", text: "SimpleFIN Savings", count: 5
-    assert_select "select#account option[selected][value=?]", savings.id.to_s
+    assert_select "[data-field=token][data-kind=account]", text: /SimpleFIN Savings/
 
-    get transactions_url(account: "typed")
+    get transactions_url(q: "in:typed")
     assert_select "main section li", 1
     assert_select "li#transaction_#{transactions(:paycheck).id}"
+  end
+
+  test "a row's bank account pivots the search to that account, and the page offers it by name" do
+    activate(connect_simplefin)
+    savings = BankAccount.find_by!(external_id: "Demo Savings")
+    row = users(:one).transactions.from_bank_account(savings).first
+
+    get transactions_url(q: "in:savings")
+
+    assert_select "li#transaction_#{row.id} [data-field=account] [data-action='click->search#pivot'][data-search-token-param=?][title=?]", "in:simplefinsavings", "Show all in SimpleFIN Savings"
+    assert_select "main[data-search-accounts-value*=?]", "in:simplefinchecking"
   end
 
   test "the overview holds what syncs brought in until Done" do

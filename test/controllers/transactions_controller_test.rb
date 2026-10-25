@@ -67,45 +67,152 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     transactions(:paycheck).update!(note: "October pay")
 
     travel_to Time.utc(2026, 10, 13, 12) do
-      get transactions_url(query: "BOTTLE")
+      get transactions_url(q: "BOTTLE")
       assert_select "main section li", 1
       assert_select "li#transaction_#{@transaction.id}"
       assert_select "[data-field=spent]", text: "$5.50"
 
-      get transactions_url(query: "october")
+      get transactions_url(q: "october")
       assert_select "main section li", 1
       assert_select "li#transaction_#{transactions(:paycheck).id}"
-      assert_select "input#query[value=october]"
+      assert_select "[data-field=token][data-kind=text][data-raw=october]", text: /october/
     end
   end
 
-  test "narrows to one category or to rows with none" do
+  test "narrows to one category or to several, and a token that matches nothing is flagged and ignored" do
     travel_to Time.utc(2026, 10, 13, 12) do
-      parking = users(:one).transactions.create!(name: "Parking", amount_in_cents: -800, occurred_on: "2026-10-12")
-
-      get transactions_url(category: categories(:food).id)
+      get transactions_url(q: "#food")
       assert_select "main section li", 1
       assert_select "li#transaction_#{@transaction.id}"
+      assert_select "[data-field=token][data-kind=category]", text: /Food/
 
-      get transactions_url(category: categories(:income).id)
+      get transactions_url(q: "#income")
       assert_select "main section li", 1
       assert_select "li#transaction_#{transactions(:paycheck).id}"
 
-      get transactions_url(category: "none")
-      assert_select "main section li", 1
-      assert_select "li#transaction_#{parking.id}"
+      get transactions_url(q: "#food #income")
+      assert_select "main section li", 2
+
+      get transactions_url(q: "#nothing")
+      assert_select "main section li", 2
+      assert_select "[data-field=token][data-raw='#nothing'][title='No category matches “nothing”.']"
     end
   end
 
-  test "says so when nothing matches, and when the month is empty" do
+  test "another user's category is not a token" do
+    users(:two).categories.create!(name: "Secret")
+
+    get transactions_url(q: "#secret")
+
+    assert_select "[data-field=token][title]"
+  end
+
+  test "narrows by amount, account and money direction" do
     travel_to Time.utc(2026, 10, 13, 12) do
-      get transactions_url(query: "nothing like this")
+      get transactions_url(q: ">100")
+      assert_select "main section li", 1
+      assert_select "li#transaction_#{transactions(:paycheck).id}"
+
+      get transactions_url(q: "<10")
+      assert_select "li#transaction_#{@transaction.id}"
+      assert_select "main section li", 1
+
+      get transactions_url(q: "+")
+      assert_select "li#transaction_#{transactions(:paycheck).id}"
+      assert_select "main section li", 1
+
+      get transactions_url(q: "in:typed")
+      assert_select "main section li", 2
+    end
+  end
+
+  test "a search looks through every month, and the header, month steps and scope toggle say so" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      users(:one).transactions.create!(name: "Rent", amount_in_cents: -150_000, occurred_on: "2026-08-30")
+
+      get transactions_url(q: "rent")
+
+      assert_select "main section li [data-field=name]", text: "Rent"
+      assert_select "p", text: "Spent across matches"
+      assert_select "[data-field=spent]", text: "$1,500.00"
+      assert_select "nav[aria-label=Month]", 0
+      assert_select "nav[aria-label='Months searched'] [aria-current]", text: "All months"
+      assert_select "nav[aria-label='Months searched'] a[href=?]", transactions_path(q: "rent @2026-10", month: "2026-10"), text: "October 2026"
+    end
+  end
+
+  test "a month token pins the search to that month, and the month steps keep the rest of it" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      users(:one).transactions.create!(name: "Rent", amount_in_cents: -150_000, occurred_on: "2026-08-30")
+      users(:one).transactions.create!(name: "Rent", amount_in_cents: -150_000, occurred_on: "2026-09-30")
+
+      get transactions_url(q: "rent @aug")
+
+      assert_select "main section li", 1
+      assert_select "section[aria-label='Sun, Aug 30']"
+      assert_select "p", text: "Spent in August"
+      assert_select "nav[aria-label=Month] [aria-current]", text: "August 2026"
+      assert_select "nav[aria-label=Month] a[href=?]", transactions_path(q: "rent @2026-07"), text: "‹ Jul"
+      assert_select "nav[aria-label=Month] a[href=?]", transactions_path(q: "rent @2026-09"), text: "Sep ›"
+      assert_select "a[href=?]", transactions_path(q: "rent", month: "2026-08"), text: "All months"
+    end
+  end
+
+  test "a date range token narrows without a month, and its toggle offers every month or this one" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url(q: "@30d")
+
+      assert_select "main section li", 2
+      assert_select "p", text: "Spent across matches"
+      assert_select "nav[aria-label='Months searched'] a[href=?]", transactions_path(month: "2026-10"), text: "All months"
+    end
+  end
+
+  test "says so when nothing matches, and offers every month when a month token was in the way" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url(q: "nothing like this")
       assert_select "main p", text: "No transactions match."
+      assert_select "main a", text: "Search all months", count: 0
+
+      get transactions_url(q: "tea @2026-08")
+      assert_select "main p", text: /No transactions match\./
+      assert_select "main a[href=?]", transactions_path(q: "tea", month: "2026-08"), text: "Search all months"
 
       get transactions_url(month: "2026-08")
       assert_select "main p", text: "Nothing in August."
       assert_select "main section", 0
     end
+  end
+
+  test "each token can be removed, and the page drops the old dropdowns" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url(q: "#food >2", month: "2026-10")
+    end
+
+    assert_select "[data-field=token][data-kind=category] a[aria-label='Remove Food'][href=?]", transactions_path(q: ">2", month: "2026-10")
+    assert_select "[data-field=token][data-kind=amount] a[aria-label='Remove Over $2'][href=?]", transactions_path(q: "#food", month: "2026-10")
+    assert_select "select", 0
+    assert_select "label", text: "Filters", count: 0
+  end
+
+  test "the search field carries the categories and accounts for its suggestions, and fetches merchants on its own" do
+    get transactions_url
+
+    assert_select "main[data-controller=search][data-search-suggestions-url-value=?]", transactions_suggestions_path
+    assert_select "main[data-search-categories-value=?]", [ { name: "Food", token: "#food", count: 1 }, { name: "Income", token: "#income", count: 1 } ].to_json
+    assert_select "main[data-search-accounts-value=?]", "[]"
+    assert_select "input[role=combobox][aria-controls=search-popup]"
+    assert_select "#search-popup[role=listbox][hidden]"
+  end
+
+  test "a row's merchant pivots the search to itself, and its category stays the picker" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url
+    end
+
+    assert_select "li#transaction_#{@transaction.id} [data-field=name] [data-action='click->search#pivot'][data-search-token-param=?][title=?]", %("Blue Bottle"), "Show all Blue Bottle"
+    assert_select "li#transaction_#{@transaction.id} button[data-action='category-picker#open']", text: "Food"
+    assert_select "li#transaction_#{@transaction.id} button[data-action*='search#pivot']", 0
   end
 
   test "steps to the month before and offers the next one only for past months" do
@@ -115,8 +222,8 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
       assert_select "nav[aria-label=Month] [aria-current]", text: "October 2026"
       assert_select "nav[aria-label=Month] a", text: "Nov ›", count: 0
 
-      get transactions_url(month: "2026-09", query: "tea")
-      assert_select "nav[aria-label=Month] a[href=?]", transactions_path(query: "tea", month: "2026-10"), text: "Oct ›"
+      get transactions_url(month: "2026-09", q: "#nothing")
+      assert_select "nav[aria-label=Month] a[href=?]", transactions_path(q: "#nothing", month: "2026-10"), text: "Oct ›"
     end
   end
 

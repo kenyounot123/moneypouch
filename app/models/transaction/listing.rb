@@ -1,11 +1,11 @@
-# The transactions over a period, one month on the Transactions page or a span on a category's page, narrowed by filters, and their totals.
+# The transactions behind the Transactions page or a category's page, narrowed by a search query, and their totals. A query that narrows spans every month unless it names its dates.
 class Transaction::Listing
-  attr_reader :period, :filters
+  attr_reader :period, :query
 
-  def initialize(user, period:, filters:, before:)
-    @user = user
+  def initialize(transactions, period:, query:, before:)
+    @transactions = transactions
     @period = period
-    @filters = filters
+    @query = query
     @before = before
   end
 
@@ -14,7 +14,7 @@ class Transaction::Listing
   end
 
   def transactions
-    @transactions ||= page.transactions.listed.includes(bank_transaction: [ :bank_account, { transfer_partner: :bank_account } ])
+    @transactions_on_page ||= page.transactions.listed.includes(bank_transaction: [ :bank_account, { transfer_partner: :bank_account } ])
   end
 
   def count
@@ -22,7 +22,7 @@ class Transaction::Listing
   end
 
   def needing_category_count
-    narrowed.needing_category.count
+    narrowed(except: Transaction::Query::NEEDS).needing_category.count
   end
 
   def spent
@@ -42,33 +42,19 @@ class Transaction::Listing
   end
 
   private
-    attr_reader :user
-
     def shown
-      if filters[:needs]
-        narrowed.needing_category
+      @shown ||= narrowed
+    end
+
+    def narrowed(except: nil)
+      query.scope(within_period, except:)
+    end
+
+    def within_period
+      if query.filtering?
+        @transactions
       else
-        narrowed
-      end
-    end
-
-    def narrowed
-      in_chosen_category(from_chosen_account(user.transactions.occurred_in(period.range).matching(filters[:query])))
-    end
-
-    def from_chosen_account(transactions)
-      case filters[:account]
-      when nil then transactions
-      when "typed" then transactions.typed_in
-      else transactions.from_bank_account(user.bank_accounts.find(filters[:account]))
-      end
-    end
-
-    def in_chosen_category(transactions)
-      case filters[:category]
-      when nil then transactions
-      when "none" then transactions.uncategorized
-      else transactions.in_category(user.categories.find(filters[:category]))
+        @transactions.occurred_in(period.range)
       end
     end
 end

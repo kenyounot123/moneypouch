@@ -1,4 +1,45 @@
 module TransactionsHelper
+  TOKEN_STYLES = {
+    category: "bg-level-3 text-category",
+    date: "bg-level-3 text-date",
+    amount: "bg-level-3 text-amount",
+    status: "bg-highlight/40 text-primary",
+    account: "bg-level-3 text-primary",
+    text: "bg-level-3 text-primary"
+  }
+
+  def token_style(part)
+    class_names(TOKEN_STYLES.fetch(part.kind), "underline decoration-(--text-color-danger) decoration-wavy underline-offset-3" => part.problem)
+  end
+
+  def search_path(query, month)
+    transactions_path(q: query.presence, month: month_param(month))
+  end
+
+  def month_step_path(query, month)
+    if query.month
+      transactions_path(q: query.with_month(month))
+    else
+      search_path(query.to_s, month)
+    end
+  end
+
+  def pivot_label(label, token, title:, pivot:)
+    if pivot
+      tag.span label, title:, data: { action: "click->search#pivot", search_token_param: token }, class: "@xl:cursor-pointer @xl:hover:underline"
+    else
+      label
+    end
+  end
+
+  def search_categories(categories, counts)
+    categories.map { |category| { name: category.name, token: Transaction::Query.category_token(category), count: counts.fetch(category.id, 0) } }.to_json
+  end
+
+  def search_accounts(bank_accounts)
+    bank_accounts.map { |account| { name: account.full_name, token: Transaction::Query.account_token(account) } }.to_json
+  end
+
   def amount_color(transaction)
     if transaction.counted?
       money_color(transaction.amount_in_cents)

@@ -20,6 +20,10 @@ class Transaction::Query
     new(Reader.new(user:, today:).clauses(string))
   end
 
+  def self.blank
+    new([])
+  end
+
   def self.squash(name)
     name.downcase.gsub(/[^\p{L}\p{N}]/, "")
   end
@@ -42,6 +46,10 @@ class Transaction::Query
 
   def parts
     @clauses.map(&:part)
+  end
+
+  def include?(raw)
+    raws.include?(raw)
   end
 
   def filtering?
@@ -75,15 +83,19 @@ class Transaction::Query
   end
 
   def toggle(raw)
-    if raws.include?(raw)
+    if include?(raw)
       (raws - [ raw ]).join(" ")
     else
       adding(raw)
     end
   end
 
+  def without_dates
+    undated.join(" ")
+  end
+
   def with_month(period)
-    [ *parts.reject { |part| part.kind == :date }.map(&:raw), period.first_day.strftime("@%Y-%m") ].join(" ")
+    [ *undated, period.first_day.strftime("@%Y-%m") ].join(" ")
   end
 
   def to_s
@@ -93,6 +105,10 @@ class Transaction::Query
   private
     def raws
       parts.map(&:raw)
+    end
+
+    def undated
+      parts.reject { |part| part.kind == :date }.map(&:raw)
     end
 
     def valid
