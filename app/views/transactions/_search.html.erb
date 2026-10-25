@@ -10,7 +10,7 @@
         <span class="inline-flex h-6 items-center gap-0.5 rounded-sm pr-1 pl-2 text-sm whitespace-nowrap <%= token_style part %>" data-field="token" data-kind="<%= part.kind %>"
           data-raw="<%= part.raw %>" data-search-target="token" <%= tag.attributes title: part.problem %>>
           <%= part.label %>
-          <%= link_to search_path(query.without(index), month), aria: { label: "Remove #{part.label}" }, data: { search_target: "remove" },
+          <%= link_to search_path(query.without(index), month), aria: { label: "Remove #{part.label}" }, data: { search_target: "remove", action: "search#keepFocus" },
             class: "flex size-4.5 items-center justify-center rounded-sm opacity-60 hover:bg-current/15 hover:opacity-100" do %>
             <%= icon_tag "close", class: "size-2.5" %>
           <% end %>
