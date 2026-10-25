@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.14.0](https://github.com/kenyounot123/moneypouch/compare/v0.13.1...v0.14.0) (2026-10-25)
+
+
+### Features
+
+* **sidebar:** open the add palette from a sidebar button on every page ([#157](https://github.com/kenyounot123/moneypouch/issues/157)) ([29b275b](https://github.com/kenyounot123/moneypouch/commit/29b275bc38eb1872784fc63247cdcc3885bcaa1f))
+
+
+### Bug Fixes
+
+* **composer:** fit eight categories in the # list again ([#160](https://github.com/kenyounot123/moneypouch/issues/160)) ([15e9311](https://github.com/kenyounot123/moneypouch/commit/15e93111280f055c2eee811db265b27284cfc2ac))
+* **overview:** color the Uncategorized bar like any other category ([#159](https://github.com/kenyounot123/moneypouch/issues/159)) ([7b65807](https://github.com/kenyounot123/moneypouch/commit/7b6580768a7b4fc530f47632a85e35b1d6782f8e))
+
 ## [0.13.1](https://github.com/kenyounot123/moneypouch/compare/v0.13.0...v0.13.1) (2026-10-25)
 
 
