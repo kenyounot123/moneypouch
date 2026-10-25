@@ -84,4 +84,12 @@ class TransactionTest < ActiveSupport::TestCase
     assert_empty Transaction.matching("100%")
     assert_equal [ "Blue Bottle", "Paycheck" ], Transaction.matching(" ").order(:name).pluck(:name)
   end
+
+  test "merchants are the names by how often they appear, cut off at the limit" do
+    users(:one).transactions.create!(name: "Blue Bottle", amount_in_cents: -450, occurred_on: "2026-10-02")
+    users(:one).transactions.create!(name: "Alpha", amount_in_cents: -450, occurred_on: "2026-10-02")
+
+    assert_equal [ [ "Blue Bottle", 2 ], [ "Alpha", 1 ], [ "Paycheck", 1 ] ], users(:one).transactions.merchants(10).map { |merchant| merchant.values_at(:name, :count) }
+    assert_equal [ "Blue Bottle" ], users(:one).transactions.merchants(1).pluck(:name)
+  end
 end

@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   namespace :transactions do
     resource :download, only: :show
+    resource :suggestions, only: :show
   end
   resources :transactions, only: %i[ index create edit destroy ] do
     resource :categorization, only: :update, module: :transactions
