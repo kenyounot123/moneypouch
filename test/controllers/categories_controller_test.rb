@@ -32,7 +32,7 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /transaction/, count: 0
   end
 
-  test "every total follows the period picked, and a category with nothing in it says when it was last used" do
+  test "every total follows the period picked, and a category's last transaction shows only on its own page" do
     trip = users(:one).categories.create!(name: "Trip")
     users(:one).transactions.create!(name: "Flight", amount_in_cents: -40_000, occurred_on: "2026-07-07", category: trip)
 
@@ -44,14 +44,19 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "section[aria-label=Income] [data-field=section-total]", text: "—"
     assert_select "li#category_#{trip.id}" do
       assert_select "[data-field=total]", text: "—"
-      assert_select "[data-field=last-transaction]", text: "Last transaction Jul 7"
+      assert_select "[data-field=share]", text: ""
+      assert_select "[data-field=last-transaction]", count: 0
     end
     assert_select "li#category_#{trip.id} ~ li#category_#{categories(:food).id}", count: 0
 
     get categories_url(months: 12)
 
     assert_select "li#category_#{trip.id} [data-field=total]", text: "$400.00"
-    assert_select "li#category_#{trip.id} [data-field=last-transaction]", count: 0
+    assert_select "li#category_#{trip.id} [data-field=share]", text: /\A(<1|\d+)%\z/
+
+    get category_url(trip, months: 1)
+
+    assert_select "[data-field=last-transaction]", text: "Jul 7"
   end
 
   test "a category's page totals the same span as the list and lists its transactions" do

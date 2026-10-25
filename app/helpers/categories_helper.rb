@@ -63,14 +63,6 @@ module CategoriesHelper
     end
   end
 
-  def last_transaction(date)
-    if date
-      "Last transaction #{short_date date}"
-    else
-      "No transactions yet"
-    end
-  end
-
   def merge_category_question(category, usage)
     "Merge #{category.name} into the category you picked? Its #{holdings(category, usage).to_sentence} move there, and #{category.name} goes away."
   end

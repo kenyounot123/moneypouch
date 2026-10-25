@@ -8,9 +8,6 @@
     <% if category.default_income? %>
       <span class="text-xs text-tertiary" title="Money in with no other category lands in <%= category.name %>, so it keeps its name">Default</span>
     <% end %>
-    <% unless active %>
-      <span class="shrink-0 text-xs text-tertiary" data-field="last-transaction"><%= last_transaction usage.last_on(category) %></span>
-    <% end %>
   </p>
 
   <div class="grid h-5 grid-cols-12 items-end gap-0.5 max-md:hidden" aria-hidden="true">
@@ -19,10 +16,14 @@
     <% end %>
   </div>
 
-  <div class="h-1.5 rounded-bar bg-data-track max-md:hidden" aria-hidden="true">
-    <% if active && total.positive? && section_total.positive? %>
-      <div class="h-full rounded-bar bg-data" style="width: max(2px, <%= (total * 100.0 / section_total).round(1) %>%)" title="<%= share_of total, section_total %> of <%= category_kind(category).downcase %>"></div>
-    <% end %>
+  <% shared = active && total.positive? && section_total.positive? %>
+  <div class="flex items-center gap-2 max-md:hidden" title="<%= "#{share_of total, section_total} of #{category_kind(category).downcase}" if shared %>">
+    <div class="h-1.5 flex-1 rounded-bar bg-data-track" aria-hidden="true">
+      <% if shared %>
+        <div class="h-full rounded-bar bg-data" style="width: max(2px, <%= (total * 100.0 / section_total).round(1) %>%)"></div>
+      <% end %>
+    </div>
+    <span class="w-8 shrink-0 text-right font-amount text-xs text-tertiary" data-field="share"><%= share_of total, section_total if shared %></span>
   </div>
 
   <p class="text-right font-amount <%= "text-tertiary" unless active %>" data-field="total"><%= active ? money(total) : "—" %></p>
