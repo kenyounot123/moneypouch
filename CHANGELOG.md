@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.1](https://github.com/kenyounot123/moneypouch/compare/v0.13.0...v0.13.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* **bank-sync:** pair a card payment that a rule marked as a transfer ([#151](https://github.com/kenyounot123/moneypouch/issues/151)) ([c916fb6](https://github.com/kenyounot123/moneypouch/commit/c916fb676a1d8b14e131568c3a45439e6dd442cf))
+* **ui:** keep selected labels at one weight so they stop growing ([#155](https://github.com/kenyounot123/moneypouch/issues/155)) ([84d1a2f](https://github.com/kenyounot123/moneypouch/commit/84d1a2f9cf9c01057b121a2743377157fcae964e))
+
 ## [0.13.0](https://github.com/kenyounot123/moneypouch/compare/v0.12.0...v0.13.0) (2026-10-24)
 
 
