@@ -34,8 +34,9 @@ const MARKS = {
   date: "text-date",
   category: "text-category",
 }
+// The category list fits eight options before it scrolls: each is a line plus py-1.5, inside the list's p-1 and 1px border.
 const POPUP_SIZES = {
-  category: ["w-56", "max-h-[250px]", "overflow-y-auto"],
+  category: ["w-56", "max-h-[calc(8*(var(--text-base--line-height)+--spacing(3))+--spacing(2)+2px)]", "overflow-y-auto"],
   calendar: ["w-[264px]"],
 }
 
