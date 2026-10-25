@@ -1,5 +1,5 @@
 class Transaction::Page
-  ROWS = 100
+  ROWS = 50
 
   attr_reader :before
 

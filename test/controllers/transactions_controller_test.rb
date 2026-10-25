@@ -245,16 +245,16 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "a busy month shows its newest days first and loads the rest as the list scrolls" do
-    rows = { "2026-09-30" => 90, "2026-09-29" => 90, "2026-09-28" => 5 }.flat_map do |date, count|
+    rows = { "2026-09-30" => 45, "2026-09-29" => 45, "2026-09-28" => 5 }.flat_map do |date, count|
       Array.new(count) { { user_id: users(:one).id, name: "Lunch", amount_in_cents: -1_000, occurred_on: date } }
     end
     Transaction.insert_all!(rows)
 
     travel_to Time.utc(2026, 10, 13, 12) do
       get transactions_url(month: "2026-09")
-      assert_select "main section li", 180
+      assert_select "main section li", 90
       assert_select "turbo-frame#days_2026-09-29[loading=lazy][refresh=morph][src=?]", transactions_path(month: "2026-09", before: "2026-09-29")
-      assert_equal [ "185" ], css_select("dl dd").map(&:text).last(1)
+      assert_equal [ "95" ], css_select("dl dd").map(&:text).last(1)
 
       get transactions_url(month: "2026-09", before: "2026-09-29")
       assert_select "turbo-frame#days_2026-09-29 section li", 5
