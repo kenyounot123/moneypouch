@@ -44,6 +44,7 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "section[aria-label=Income] [data-field=section-total]", text: "—"
     assert_select "li#category_#{trip.id}" do
       assert_select "[data-field=total]", text: "—"
+      assert_select "[data-field=share]", text: ""
       assert_select "[data-field=last-transaction]", count: 0
     end
     assert_select "li#category_#{trip.id} ~ li#category_#{categories(:food).id}", count: 0
@@ -51,6 +52,7 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
     get categories_url(months: 12)
 
     assert_select "li#category_#{trip.id} [data-field=total]", text: "$400.00"
+    assert_select "li#category_#{trip.id} [data-field=share]", text: /\A(<1|\d+)%\z/
 
     get category_url(trip, months: 1)
 
