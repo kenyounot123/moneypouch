@@ -10,7 +10,7 @@ module Trends::Notable
 
   def notes
     @notes ||= [ lowest_since_note, below_usual_note, positive_net_months_note, charge_stopped_note, new_income_note ]
-      .compact.uniq { |note| note.path || note.kind }.first(NOTES_LIMIT)
+      .compact.uniq { |note| [ note.category || note.kind, note.month ] }.first(NOTES_LIMIT)
   end
 
   def lowest_since_note
@@ -27,7 +27,7 @@ module Trends::Notable
     line, run, ended = runs.max_by { |line, run, _| [ run, line.total ] }
     if line
       Trends::Note.new(kind: :lowest_since, tone: :good, text: "#{month.first_day.strftime("%B")} was your lowest #{line.label} month #{ended ? "since #{ended.first_day.strftime("%B")}" : "in #{run + 1} months"}.",
-        path: category_path(line.category, month))
+        category: line.category, month:)
     end
   end
 
@@ -42,7 +42,7 @@ module Trends::Notable
     line, = below.max_by(&:last)
     if line
       Trends::Note.new(kind: :below_usual, tone: :good, text: "You spent less than usual on #{line.label} in #{last_full.first_day.strftime("%B")}.",
-        path: category_path(line.category, last_full))
+        category: line.category, month: last_full)
     end
   end
 
@@ -69,9 +69,4 @@ module Trends::Notable
       Trends::Note.new(kind: :new_income, tone: :good, text: "New income from #{recent.name}.")
     end
   end
-
-  private
-    def category_path(category, period)
-      Rails.application.routes.url_helpers.category_path(category, month: period.first_day.strftime("%Y-%m"))
-    end
 end

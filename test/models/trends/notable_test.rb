@@ -12,7 +12,7 @@ class Trends::NotableTest < ActiveSupport::TestCase
 
     note = below_usual
 
-    assert_equal [ :below_usual, :good, "You spent less than usual on Food in September.", category_path(categories(:food), month: "2026-09") ], note.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :below_usual, :good, "You spent less than usual on Food in September.", categories(:food), september ], note.to_h.values_at(:kind, :tone, :text, :category, :month)
   end
 
   test "below usual: needs at least $20 under" do
@@ -50,7 +50,7 @@ class Trends::NotableTest < ActiveSupport::TestCase
 
     note = lowest_since
 
-    assert_equal [ :lowest_since, :good, "September was your lowest Food month since March.", category_path(categories(:food), month: "2026-09") ], note.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :lowest_since, :good, "September was your lowest Food month since March.", categories(:food), september ], note.to_h.values_at(:kind, :tone, :text, :category, :month)
   end
 
   test "lowest since: needs four higher months right before" do
@@ -92,7 +92,7 @@ class Trends::NotableTest < ActiveSupport::TestCase
   test "positive net months: counts the last six full months with a positive net" do
     positive_net_in "2026-09", "2026-07", "2026-04"
 
-    assert_equal [ :positive_net_months, :good, "Your net was positive in 3 of the last 6 months.", nil ], positive_net_months.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :positive_net_months, :good, "Your net was positive in 3 of the last 6 months.", nil ], positive_net_months.to_h.values_at(:kind, :tone, :text, :category)
   end
 
   test "positive net months: stays quiet below three, and leaves out this month and the ones before the six" do
@@ -104,7 +104,7 @@ class Trends::NotableTest < ActiveSupport::TestCase
   test "charge stopped: a monthly charge that last came the month before last month, once this month is past its day" do
     spotify
 
-    assert_equal [ :charge_stopped, :neutral, "Your Spotify charge stopped.", nil ], charge_stopped.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :charge_stopped, :neutral, "Your Spotify charge stopped.", nil ], charge_stopped.to_h.values_at(:kind, :tone, :text, :category)
   end
 
   test "charge stopped: waits for this month to pass the usual day" do
@@ -130,7 +130,7 @@ class Trends::NotableTest < ActiveSupport::TestCase
     add 5_000, "2026-09-02", "Side gig"
     add 9_000, "2026-10-02", "Refund"
 
-    assert_equal [ :new_income, :good, "New income from Refund.", nil ], new_income.to_h.values_at(:kind, :tone, :text, :path)
+    assert_equal [ :new_income, :good, "New income from Refund.", nil ], new_income.to_h.values_at(:kind, :tone, :text, :category)
   end
 
   test "new income: says nothing for a source seen before last month" do
@@ -209,7 +209,7 @@ class Trends::NotableTest < ActiveSupport::TestCase
       @user.transactions.create!(name:, amount_in_cents: cents, occurred_on:, category:)
     end
 
-    def category_path(...)
-      Rails.application.routes.url_helpers.category_path(...)
+    def september
+      Period.month("2026-09", today: @today)
     end
 end
