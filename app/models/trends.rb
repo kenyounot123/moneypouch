@@ -22,8 +22,6 @@ class Trends
     end
   end
 
-  # series maps each of the 12 months to cents. usual is the median of the 6 full months before this one,
-  # counting empty months, and stays nil until the category has money in at least 2 of them.
   Line = Data.define(:category, :series, :current, :usual) do
     def label
       category&.name || "Uncategorized"
@@ -34,11 +32,8 @@ class Trends
     end
   end
 
-  # A charge that comes about once a month under the same name. amount is the latest one, and previous_amount
-  # the one before it when that was different.
   Recurring = Data.define(:name, :amount, :previous_amount, :day, :last_on)
 
-  # days are the days of the month it usually arrives on, those it arrived on in at least 3 different months.
   Source = Data.define(:name, :total, :days, :first_on)
 
   Entry = Data.define(:on, :category_id, :name, :cents)
@@ -51,7 +46,6 @@ class Trends
     @today = today
   end
 
-  # The 12 calendar months ending with the current one, oldest first.
   def periods
     @periods ||= (1...MONTHS).each_with_object([ Period.new("month", today:) ]) { |_, periods| periods.unshift(periods.first.previous) }
   end
@@ -136,7 +130,6 @@ class Trends
       @income_series ||= series_by_category(income_entries)
     end
 
-    # A refund can outweigh a month's spending, and that month then reads as nothing spent instead of negative money.
     def series_by_category(entries)
       entries.group_by(&:category_id)
         .transform_values do |rows|

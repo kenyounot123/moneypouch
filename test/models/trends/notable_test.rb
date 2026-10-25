@@ -193,7 +193,6 @@ class Trends::NotableTest < ActiveSupport::TestCase
       trends.positive_net_months_note
     end
 
-    # Food spending per month, ending with September and going back.
     def food_months(*cents)
       cents.reverse.each_with_index do |amount, back|
         add(-amount, (Date.new(2026, 9, 10) << back).to_s, "Meal", categories(:food)) if amount.positive?
