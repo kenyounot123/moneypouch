@@ -6,7 +6,7 @@ class Transaction::ListingTest < ActiveSupport::TestCase
   end
 
   test "totals the month's transactions" do
-    listing = listing_for({})
+    listing = listing_for("")
 
     assert_equal [ 2, 550, 200_000, 199_450 ], [ listing.count, listing.spent, listing.income, listing.net ]
     assert_equal({ Date.new(2026, 10, 1) => 199_450 }, listing.day_totals)
@@ -17,28 +17,67 @@ class Transaction::ListingTest < ActiveSupport::TestCase
     user.transactions.create!(name: "To savings", amount_in_cents: -10_000, occurred_on: "2026-10-02", transfer: true)
     user.transactions.create!(name: "Work trip", amount_in_cents: -30_000, occurred_on: "2026-10-02", excluded: true)
     user.transactions.create!(name: "Lunch", amount_in_cents: -1_200, occurred_on: "2026-10-03")
-    listing = listing_for({})
+    listing = listing_for("")
 
     assert_equal [ 199_450, -1_200, 0 ], [ Date.new(2026, 10, 1), Date.new(2026, 10, 3), Date.new(2026, 10, 2) ].map { |date| listing.day_totals[date] }
     assert_equal listing.net, listing.day_totals.values.sum
   end
 
-  test "narrows by query and category" do
-    assert_equal [ "Blue Bottle" ], listing_for(query: "bottle").transactions.map(&:name)
-    assert_equal [ "Paycheck" ], listing_for(category: categories(:income).id.to_s).transactions.map(&:name)
-    assert_equal 0, listing_for(category: "none").count
+  test "totals agree with the per-scope sums over transfers, excluded rows, uncategorized money and both kinds of category" do
+    user = users(:one)
+    user.transactions.create!(name: "To savings", amount_in_cents: -10_000, occurred_on: "2026-10-02", transfer: true)
+    user.transactions.create!(name: "Work trip", amount_in_cents: -30_000, occurred_on: "2026-10-02", excluded: true)
+    user.transactions.create!(name: "Cash out", amount_in_cents: -1_200, occurred_on: "2026-10-03")
+    user.transactions.create!(name: "Cash in", amount_in_cents: 700, occurred_on: "2026-10-03")
+    user.transactions.create!(name: "Groceries refund", amount_in_cents: 900, occurred_on: "2026-10-04", category: categories(:food))
+    user.transactions.create!(name: "Bonus clawback", amount_in_cents: -4_000, occurred_on: "2026-10-04", category: categories(:income))
+    user.transactions.create!(name: "Unspent", amount_in_cents: 0, occurred_on: "2026-10-05")
+    shown = user.transactions.occurred_in(@month.range)
+    listing = listing_for("")
+
+    assert_equal [ shown.count, shown.spent, shown.income, shown.net ], [ listing.count, listing.spent, listing.income, listing.net ]
+    counted_days = shown.counted.group(:occurred_on).sum(:amount_in_cents)
+    assert_equal counted_days, listing.day_totals.slice(*counted_days.keys)
+    assert_equal [ 9, 550 + 1_200 - 900, 200_000 + 700 - 4_000, 199_450 - 1_200 + 700 + 900 - 4_000 ], [ listing.count, listing.spent, listing.income, listing.net ]
+  end
+
+  test "narrows by name, note and category" do
+    assert_equal [ "Blue Bottle" ], listing_for("bottle").transactions.map(&:name)
+    assert_equal [ "Paycheck" ], listing_for("#income").transactions.map(&:name)
+    assert_equal [ "Blue Bottle", "Paycheck" ], listing_for("#income #food").transactions.map(&:name).sort
   end
 
   test "typed-in rows are every row without a bank" do
-    assert_equal 2, listing_for(account: "typed").count
+    assert_equal 2, listing_for("in:typed").count
   end
 
-  test "another user's category is not found" do
-    assert_raises(ActiveRecord::RecordNotFound) { listing_for(category: categories(:income_two).id.to_s).count }
+  test "a search spans every month, unless it names its dates" do
+    users(:one).transactions.create!(name: "Rent", amount_in_cents: -150_000, occurred_on: "2026-09-30")
+
+    assert_equal [ "Rent" ], listing_for("rent").transactions.map(&:name)
+    assert_equal [ "Rent" ], listing_for("rent @sep").transactions.map(&:name)
+    assert_empty listing_for("rent @oct").transactions
+    assert_equal [ "Rent" ], listing_for("@sep").transactions.map(&:name)
+    assert_equal [ 150_000, 1 ], [ listing_for("rent").spent, listing_for("rent").count ]
+  end
+
+  test "tokens that matched nothing leave the month as it was" do
+    assert_equal 2, listing_for("#nothing @whenever").count
+  end
+
+  test "counts the rows needing a category among the others the search narrows to, whether or not it asks for them" do
+    activate(connect_simplefin)
+    savings = BankAccount.find_by!(external_id: "Demo Savings")
+    needing = users(:one).transactions.from_bank_account(savings).needing_category.count
+
+    assert_operator needing, :>, 0
+    assert_equal [ needing, needing ], [ listing_for("in:savings", today: Date.current).needing_category_count, listing_for("in:savings ?", today: Date.current).needing_category_count ]
+    assert_equal needing, listing_for("in:savings ?", today: Date.current).count
   end
 
   private
-    def listing_for(filters)
-      Transaction::Listing.new(users(:one), period: @month, filters:, before: nil)
+    def listing_for(q, today: Date.new(2026, 10, 15))
+      query = Transaction::Query.parse(q, user: users(:one), today:)
+      Transaction::Listing.new(users(:one).transactions, period: @month, query:, before: nil)
     end
 end

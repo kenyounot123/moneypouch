@@ -1,74 +1,78 @@
-# The transactions over a period, one month on the Transactions page or a span on a category's page, narrowed by filters, and their totals.
+# The transactions behind the Transactions page or a category's page, narrowed by a search query, and their totals. A query that narrows spans every month unless it names its dates.
 class Transaction::Listing
-  attr_reader :period, :filters
+  Day = Data.define(:on, :rows, :net, :spending, :income)
 
-  def initialize(user, period:, filters:, before:)
-    @user = user
+  attr_reader :period, :query
+
+  def initialize(transactions, period:, query:, before:)
+    @transactions = transactions
     @period = period
-    @filters = filters
+    @query = query
     @before = before
   end
 
   def page
-    @page ||= Transaction::Page.new(shown, before: @before)
+    @page ||= Transaction::Page.new(shown, counts: days.to_h { |day| [ day.on, day.rows ] }, before: @before)
   end
 
   def transactions
-    @transactions ||= page.transactions.listed.includes(bank_transaction: [ :bank_account, { transfer_partner: :bank_account } ])
+    @transactions_on_page ||= page.transactions.listed.includes(bank_transaction: [ :bank_account, { transfer_partner: :bank_account } ])
   end
 
   def count
-    @count ||= shown.count
+    days.sum(&:rows)
   end
 
   def needing_category_count
-    narrowed.needing_category.count
+    narrowed(except: Transaction::Query::NEEDS).needing_category.count
   end
 
   def spent
-    shown.spent
+    -days.sum(&:spending)
   end
 
   def net
-    shown.net
+    days.sum(&:net)
   end
 
   def income
-    shown.income
+    days.sum(&:income)
   end
 
   def day_totals
-    @day_totals ||= Hash.new(0).merge(shown.counted.group(:occurred_on).sum(:amount_in_cents))
+    @day_totals ||= Hash.new(0).merge(days.to_h { |day| [ day.on, day.net ] })
   end
 
   private
-    attr_reader :user
+    def days
+      @days ||= shown.group(:occurred_on).order(occurred_on: :desc).pluck(:occurred_on, *totals).map { |values| Day.new(*values) }
+    end
+
+    def totals
+      counted = "NOT transactions.transfer AND NOT transactions.excluded"
+      spending = "transactions.category_id IN (#{Category.spending.select(:id).to_sql}) OR (transactions.category_id IS NULL AND transactions.amount_in_cents < 0)"
+      income = "transactions.category_id IN (#{Category.income.select(:id).to_sql}) OR (transactions.category_id IS NULL AND transactions.amount_in_cents >= 0)"
+
+      [ "COUNT(*)", sum_where(counted), sum_where("#{counted} AND (#{spending})"), sum_where("#{counted} AND (#{income})") ].map { |sql| Arel.sql(sql) }
+    end
+
+    def sum_where(condition)
+      "SUM(CASE WHEN #{condition} THEN transactions.amount_in_cents ELSE 0 END)"
+    end
 
     def shown
-      if filters[:needs]
-        narrowed.needing_category
+      @shown ||= narrowed
+    end
+
+    def narrowed(except: nil)
+      query.scope(within_period, except:)
+    end
+
+    def within_period
+      if query.filtering?
+        @transactions
       else
-        narrowed
-      end
-    end
-
-    def narrowed
-      in_chosen_category(from_chosen_account(user.transactions.occurred_in(period.range).matching(filters[:query])))
-    end
-
-    def from_chosen_account(transactions)
-      case filters[:account]
-      when nil then transactions
-      when "typed" then transactions.typed_in
-      else transactions.from_bank_account(user.bank_accounts.find(filters[:account]))
-      end
-    end
-
-    def in_chosen_category(transactions)
-      case filters[:category]
-      when nil then transactions
-      when "none" then transactions.uncategorized
-      else transactions.in_category(user.categories.find(filters[:category]))
+        @transactions.occurred_in(period.range)
       end
     end
 end

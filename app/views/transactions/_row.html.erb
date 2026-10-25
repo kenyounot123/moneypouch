@@ -11,7 +11,7 @@
 
     <div class="flex min-w-0 items-center gap-2.5 [grid-area:name]" data-controller="note" data-note-url-value="<%= transaction_note_path(transaction) %>">
       <div class="flex min-w-0 flex-col gap-0.5 @xl:flex-row @xl:items-baseline @xl:gap-2.5" data-note-target="name">
-        <p data-field="name" class="truncate font-medium <%= transaction.excluded? ? "@xl:min-w-0" : "@xl:max-w-full @xl:shrink-0" %> <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
+        <p data-field="name" class="truncate font-medium <%= transaction.excluded? ? "@xl:min-w-0" : "@xl:max-w-full @xl:shrink-0" %> <%= "text-tertiary" unless transaction.counted? %>"><%= pivot_label transaction.name, Transaction::Query.text_token(transaction.name), title: "Show all #{transaction.name}", pivot: local_assigns[:pivot] %></p>
         <% if transaction.excluded? %>
           <%= excluded_tag class: "hidden @xl:inline" %>
         <% end %>
@@ -36,7 +36,7 @@
         <span class="shrink-0 @xl:hidden">· Excluded</span>
       <% end %>
       <% if transaction.from_bank? %>
-        <span class="truncate @xl:hidden @4xl:block @4xl:[grid-area:account]"><span class="@xl:hidden">· </span><span data-field="account"><%= transaction.bank_account_name %></span></span>
+        <span class="truncate @xl:hidden @4xl:block @4xl:[grid-area:account]"><span class="@xl:hidden">· </span><span data-field="account"><%= pivot_label transaction.bank_account_name, Transaction::Query.account_token(transaction.bank_transaction.bank_account), title: "Show all in #{transaction.bank_account_name}", pivot: local_assigns[:pivot] %></span></span>
       <% end %>
     </div>
 

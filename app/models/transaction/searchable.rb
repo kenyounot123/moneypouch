@@ -11,6 +11,10 @@ module Transaction::Searchable
       end
     end
 
+    def merchants(limit)
+      group(:name).order(Arel.sql("count(*) DESC"), :name).limit(limit).count.map { |name, count| { name:, count: } }
+    end
+
     def last_category_for(name)
       eager_load(:category)
         .where("lower(transactions.name) = ?", name.downcase(:ascii))

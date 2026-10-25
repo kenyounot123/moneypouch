@@ -1,10 +1,11 @@
 class Transaction::Page
-  ROWS = 100
+  ROWS = 50
 
   attr_reader :before
 
-  def initialize(transactions, before:)
+  def initialize(transactions, counts:, before:)
     @transactions = transactions
+    @counts = counts
     @before = before
   end
 
@@ -43,16 +44,12 @@ class Transaction::Page
       @runs ||= begin
         rows = 0
 
-        counts.keys.slice_before do |date|
+        @counts.keys.slice_before do |date|
           starts_a_page = rows >= ROWS
           rows = 0 if starts_a_page
-          rows += counts[date]
+          rows += @counts[date]
           starts_a_page
         end.to_a
       end
-    end
-
-    def counts
-      @counts ||= @transactions.group(:occurred_on).order(occurred_on: :desc).count
     end
 end

@@ -5,6 +5,6 @@
     <p data-field="day-total" class="font-amount text-xs <%= money_color total, otherwise: "text-tertiary" %>"><%= money_flow total %></p>
   </div>
   <ul class="min-w-0 flex-1">
-    <%= render partial: "transactions/row", collection: transactions, as: :transaction %>
+    <%= render partial: "transactions/row", collection: transactions, as: :transaction, locals: { pivot: local_assigns[:pivot] } %>
   </ul>
 </section>

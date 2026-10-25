@@ -9,7 +9,7 @@ class CategoriesController < ApplicationController
   def show
     @category = Current.user.categories.find(params.expect(:id))
     @usage = Category::Usage.new(Current.user, span)
-    @listing = Transaction::Listing.new(Current.user, period: span, filters: { category: @category.id }, before:)
+    @listing = Transaction::Listing.new(Current.user.transactions.in_category(@category), period: span, query: Transaction::Query.blank, before:)
     @categories = Current.user.categories.alphabetically
   end
 

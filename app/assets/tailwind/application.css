@@ -301,6 +301,7 @@
   .icon--check { --svg: url("icons/check.svg"); }
   .icon--checkbox-check { --svg: url("icons/checkbox-check.svg"); }
   .icon--chevron-right { --svg: url("icons/chevron-right.svg"); }
+  .icon--close { --svg: url("icons/close.svg"); }
   .icon--delete { --svg: url("icons/delete.svg"); }
   .icon--exclude { --svg: url("icons/exclude.svg"); }
   .icon--external { --svg: url("icons/external.svg"); }
