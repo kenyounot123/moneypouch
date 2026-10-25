@@ -55,7 +55,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "Oct 1–31"
     assert_select "p", text: "Food"
     assert_select "p", text: "Uncategorized"
-    assert_select "[data-field=category-bar].bg-highlight", 1
+    assert_select "[data-field=category-bar].bg-highlight", 0
   end
 
   test "shows the year by month" do

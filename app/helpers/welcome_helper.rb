@@ -64,10 +64,8 @@ module WelcomeHelper
     column_height(cents, peak, SUMMARY_BAR_HEIGHT)
   end
 
-  def category_color(category, index)
-    if category.nil?
-      "bg-highlight"
-    elsif index.zero?
+  def category_color(index)
+    if index.zero?
       "bg-data-strong"
     else
       "bg-data"
