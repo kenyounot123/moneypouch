@@ -15,13 +15,13 @@ class BankTransaction < ApplicationRecord
   end
 
   # The other half of a card payment or account transfer: money of the same size going the other way, in
-  # another account, that the bank added and nobody has categorized yet.
+  # another account, that the bank added with no category. A row a rule already marked as a transfer still waits for its other half.
   def self.partner_for(amount_in_cents, currency, date, other_than:)
     unless amount_in_cents.zero?
       unmatched.unpaired
         .where.not(bank_account: other_than)
         .where(amount_in_cents: -amount_in_cents, occurred_on: (date - PAIR_WINDOW)..(date + PAIR_WINDOW))
-        .where(transaction_id: Transaction.needing_category.where(currency:).select(:id))
+        .where(transaction_id: Transaction.pairable.where(currency:).select(:id))
         .min_by { |candidate| [ (candidate.occurred_on - date).abs, candidate.id ] }
     end
   end
@@ -48,7 +48,7 @@ class BankTransaction < ApplicationRecord
     partner = transfer_partner
     update!(transfer_partner: nil)
     partner.update!(transfer_partner: nil)
-    partner.linked_transaction.update!(categorization: Transaction::Categorization.none)
+    partner.linked_transaction.then { |transaction| transaction.update!(categorization: transaction.user.rule_for(partner.name)&.categorization || Transaction::Categorization.none) }
   end
 
   # Transaction shadows ActiveRecord's #transaction, so there is no belongs_to; see Transaction::Bankable.
