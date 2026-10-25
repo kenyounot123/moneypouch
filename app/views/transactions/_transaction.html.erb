@@ -8,7 +8,7 @@
       <%= row_marker "Just added" %>
     <% end %>
   </div>
-  <div class="flex min-w-0 flex-1 flex-col <%= field ? "gap-1" : "gap-0.5" %>" data-controller="note" data-note-url-value="<%= transaction_note_path(transaction) %>">
+  <div class="flex min-w-0 flex-1 flex-col <%= field ? "gap-1" : "gap-0.5" %> <%= "@container" if local_assigns[:account] %>" data-controller="note" data-note-url-value="<%= transaction_note_path(transaction) %>">
     <div class="flex min-w-0 items-center gap-2.5" data-note-target="name">
       <p class="truncate font-medium <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
       <% if transaction.excluded? %>
@@ -23,7 +23,7 @@
       <button type="button" class="flex max-w-full cursor-text items-center gap-1.5 self-start text-left text-base text-secondary hover:text-primary"
         data-note-target="label" data-action="note#open" data-note-text-param="<%= transaction.note %>"><%= icon_tag("note", class: "size-3 text-tertiary") %><span class="truncate"><%= transaction.note %></span></button>
     <% end %>
-    <div class="flex min-w-0 items-center gap-1 text-sm text-tertiary <%= "flex-wrap sm:flex-nowrap" if local_assigns[:account] %>">
+    <div class="flex min-w-0 items-center gap-1 text-sm text-tertiary <%= "flex-wrap @sm:flex-nowrap" if local_assigns[:account] %>">
       <% if field %>
         <span class="category-field-slot" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: "Category",
           class: "category-field" %></span>
@@ -34,7 +34,7 @@
         <span class="whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
       <% end %>
       <% if local_assigns[:account] %>
-        <span class="basis-full truncate sm:basis-auto"><span class="hidden sm:inline">· </span><%= transaction.bank_account_name %></span>
+        <span class="basis-full truncate @sm:flex-1"><span class="hidden @sm:inline">· </span><%= transaction.bank_account_name %></span>
       <% end %>
     </div>
   </div>

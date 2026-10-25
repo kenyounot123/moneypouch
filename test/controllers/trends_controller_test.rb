@@ -91,7 +91,7 @@ class TrendsControllerTest < ActionDispatch::IntegrationTest
       assert_select "p.font-amount", text: "$25.50"
       assert_select "p.text-tertiary", text: "usually $100.00"
     end
-    assert_select "section[aria-labelledby=categories-heading] table.sr-only" do
+    assert_select "section[aria-labelledby=categories-heading] .sr-only table" do
       assert_select "thead th", count: 13
       assert_select "thead th:last-child", text: "October 2026 (present)"
       assert_select "tbody tr th[scope=row]", text: "Food"
