@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  has_secure_password
+  has_secure_password reset_token: { expires_in: 1.day }
 
   MODES = %w[ light dark ]
   THEMES = %w[ pouch graphite moss tide ember rose plum ]
@@ -39,6 +39,18 @@ class User < ApplicationRecord
 
   def open_registration(open)
     update!(registration_open: open)
+  end
+
+  def reset_password(password, password_confirmation)
+    if password.blank?
+      errors.add(:password, :blank)
+      false
+    elsif update(password:, password_confirmation:)
+      sessions.destroy_all
+      true
+    else
+      false
+    end
   end
 
   def connect_simplefin(setup_token)

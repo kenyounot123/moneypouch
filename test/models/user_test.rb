@@ -86,4 +86,38 @@ class UserTest < ActiveSupport::TestCase
 
     assert_equal [ Release.current_version, [] ], [ user.reload.seen_version, user.unseen_releases ]
   end
+
+  test "resetting a password signs the user out everywhere" do
+    user = users(:two)
+    user.sessions.create!
+
+    assert user.reset_password("new-secret", "new-secret")
+
+    assert user.reload.authenticate("new-secret")
+    assert_empty user.sessions
+  end
+
+  test "a mismatched or blank reset keeps the password and the sessions" do
+    user = users(:two)
+    user.sessions.create!
+
+    assert_not user.reset_password("new-secret", "other")
+    assert_not user.reset_password("", "")
+
+    assert user.reload.authenticate("password")
+    assert_equal 1, user.sessions.count
+  end
+
+  test "a reset token works once and then for a day at most" do
+    user = users(:two)
+    token = user.password_reset_token
+
+    assert_equal user, User.find_by_password_reset_token(token)
+    user.reset_password("new-secret", "new-secret")
+    assert_nil User.find_by_password_reset_token(token)
+
+    fresh = user.password_reset_token
+    travel 25.hours
+    assert_nil User.find_by_password_reset_token(fresh)
+  end
 end
