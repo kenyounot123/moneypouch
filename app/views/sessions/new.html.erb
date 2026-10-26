@@ -29,7 +29,9 @@
   <% end %>
 
   <div class="flex flex-col items-center gap-2">
-    <p class="text-sm text-tertiary">New here? <%= link_to "Create account", new_account_path, class: "font-medium text-secondary hover:text-primary" %></p>
+    <% if User.registration_open? %>
+      <p class="text-sm text-tertiary">New here? <%= link_to "Create account", new_account_path, class: "font-medium text-secondary hover:text-primary" %></p>
+    <% end %>
     <p class="text-sm text-tertiary">Your data never leaves your computer</p>
   </div>
 </div>

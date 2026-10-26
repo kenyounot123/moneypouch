@@ -37,6 +37,7 @@ Rails.application.routes.draw do
     end
   end
   resource :mode, only: :update
+  resource :registration, only: :update
   resource :theme, only: :update
   resource :time_zone, only: :update
 

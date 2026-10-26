@@ -19,6 +19,15 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_account_path
   end
 
+  test "new hides the create account link while registration is closed" do
+    get new_session_path
+    assert_select "a[href=?]", new_account_path, count: 0
+
+    users(:one).open_registration(true)
+    get new_session_path
+    assert_select "a[href=?]", new_account_path, text: "Create account"
+  end
+
   test "create with valid credentials" do
     post session_path, params: { username: @user.username, password: "password" }
 

@@ -2,6 +2,7 @@
 
 one:
   username: one
+  created_at: <%= 1.day.ago %>
   password_digest: <%= password_digest %>
   seen_version: <%= Release.current_version %>
 

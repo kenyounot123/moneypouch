@@ -14,6 +14,25 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[data-mode=dark]", text: "Dark"
   end
 
+  test "the owner sees the registration toggle" do
+    get settings_url
+
+    assert_select "form[action=?] button", registration_path, text: "Open registration"
+
+    users(:one).open_registration(true)
+    get settings_url
+
+    assert_select "form[action=?] button", registration_path, text: "Close registration"
+  end
+
+  test "a non-owner sees no registration toggle" do
+    sign_in_as(users(:two))
+
+    get settings_url
+
+    assert_select "form[action=?]", registration_path, count: 0
+  end
+
   test "the sidebar opens the add palette here too" do
     get settings_url
 

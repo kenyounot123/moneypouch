@@ -23,6 +23,24 @@ class User < ApplicationRecord
 
   after_create :create_income_category
 
+  class << self
+    def owner
+      order(:created_at, :id).first
+    end
+
+    def registration_open?
+      owner.nil? || owner.registration_open?
+    end
+  end
+
+  def owner?
+    self == User.owner
+  end
+
+  def open_registration(open)
+    update!(registration_open: open)
+  end
+
   def connect_simplefin(setup_token)
     (simplefin_access || build_simplefin_access).tap do |access|
       access.connect(setup_token)
