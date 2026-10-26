@@ -152,6 +152,20 @@ Bank sync is optional but highly recommended. When you turn it on, MoneyPouch re
 
 The Bridge is a paid service, billed by SimpleFIN directly ([pricing](https://beta-bridge.simplefin.org/)). Read its [privacy policy](https://beta-bridge.simplefin.org/info/privacy) and [terms](https://beta-bridge.simplefin.org/info/terms) before you connect.
 
+## Forgot your password
+
+MoneyPouch has no email, so a reset link comes from a person.
+
+If you are not the owner, ask the owner for a reset link. The owner is the first account made on the server. They open **Settings**, find your name under **Account**, and click **Reset link**. They send you the link themselves. It works once and expires after 24 hours. Opening it lets you choose a new password and signs you out on every device.
+
+If you run the server, you can reset any password from the command line:
+
+```bash
+docker exec -it moneypouch bin/rails password:reset
+```
+
+It asks for a username, then the new password twice. Press Enter at the username to pick the owner. The same command works for `docker run` and Docker Compose installs. This is also the way back in if the owner forgets their own password. On a ONCE install, run `docker ps` to find the app's container name and use it in place of `moneypouch`.
+
 ## Backups and updates
 
 If you installed with ONCE, it does backups and updates for you. The rest of this section is for the `docker run` and Docker Compose installs. Every command works the same in PowerShell, Command Prompt, and macOS or Linux terminals.

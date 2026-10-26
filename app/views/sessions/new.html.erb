@@ -32,6 +32,10 @@
     <% if User.registration_open? %>
       <p class="text-sm text-tertiary">New here? <%= link_to "Create account", new_account_path, class: "font-medium text-secondary hover:text-primary" %></p>
     <% end %>
+    <details class="text-center text-sm text-tertiary">
+      <summary class="cursor-pointer hover:text-secondary">Forgot your password?</summary>
+      <p class="mt-1 max-w-[360px]">Ask the owner of this pouch for a reset link. If you run the server, follow <%= link_to "these steps", "https://github.com/kenyounot123/moneypouch#forgot-your-password", class: "font-medium text-secondary hover:text-primary" %>.</p>
+    </details>
     <p class="text-sm text-tertiary">Your data never leaves your computer</p>
   </div>
 </div>
