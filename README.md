@@ -19,6 +19,16 @@
   <img src="docs/images/demo.gif" alt="Pressing Command K, typing Chip, pressing Tab to complete Chipotle, adding 11.25 yesterday, and pressing Enter. Chipotle appears in Recent and the October total goes up">
 </p>
 
+## Contents
+
+| To | Read |
+| :--- | :--- |
+| Decide if MoneyPouch is for you | [Features](#features) · [What MoneyPouch is not](#what-moneypouch-is-not) · [How it compares](#how-it-compares) · [Why I built MoneyPouch](#why-i-built-moneypouch) |
+| Install it | [System requirements](#system-requirements) · [Getting started](#getting-started) |
+| Log your spending | [Type it like you'd say it](#type-it-like-youd-say-it) · [Bank sync with SimpleFIN](#bank-sync-with-simplefin) |
+| Run the server | [Share your server with friends](#share-your-server-with-friends) · [Forgot your password](#forgot-your-password) · [Backups and updates](#backups-and-updates) |
+| Help build it | [Contributing](#contributing) |
+
 ## Features
 - **Fast entry.** Press ⌘K (Ctrl+K), type `Chipotle 11.25 yesterday`, and press Enter.
 - **It remembers.** Tab completes names you have used, and their category comes back.
@@ -84,7 +94,7 @@ The command is the same in every terminal. The first time, Docker downloads abou
 
 ### 3. Open MoneyPouch
 
-Go to [localhost:8080](http://localhost:8080) in your browser and create your account. The first account is the owner, and registration closes after it. The owner can reopen it in Settings.
+Go to [localhost:8080](http://localhost:8080) in your browser and create your account. The first account is the owner, and registration closes after it. To give friends their own accounts, see [Share your server with friends](#share-your-server-with-friends).
 
 MoneyPouch starts again by itself when your computer or Docker restarts. To use a port other than 8080, change the first `8080` in the command. Your data and the app's secret key are in the Docker volume `moneypouch-data`. See [Backups and updates](#backups-and-updates).
 
@@ -152,11 +162,42 @@ Bank sync is optional but highly recommended. When you turn it on, MoneyPouch re
 
 The Bridge is a paid service, billed by SimpleFIN directly ([pricing](https://beta-bridge.simplefin.org/)). Read its [privacy policy](https://beta-bridge.simplefin.org/info/privacy) and [terms](https://beta-bridge.simplefin.org/info/terms) before you connect.
 
+## Share your server with friends
+
+One MoneyPouch server can hold accounts for other people. A friend who doesn't want to run a server can use yours. Each account sees only its own transactions, categories, bank connections, and imports. Your friends can't see each other's spending, and you can't see theirs in the app.
+
+### Before you invite anyone
+
+> [!IMPORTANT]
+> Whoever runs the server can read every account's data. All accounts are in one database in the `moneypouch-data` volume. A friend's SimpleFIN connection is encrypted, but the key is in the same volume. Tell your friends this before they connect a bank.
+
+The owner also takes on two jobs. Friends come to you for a [reset link](#forgot-your-password) when they forget a password. Your [backups](#backups-and-updates) now protect their data too.
+
+### Let friends reach the server
+
+Your friend's browser needs a way to reach your server. Pick the one that fits:
+
+- **Same home network.** Give them the server's local address, such as `http://192.168.1.20:8080`.
+- **Tailscale.** Install [Tailscale](https://tailscale.com) on the server, then [share the server](https://tailscale.com/kb/1084/sharing) with your friend's Tailscale account. Sharing gives them only that machine, not the rest of your tailnet. They open the server's Tailscale address with `:8080` on the end.
+- **A domain name.** Install with [ONCE](#other-ways-to-install), which sets up HTTPS for the domain. If the domain is public, anyone on the internet can reach the sign-in page, so keep registration closed except while you add someone.
+
+### Add a friend
+
+While registration is open, anyone who can reach the server can create an account. Keep it open only while your friend signs up.
+
+1. Sign in as the owner and open **Settings**.
+2. Under **Account**, click **Open registration**.
+3. Send your friend the server's address. They create an account there.
+4. Click **Close registration**.
+
 ## Forgot your password
 
 MoneyPouch has no email, so a reset link comes from a person.
 
 If you are not the owner, ask the owner for a reset link. The owner is the first account made on the server. They open **Settings**, find your name under **Account**, and click **Reset link**. They send you the link themselves. It works once and expires after 24 hours. Opening it lets you choose a new password and signs you out on every device.
+
+> [!NOTE]
+> The link uses the address the owner has open. If the owner uses `localhost:8080`, the link points to `localhost` and won't open for anyone else. Open MoneyPouch at the address your friends use, then make the link.
 
 If you run the server, you can reset any password from the command line:
 
