@@ -84,7 +84,7 @@ The command is the same in every terminal. The first time, Docker downloads abou
 
 ### 3. Open MoneyPouch
 
-Go to [localhost:8080](http://localhost:8080) in your browser and create your account.
+Go to [localhost:8080](http://localhost:8080) in your browser and create your account. The first account is the owner, and registration closes after it. The owner can reopen it in Settings.
 
 MoneyPouch starts again by itself when your computer or Docker restarts. To use a port other than 8080, change the first `8080` in the command. Your data and the app's secret key are in the Docker volume `moneypouch-data`. See [Backups and updates](#backups-and-updates).
 
