@@ -8,6 +8,31 @@ class UserTest < ActiveSupport::TestCase
     assert_equal user.categories.first, user.income_category
   end
 
+  test "the oldest user is the owner and registration starts closed" do
+    assert_equal users(:one), User.owner
+    assert users(:one).owner?
+    assert_not users(:two).owner?
+    assert_not User.registration_open?
+  end
+
+  test "registration follows the owner's choice and passes on when the owner is deleted" do
+    users(:one).open_registration(true)
+    assert User.registration_open?
+
+    Transaction.delete_all
+    users(:one).destroy
+    assert users(:two).owner?
+    assert_not User.registration_open?
+  end
+
+  test "registration is open when no one has an account" do
+    Transaction.delete_all
+    User.destroy_all
+
+    assert_nil User.owner
+    assert User.registration_open?
+  end
+
   test "transactions hides a discarded row" do
     user = users(:one)
     transactions(:coffee).discard
