@@ -1,0 +1,26 @@
+<div class="flex min-h-dvh flex-col items-center justify-center gap-7 bg-level-1 px-4 py-10">
+  <%= image_tag "pouch.png", alt: "", width: 72, height: 72, class: "size-18 [image-rendering:pixelated]" %>
+
+  <div class="flex flex-col items-center gap-2 text-center">
+    <h1 class="text-title">Choose a new password</h1>
+    <p class="text-secondary">For <span class="font-medium text-primary"><%= @user.username %></span></p>
+
+    <% @user.errors.full_messages.each do |message| %>
+      <p class="text-sm text-danger"><%= message %></p>
+    <% end %>
+  </div>
+
+  <%= form_with url: password_path(params[:token]), method: :patch, class: "flex w-[360px] max-w-full flex-col gap-4 rounded-lg border border-secondary bg-level-2 p-7 shadow-control" do |form| %>
+    <div class="flex flex-col gap-1.5">
+      <%= form.label :password, "New password", class: "text-sm font-medium text-secondary" %>
+      <%= form.password_field :password, required: true, autofocus: true, autocomplete: "new-password", maxlength: 72, class: "h-11 rounded-md border border-primary bg-level-2 px-3.5 text-md focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22 focus:outline-none" %>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <%= form.label :password_confirmation, "Confirm new password", class: "text-sm font-medium text-secondary" %>
+      <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", maxlength: 72, class: "h-11 rounded-md border border-primary bg-level-2 px-3.5 text-md focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22 focus:outline-none" %>
+    </div>
+
+    <%= form.submit "Change password", class: "mt-1 w-full cursor-pointer rounded-md bg-action px-4 py-3 text-button text-on-action hover:brightness-95" %>
+  <% end %>
+</div>

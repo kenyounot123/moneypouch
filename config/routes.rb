@@ -38,6 +38,10 @@ Rails.application.routes.draw do
   end
   resource :mode, only: :update
   resource :registration, only: :update
+  resources :passwords, param: :token, only: %i[ edit update ]
+  resources :users, only: [] do
+    resource :password_reset, only: :create, module: :users
+  end
   resource :theme, only: :update
   resource :time_zone, only: :update
 

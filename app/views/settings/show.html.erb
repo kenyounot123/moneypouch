@@ -76,6 +76,33 @@
             </div>
             <%= button_to Current.user.registration_open? ? "Close registration" : "Open registration", registration_path, method: :patch, params: { open: !Current.user.registration_open? }, class: "outline-button" %>
           </div>
+
+          <% others = User.where.not(id: Current.user.id).order(:username) %>
+          <% if others.any? %>
+            <div class="flex flex-col gap-3">
+              <div class="flex flex-col gap-1">
+                <p class="text-md">Reset a password</p>
+                <p class="text-sm text-tertiary">Make a link for someone locked out, then send it to them yourself.</p>
+              </div>
+
+              <% if flash[:reset_link] %>
+                <div class="flex flex-col gap-2 rounded-md border border-primary bg-level-2 p-3" data-controller="clipboard">
+                  <p class="text-sm text-secondary">Reset link for <span class="font-medium text-primary"><%= flash[:reset_username] %></span>. It works once and expires in 24 hours.</p>
+                  <div class="flex items-center gap-2">
+                    <%= text_field_tag :reset_link, flash[:reset_link], readonly: true, aria: { label: "Reset link" }, data: { clipboard_target: "source", action: "focus->clipboard#select" }, class: "h-9 min-w-0 flex-1 rounded-md border border-primary bg-level-1 px-3 text-sm" %>
+                    <button type="button" data-clipboard-target="button" data-action="clipboard#copy" class="outline-button">Copy</button>
+                  </div>
+                </div>
+              <% end %>
+
+              <% others.each do |other| %>
+                <div class="flex items-center justify-between gap-6">
+                  <p class="text-md text-secondary"><%= other.username %></p>
+                  <%= button_to "Reset link", user_password_reset_path(other), class: "outline-button" %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
         <% end %>
       </section>
 
