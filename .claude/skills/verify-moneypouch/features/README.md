@@ -1,6 +1,7 @@
 # Feature map
 
 - [sign-in.md](sign-in.md). The sign-in form, wrong-password alert, sign out.
+- [password-reset.md](password-reset.md). The owner's Reset link in Settings, the one-use reset page, the sign-in hint, and the `password:reset` rake task.
 - [overview.md](overview.md). The signed-in Overview with the composer and sidebar.
 - [onboarding.md](onboarding.md). Create account, the first transaction page, Skip for now, landing on the Overview.
 - [sidebar.md](sidebar.md). The collapsible sidebar, its cookie, tooltips, and the Add transaction button.
