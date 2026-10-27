@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.15.0](https://github.com/kenyounot123/moneypouch/compare/v0.14.0...v0.15.0) (2026-10-27)
+
+
+### Features
+
+* **accounts:** close registration after the first account ([#165](https://github.com/kenyounot123/moneypouch/issues/165)) ([e963a48](https://github.com/kenyounot123/moneypouch/commit/e963a483de4215eaab0043b76e9c20ba0a6cdf95))
+* **passwords:** reset a password without email ([#166](https://github.com/kenyounot123/moneypouch/issues/166)) ([cb30465](https://github.com/kenyounot123/moneypouch/commit/cb304652022e86409d81f16dae18efd403267455))
+* **transactions:** search with suggested tokens ([#162](https://github.com/kenyounot123/moneypouch/issues/162)) ([7b17bb1](https://github.com/kenyounot123/moneypouch/commit/7b17bb1bf630c0fd4da396f10c6deb6079fe9a4b))
+* **transactions:** sort the list by column ([#164](https://github.com/kenyounot123/moneypouch/issues/164)) ([0f2fa84](https://github.com/kenyounot123/moneypouch/commit/0f2fa84adb787236fe8d7ceb2f53540bcc922094))
+
+
+### Bug Fixes
+
+* **passwords:** make a reset link with the address its account uses ([#168](https://github.com/kenyounot123/moneypouch/issues/168)) ([62c38f0](https://github.com/kenyounot123/moneypouch/commit/62c38f0f16053fc7df2127d44ad45fe8e9f65b3c))
+
 ## [0.14.0](https://github.com/kenyounot123/moneypouch/compare/v0.13.1...v0.14.0) (2026-10-25)
 
 
