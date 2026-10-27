@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
+# This Dockerfile is designed for production, not development. Build and run it by hand:
 # docker build -t moneypouch .
 # docker run -d -p 8080:80 -v moneypouch-data:/rails/storage --name moneypouch moneypouch
 
