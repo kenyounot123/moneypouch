@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { addDays, addMonths, calendarMarkup, dateWord, dayId, earlier, isoDay, parseDay } from "controllers/composer/calendar"
+import { addDays, addMonths, calendarMarkup, dateFragment, dateWord, dayId, earlier, isoDay, parseDay } from "controllers/composer/calendar"
 
 const KEYMAP = {
   none: {
@@ -19,12 +19,26 @@ const KEYMAP = {
     ArrowDown: "nextWeek",
     PageUp: "previousMonth",
     PageDown: "nextMonth",
+    "Shift+PageUp": "previousYear",
+    "Shift+PageDown": "nextYear",
     Tab: "pickCursor",
     Enter: "pickCursor",
     Escape: "dismiss",
   },
+  typedDate: {
+    ArrowUp: "previousWeek",
+    ArrowDown: "nextWeek",
+    PageUp: "previousMonth",
+    PageDown: "nextMonth",
+    "Shift+PageUp": "previousYear",
+    "Shift+PageDown": "nextYear",
+    Tab: "completeOrPickTyped",
+    Enter: "pickTyped",
+    Escape: "dismiss",
+  },
 }
 
+const HINT = { kind: "hint" }
 const OPTION = "flex cursor-pointer items-center rounded-sm px-2.5 py-1.5"
 const DATE_WORDS = ["today", "yesterday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 const TAB_HINT = "ml-2 inline-block rounded-sm border border-primary bg-level-2 px-1.5 align-middle font-mono text-xs leading-4 text-secondary"
@@ -91,7 +105,7 @@ export default class extends Controller {
   }
 
   keydown(event) {
-    const keys = KEYMAP[this.popup?.kind ?? "none"]
+    const keys = KEYMAP[this.keymap]
     const name = keyName(event)
     const action = keys[name] ?? (name.length === 1 ? keys.Printable : undefined)
     if (action && this[action](event) !== false) event.preventDefault()
@@ -176,6 +190,17 @@ export default class extends Controller {
     this.replaceWord(this.popup.word, `#${item.name}`)
   }
 
+  completeOrPickTyped() {
+    return this.dayCompletion() ? this.complete() : this.pickTyped()
+  }
+
+  // Only the server reads typed dates, so without a current answer to pick the text stays as typed, for a name like "@work" or for the server on submit.
+  pickTyped() {
+    const { fragment, answeredFor, answer } = this.popup
+    if (answeredFor === fragment && answer.on && answer.on <= this.max) return this.pickCursor()
+    this.dismiss()
+  }
+
   dismiss() {
     this.dismissed = wordKey(this.popup.word)
     this.refresh()
@@ -205,6 +230,14 @@ export default class extends Controller {
     this.moveCursor(addMonths(this.popup.cursor, 1))
   }
 
+  previousYear() {
+    this.moveCursor(addMonths(this.popup.cursor, -12))
+  }
+
+  nextYear() {
+    this.moveCursor(addMonths(this.popup.cursor, 12))
+  }
+
   moveCursor(day) {
     this.popup.cursor = earlier(day, this.max)
     this.refresh()
@@ -219,13 +252,15 @@ export default class extends Controller {
   }
 
   nextPopup() {
-    const word = this.caretWord()
-    if (!word) return null
+    const caret = this.caretWord()
+    if (!caret) return null
+    const date = caret.text.startsWith("#") ? null : dateFragment(this.fieldTarget.value.slice(0, caret.end))
+    const word = date ?? caret
     if (wordKey(word) !== this.dismissed) this.dismissed = null
     if (this.dismissed) return null
     const previous = this.popup
     if (word.text.startsWith("#")) return this.categoryPopup(word, previous?.kind === "category" ? previous : null)
-    if (word.text === "@") return this.calendarPopup(word, previous?.kind === "calendar" ? previous : null)
+    if (date) return this.calendarPopup(word, previous?.kind === "calendar" ? previous : null)
     return null
   }
 
@@ -243,8 +278,26 @@ export default class extends Controller {
     return { kind: "category", word, items, index, inferred }
   }
 
+  // The cursor follows the server's answer once per fragment, so arrow keys are not undone by later refreshes.
   calendarPopup(word, previous) {
-    return { kind: "calendar", word, cursor: previous?.cursor ?? this.today }
+    const fragment = word.text.slice(1)
+    const reply = this.calendarReply(fragment)
+    let { cursor = this.today, answer = HINT, answeredFor = "" } = previous ?? {}
+    if (!fragment) {
+      answer = HINT
+      answeredFor = fragment
+    } else if (reply) {
+      answer = readAim(reply.aim)
+      if (answeredFor !== fragment && answer.on) cursor = earlier(answer.on, this.max)
+      answeredFor = fragment
+    }
+    return { kind: "calendar", word, fragment, cursor, answer, answeredFor }
+  }
+
+  calendarReply(fragment) {
+    const reply = this.hasRowTarget && this.rowTarget.dataset.calendar
+    const parsed = reply && JSON.parse(reply)
+    return parsed?.fragment === fragment ? parsed : null
   }
 
   render() {
@@ -301,7 +354,7 @@ export default class extends Controller {
 
   renderCalendar() {
     this.popupTarget.removeAttribute("role")
-    this.popupTarget.innerHTML = calendarMarkup(this.popup.cursor, this.today, this.max)
+    this.popupTarget.innerHTML = calendarMarkup(this.popup.cursor, this.today, this.max, this.popup.answer)
     return dayId(this.popup.cursor)
   }
 
@@ -335,7 +388,13 @@ export default class extends Controller {
   previewUrl() {
     const params = new URLSearchParams({ shorthand: this.fieldTarget.value })
     if (!this.popup && this.caretAtEnd) params.set("complete", "1")
+    if (this.popup?.fragment) params.set("calendar", this.popup.fragment)
     return `${this.voucherUrlValue}?${params}`
+  }
+
+  get keymap() {
+    if (!this.popup) return "none"
+    return this.popup.kind === "calendar" && this.popup.fragment ? "typedDate" : this.popup.kind
   }
 
   get caretAtEnd() {
@@ -386,10 +445,15 @@ function keyName(event) {
   return modifier + event.key
 }
 
+function readAim(aim) {
+  if (!aim) return { kind: "none" }
+  return { kind: aim.exact ? "exact" : "partial", on: aim.on && parseDay(aim.on) }
+}
+
 function popupKey(popup) {
   if (!popup) return "none"
-  const { kind, word, index, cursor, items } = popup
-  return [kind, wordKey(word), index, cursor && isoDay(cursor), items?.map((item) => item.name).join("\n")].join("|")
+  const { kind, word, index, cursor, items, answer } = popup
+  return [kind, wordKey(word), index, cursor && isoDay(cursor), items?.map((item) => item.name).join("\n"), answer?.kind, answer?.on && isoDay(answer.on)].join("|")
 }
 
 function wordKey(word) {
