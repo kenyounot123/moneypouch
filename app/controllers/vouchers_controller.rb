@@ -1,5 +1,5 @@
 class VouchersController < ApplicationController
   def show
-    @voucher = Voucher.new(params[:shorthand], user: Current.user, today: Date.current, complete: params[:complete] == "1")
+    @voucher = Voucher.new(params[:shorthand], user: Current.user, today: Date.current, complete: params[:complete] == "1", calendar: params[:calendar])
   end
 end

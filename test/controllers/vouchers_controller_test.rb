@@ -80,4 +80,28 @@ class VouchersControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "[data-inferred-category=Food]", text: /ok · \$6.40 · Food/
   end
+
+  test "answers what a typed date fragment aims at" do
+    travel_to Time.utc(2026, 9, 27, 12) do
+      get voucher_url(shorthand: "coffee 5 @sep", calendar: "sep")
+      assert_select "[data-calendar=?]", { fragment: "sep", aim: { on: "2026-09-27", exact: false } }.to_json
+
+      get voucher_url(shorthand: "coffee 5 @sep 26 2025", calendar: "sep 26 2025")
+      assert_select "[data-calendar=?]", { fragment: "sep 26 2025", aim: { on: "2025-09-26", exact: true } }.to_json
+
+      get voucher_url(shorthand: "coffee 5 @202", calendar: "202")
+      assert_select "[data-calendar=?]", { fragment: "202", aim: { on: nil, exact: false } }.to_json
+
+      get voucher_url(shorthand: "coffee 5 @13/40", calendar: "13/40")
+      assert_select "[data-calendar=?]", { fragment: "13/40", aim: nil }.to_json
+    end
+  end
+
+  test "answers no date fragment unless asked" do
+    get voucher_url(shorthand: "coffee 5 @sep")
+    assert_select "[data-calendar]", count: 0
+
+    get voucher_url(shorthand: "coffee 5 @", calendar: "")
+    assert_select "[data-calendar]", count: 0
+  end
 end

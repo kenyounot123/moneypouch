@@ -1,5 +1,6 @@
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+const DATE_FRAGMENT = /(?:^|\s)@([a-z]+(?: \d{0,2}[a-z]{0,2}(?: \d{0,4})?)?|[^\s@#]*)$/i
 const KBD = "rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary"
 
 export function parseDay(iso) {
@@ -45,6 +46,14 @@ export function dateWord(day, today) {
   return day.getFullYear() === today.getFullYear() ? word : `${word} ${day.getFullYear()}`
 }
 
+// The text after an @ up to the caret. It spans spaces only when it leads with a month ("@sep 26 2025").
+export function dateFragment(before) {
+  const typed = before.match(DATE_FRAGMENT)?.[1]
+  if (typed === undefined) return null
+  if (typed.includes(" ") && !MONTHS.includes(typed.slice(0, 3).toLowerCase())) return null
+  return { text: `@${typed}`, start: before.length - typed.length - 1, end: before.length }
+}
+
 export function monthTitle(day) {
   return day.toLocaleDateString("en-US", { month: "long", year: "numeric" })
 }
@@ -53,7 +62,14 @@ export function dayId(day) {
   return `composer-day-${isoDay(day)}`
 }
 
-export function calendarMarkup(cursor, today, max) {
+export function statusMarkup(answer) {
+  if (answer.kind === "none") return `<span class="text-danger">Not a date yet</span>`
+  if (answer.kind === "exact") return answer.on.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })
+  if (answer.kind === "partial") return "keep typing"
+  return `type <span class="font-mono">9/26</span>, <span class="font-mono">sep 26</span>, <span class="font-mono">2025-03</span>`
+}
+
+export function calendarMarkup(cursor, today, max, answer) {
   const title = monthTitle(cursor)
   const nextMonthDisabled = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1) > max ? "disabled" : ""
   return `
@@ -68,6 +84,7 @@ export function calendarMarkup(cursor, today, max) {
       </div>
       ${weeks(cursor).map((week) => `<div role="row" class="grid grid-cols-7 gap-0.5">${week.map((day) => dayCell(day, cursor, today, max)).join("")}</div>`).join("")}
     </div>
+    <div class="mt-1.5 px-2 pt-1.5 text-xs text-secondary">${statusMarkup(answer)}</div>
     <div class="mt-1.5 flex flex-wrap gap-x-3 gap-y-1.5 border-t border-secondary px-2 pt-2 pb-1 text-xs text-tertiary">
       <span><span class="${KBD}">←↑↓→</span> move</span><span><span class="${KBD}">↵</span> pick</span><span><span class="${KBD}">esc</span> cancel</span>
     </div>`

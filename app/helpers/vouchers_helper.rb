@@ -6,6 +6,12 @@ module VouchersHelper
     end
   end
 
+  def voucher_calendar(voucher)
+    if voucher.calendar
+      { fragment: voucher.calendar, aim: voucher.aim&.to_h }.to_json
+    end
+  end
+
   private
     def utf16_length(text)
       text.encode("UTF-16LE").bytesize / 2
