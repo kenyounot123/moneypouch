@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/kenyounot123/moneypouch/compare/v0.15.0...v0.16.0) (2026-10-27)
+
+
+### Features
+
+* **composer:** keep the calendar open while a date is typed ([#171](https://github.com/kenyounot123/moneypouch/issues/171)) ([89c88ce](https://github.com/kenyounot123/moneypouch/commit/89c88ce09f1fb69480e39ee33b3a696de9db557e))
+
 ## [0.15.0](https://github.com/kenyounot123/moneypouch/compare/v0.14.0...v0.15.0) (2026-10-27)
 
 
