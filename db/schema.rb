@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_26_183046) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_27_000123) do
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -151,6 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_26_183046) do
     t.string "seen_version", null: false
     t.string "theme", default: "pouch", null: false
     t.boolean "registration_open", default: false, null: false
+    t.string "origin"
     t.index ["username"], name: "index_users_on_username", unique: true
     t.check_constraint "mode IN ('light', 'dark')", name: "mode_is_light_or_dark"
     t.check_constraint "theme IN ('pouch', 'graphite', 'moss', 'tide', 'ember', 'rose', 'plum')", name: "theme_is_known"
