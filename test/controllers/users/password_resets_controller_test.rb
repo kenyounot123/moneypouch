@@ -14,6 +14,29 @@ class Users::PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "Copy"
   end
 
+  test "the link uses the address the other account opens MoneyPouch at" do
+    host! "pouch.tail1234.ts.net:8080"
+    post session_path, params: { username: "two", password: "password" }
+    get settings_path
+    delete session_path
+
+    host! "localhost:8080"
+    post session_path, params: { username: "one", password: "password" }
+    post user_password_reset_path(users(:two))
+    follow_redirect!
+
+    assert_match %r{\Ahttp://pouch\.tail1234\.ts\.net:8080/passwords/[^/]+/edit\z}, css_select("input#reset_link").first["value"]
+  end
+
+  test "the link falls back to the owner's address for an account not seen since" do
+    host! "localhost:8080"
+    sign_in_as(users(:one))
+    post user_password_reset_path(users(:two))
+    follow_redirect!
+
+    assert_match %r{\Ahttp://localhost:8080/passwords/}, css_select("input#reset_link").first["value"]
+  end
+
   test "settings lists the other accounts and hides the list when there are none" do
     sign_in_as(users(:one))
 
