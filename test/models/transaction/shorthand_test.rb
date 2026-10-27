@@ -2,6 +2,7 @@ require "test_helper"
 
 class Transaction::ShorthandTest < ActiveSupport::TestCase
   SUNDAY = Date.new(2026, 9, 27)
+  Aim = Transaction::Shorthand::Aim
 
   test "reads a plain amount as money out" do
     assert_equal({ name: "coffee", amount_in_cents: -500, category_word: nil, occurred_on: SUNDAY, dated: false, errors: [] },
@@ -234,7 +235,70 @@ class Transaction::ShorthandTest < ActiveSupport::TestCase
     assert_empty Transaction::Shorthand.read("feb 30 thing", today: SUNDAY).tokens
   end
 
+  test "aims at the date a complete fragment reads as" do
+    assert_equal [ Date.new(2026, 9, 26), Date.new(2025, 9, 26), Date.new(2025, 9, 26), Date.new(2025, 9, 26), SUNDAY, Date.new(2026, 9, 26), Date.new(2026, 9, 21) ],
+      [ "9/26", "9/26/25", "2025-09-26", "sep 26 2025", "today", "yesterday", "monday" ].map { |fragment| aim(fragment).on }
+    assert_predicate aim("sep 26 2025"), :exact
+  end
+
+  test "aims at the latest past month for a month number or name" do
+    assert_equal [ Date.new(2026, 9, 27), Date.new(2025, 12, 27), Date.new(2026, 5, 27), Date.new(2025, 11, 27), Date.new(2026, 9, 27), Date.new(2025, 12, 27) ],
+      [ "9", "12/", "may", "no", "se", "dec " ].map { |fragment| aim(fragment).on }
+    assert_equal Date.new(2026, 2, 28), aim("2", today: Date.new(2026, 3, 31)).on
+    assert_equal Date.new(2025, 2, 28), aim("feb", today: Date.new(2026, 1, 31)).on
+    assert_not aim("9").exact
+  end
+
+  test "aims at the latest past day for a month and day with a year in progress" do
+    assert_equal [ Date.new(2026, 9, 26) ] * 5 + [ Date.new(2026, 9, 21) ],
+      [ "9/26/", "9/26/2", "9/26/202", "sep 26 ", "sep 26 20", "sep 21 202" ].map { |fragment| aim(fragment).on }
+    assert_equal Date.new(2025, 9, 26), aim("9/26/", today: Date.new(2026, 9, 20)).on
+    assert_equal Date.new(2024, 2, 29), aim("2/29/").on
+    assert_not aim("9/26/").exact
+  end
+
+  test "aims at the start of a year or month for an ISO date in progress" do
+    assert_equal [ Date.new(2024, 1, 27), Date.new(2024, 1, 27), SUNDAY, Date.new(2024, 3, 27), Date.new(2024, 3, 27), Date.new(2024, 3, 27), SUNDAY ],
+      [ "2024", "2024-", "2026", "2024-03", "2024-03-", "2024-3", "2026-12" ].map { |fragment| aim(fragment).on }
+    assert_not aim("2024").exact
+    assert_equal Aim.new(on: Date.new(2024, 3, 1), exact: true), aim("2024-03-1")
+  end
+
+  test "aims at a day word's date while it is typed" do
+    assert_equal [ SUNDAY, Date.new(2026, 9, 26), Date.new(2026, 9, 21), Date.new(2026, 9, 26) ],
+      [ "tod", "yest", "mon", "sa" ].map { |fragment| aim(fragment).on }
+    assert_not aim("yest").exact
+  end
+
+  test "lets a day word win a letter a month name shares" do
+    assert_equal Date.new(2026, 9, 26), aim("s").on
+    assert_equal Date.new(2026, 9, 27), aim("se").on
+  end
+
+  test "aims nowhere for a start that could still become a date" do
+    assert_equal Aim.new(on: nil, exact: false), aim("202")
+    assert_equal Aim.new(on: nil, exact: false), aim("20")
+    assert_equal Aim.new(on: nil, exact: false), aim("0")
+  end
+
+  test "has no aim for what cannot become a date" do
+    [ "13/40", "abc1", "13", "2/30/", "1990", "2024-13", "2024-03-40", "sep 31", "sep 26 20300", "5.50", "sepx", "9/26/1999" ].each do |fragment|
+      assert_nil aim(fragment), fragment
+    end
+  end
+
+  test "keeps aims inside the twenty years back and never after today" do
+    assert_equal Date.new(2007, 1, 27), aim("2007").on
+    assert_nil aim("2006")
+    assert_nil aim("2005")
+    assert_equal SUNDAY, aim("2027").on
+  end
+
   private
+    def aim(fragment, today: SUNDAY)
+      Transaction::Shorthand.aim(fragment, today:)
+    end
+
     def read(shorthand, today: SUNDAY)
       Transaction::Shorthand.read(shorthand, today:).to_h.except(:tokens)
     end

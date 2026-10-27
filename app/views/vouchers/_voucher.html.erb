@@ -1,7 +1,7 @@
 <% shake = local_assigns.fetch(:shake, false) %>
 <%= turbo_frame_tag "voucher", class: "-mt-2.5 block pr-5 pb-4 pl-[50px]" do %>
   <div class="flex flex-col gap-3" <%= tag.attributes(data: { composer_target: "row", shorthand: voucher.shorthand, completion: voucher.completion,
-    inferred_category: (voucher.category_name if voucher.inferred?), marks: voucher_marks(voucher).to_json }) %>>
+    inferred_category: (voucher.category_name if voucher.inferred?), marks: voucher_marks(voucher).to_json, calendar: voucher_calendar(voucher) }) %>>
     <% if voucher.shorthand.strip.present? %>
       <p class="min-h-5 text-sm text-tertiary">
         <%= safe_join [

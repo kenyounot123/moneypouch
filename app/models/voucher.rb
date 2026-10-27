@@ -1,13 +1,14 @@
 class Voucher
-  attr_reader :shorthand
+  attr_reader :shorthand, :calendar
 
   delegate :name, :amount_in_cents, :category_word, :occurred_on, :tokens, :errors, to: :parts
 
-  def initialize(shorthand, user:, today:, complete: false)
+  def initialize(shorthand, user:, today:, complete: false, calendar: nil)
     @shorthand = shorthand.to_s
     @user = user
     @today = today
     @complete = complete
+    @calendar = calendar.to_s.presence
   end
 
   def completion
@@ -24,6 +25,12 @@ class Voucher
 
   def category_name
     category&.name
+  end
+
+  def aim
+    if calendar
+      Transaction::Shorthand.aim(calendar, today: @today)
+    end
   end
 
   def dated?

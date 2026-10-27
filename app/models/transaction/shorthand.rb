@@ -5,6 +5,7 @@ module Transaction::Shorthand
   Parts = Data.define(:name, :amount_in_cents, :category_word, :occurred_on, :dated, :tokens, :errors)
   Word = Data.define(:text, :start)
   Token = Data.define(:kind, :start, :finish)
+  Aim = Data.define(:on, :exact)
 
   MONTHS = Date::MONTHNAMES.compact.each.with_index(1)
     .flat_map { |month, number| [ [ month.downcase, number ], [ month[0, 3].downcase, number ] ] }
@@ -19,6 +20,18 @@ module Transaction::Shorthand
   AMOUNT = /\A(?<sign>[+-])?(?<symbol>\$)?(?<dollars>\d{1,3}(?:,\d{3})+|\d+)?(?:\.(?<cents>\d{1,2}))?\z/
   MAX_DOLLAR_DIGITS = 7
   LEAP_CYCLE_YEARS = 4
+  # Day words come before months so a prefix aims where the composer's Tab completion would take it: "s" is saturday.
+  DAY_WORDS = %w[ today yesterday monday tuesday wednesday thursday friday saturday sunday ].freeze
+
+  # Dates in progress, first row to give an answer wins. A resolver returns an Aim, or nil for "not a date".
+  PARTIAL_AIMS = [
+    [ %r{\A(\d{1,2})/?\z}, :month_number_aim ],
+    [ %r{\A(\d{1,2})/(\d{1,2})/(\d|\d{3})?\z}, :month_day_number_aim ],
+    [ /\A(\d{1,3})\z/, :year_start_aim ],
+    [ /\A(\d{4})(?:-(?:(\d{1,2})(?:-\d?)?)?)?\z/, :year_aim ],
+    [ /\A([a-z]+) ?\z/i, :word_aim ],
+    [ /\A([a-z]+) (\d{1,2})(?:st|nd|rd|th)?(?: (\d{0,3}))?\z/i, :month_day_name_aim ]
+  ].freeze
 
   class << self
     def read(shorthand, today:)
@@ -35,7 +48,110 @@ module Transaction::Shorthand
         tokens: tokens.sort_by(&:start).freeze, errors:)
     end
 
+    def aim(fragment, today:)
+      whole = "@#{fragment}"
+      parts = read(whole, today:)
+      token = parts.tokens.find { it.kind == :date }
+
+      if parts.dated && token.start.zero? && token.finish == whole.length
+        Aim.new(on: parts.occurred_on, exact: true)
+      else
+        partial_aim(fragment.downcase, today)
+      end
+    end
+
     private
+      def partial_aim(fragment, today)
+        PARTIAL_AIMS.each do |pattern, resolver|
+          match = pattern.match(fragment)
+          answer = match && send(resolver, match, today)
+
+          if answer
+            return answer
+          end
+        end
+        nil
+      end
+
+      def month_number_aim(match, today)
+        month = match[1].to_i
+
+        if month.between?(1, 12)
+          partial(month_anchor(latest_year_for(month, today), month, today))
+        elsif match[1] == "0"
+          partial(nil)
+        end
+      end
+
+      def month_day_number_aim(match, today)
+        month, day = match[1].to_i, match[2].to_i
+        date = latest(month, day, today)
+
+        if date
+          partial(date)
+        end
+      end
+
+      def year_start_aim(match, today)
+        if years(today).any? { |year| year.to_s.start_with?(match[1]) }
+          partial(nil)
+        end
+      end
+
+      def year_aim(match, today)
+        year = match[1].to_i
+        month = match[2].to_i.nonzero? || (year == today.year ? today.month : 1)
+
+        if years(today).cover?(year) && month <= 12
+          date = month_anchor(year, month, today)
+
+          if date
+            partial(date)
+          end
+        end
+      end
+
+      def word_aim(match, today)
+        word = match[1]
+        day_word = DAY_WORDS.find { |name| name.start_with?(word) }
+        month = month_starting(word)
+
+        if day_word
+          partial(read("@#{day_word}", today:).occurred_on)
+        elsif month
+          partial(month_anchor(latest_year_for(month, today), month, today))
+        end
+      end
+
+      def month_day_name_aim(match, today)
+        month = month_starting(match[1])
+        date = month && latest(month, match[2].to_i, today)
+
+        if date
+          partial(date)
+        end
+      end
+
+      def partial(date)
+        Aim.new(on: date, exact: false)
+      end
+
+      def month_starting(word)
+        MONTHS.find { |name, _| name.start_with?(word) }&.last
+      end
+
+      def latest_year_for(month, today)
+        month > today.month ? today.year - 1 : today.year
+      end
+
+      def month_anchor(year, month, today)
+        date = dated(year, month, [ today.day, Date.civil(year, month, -1).day ].min, today)
+
+        if date
+          [ date, today ].min
+        end
+      end
+
       def take(words, kind, tokens)
         words.each_with_index do |word, index|
           value = yield(word.text)
