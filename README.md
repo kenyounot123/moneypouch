@@ -196,8 +196,7 @@ MoneyPouch has no email, so a reset link comes from a person.
 
 If you are not the owner, ask the owner for a reset link. The owner is the first account made on the server. They open **Settings**, find your name under **Account**, and click **Reset link**. They send you the link themselves. It works once and expires after 24 hours. Opening it lets you choose a new password and signs you out on every device.
 
-> [!NOTE]
-> The link uses the address the owner has open. If the owner uses `localhost:8080`, the link points to `localhost` and won't open for anyone else. Open MoneyPouch at the address your friends use, then make the link.
+The link uses the address that person last opened MoneyPouch at, so it works for a friend on Tailscale even when the owner makes it on `localhost`. If that person hasn't opened MoneyPouch since the server was updated to this version, the link uses the owner's address.
 
 If you run the server, you can reset any password from the command line:
 

@@ -81,6 +81,10 @@ class User < ApplicationRecord
     end
   end
 
+  def visit_from(origin)
+    update!(origin:) unless self.origin == origin
+  end
+
   def choose_mode(mode)
     update!(mode:)
   end

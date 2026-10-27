@@ -4,7 +4,7 @@ class Users::PasswordResetsController < ApplicationController
 
   def create
     flash[:reset_username] = @user.username
-    flash[:reset_link] = edit_password_url(@user.password_reset_token)
+    flash[:reset_link] = (@user.origin || request.base_url) + edit_password_path(@user.password_reset_token)
     redirect_to settings_path
   end
 
