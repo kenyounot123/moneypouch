@@ -228,7 +228,7 @@
 
 /* The Categories list's columns: name, the last 12 months, its part of the section's total, total, and the row's menu. */
 @utility category-columns {
-  @apply grid grid-cols-[minmax(0,1fr)_6.5rem_2rem] items-center gap-x-4 md:grid-cols-[minmax(0,1fr)_7.5rem_8.5rem_6.5rem_2rem];
+  @apply grid grid-cols-[minmax(0,1fr)_6.5rem_2rem] items-center gap-x-4 lg:grid-cols-[minmax(8rem,1fr)_minmax(7.5rem,1.6fr)_minmax(8.5rem,1fr)_6.5rem_2rem];
 }
 
 /* A popover menu that opens under the button anchored to it, and flips above near the bottom of the page. */
