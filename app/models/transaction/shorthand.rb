@@ -1,6 +1,7 @@
 module Transaction::Shorthand
   MISSING_AMOUNT = "Type an amount, like 5.50"
   MISSING_NAME = "Type a name, like coffee"
+  MISSING_DATE = "Pick a date"
 
   Parts = Data.define(:name, :amount_in_cents, :category_word, :occurred_on, :dated, :tokens, :errors)
   Word = Data.define(:text, :start)
@@ -58,6 +59,10 @@ module Transaction::Shorthand
       else
         partial_aim(fragment.downcase, today)
       end
+    end
+
+    def amount_in_cents(text)
+      money(text.to_s.strip)&.first
     end
 
     private
