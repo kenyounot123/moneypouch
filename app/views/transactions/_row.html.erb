@@ -25,6 +25,7 @@
         <% end %>
       </div>
       <div role="group" aria-label="Actions" class="ml-auto hidden shrink-0 items-center gap-0.5 bg-level-0 @xl:group-focus-within:flex @xl:group-hover:flex">
+        <%= link_to edit_transaction_path(transaction), aria: { label: "Edit" }, title: "Edit", data: { turbo_frame: "sheet" }, class: "flex icon-button" do %><%= icon_tag "edit" %><% end %>
         <% if transaction.note.nil? %>
           <button type="button" aria-label="Add a note" title="Add a note" class="flex icon-button"
             data-note-target="label" data-action="note#open"><%= icon_tag "note" %></button>

@@ -1,5 +1,5 @@
 class TransactionsController < ApplicationController
-  before_action :set_transaction, only: %i[ edit destroy ]
+  before_action :set_transaction, only: %i[ edit update destroy ]
 
   def index
     @query = Transaction::Query.parse(params.permit(:q)[:q], user: Current.user, today: Date.current)
@@ -16,6 +16,26 @@ class TransactionsController < ApplicationController
 
   def edit
     @categories = Current.user.categories.alphabetically
+    @fields = { name: @transaction.name, amount: editable_amount(@transaction.amount_in_cents), occurred_on: @transaction.occurred_on.iso8601, note: @transaction.note }
+  end
+
+  def update
+    @fields = params.expect(transaction: %i[ name amount occurred_on note ])
+    amount_in_cents = Transaction::Shorthand.amount_in_cents(@fields[:amount])
+    occurred_on = iso_date(@fields[:occurred_on])
+
+    @transaction.assign_attributes(name: @fields[:name].to_s.strip, note: @fields[:note].to_s,
+      amount_in_cents: amount_in_cents || @transaction.amount_in_cents, occurred_on: occurred_on || @transaction.occurred_on)
+    @transaction.valid?
+    @errors = [ *@transaction.errors[:name], (Transaction::Shorthand::MISSING_AMOUNT unless amount_in_cents), (Transaction::Shorthand::MISSING_DATE unless occurred_on) ].compact
+
+    if @errors.empty? && @transaction.save
+      redirect_back_or_to root_path, status: :see_other
+    else
+      @transaction.restore_attributes
+      @categories = Current.user.categories.alphabetically
+      render turbo_stream: turbo_stream.replace("sheet", template: "transactions/edit", formats: :html), status: :unprocessable_entity
+    end
   end
 
   def create
@@ -38,12 +58,20 @@ class TransactionsController < ApplicationController
   end
 
   private
+    def editable_amount(cents)
+      format("%s%d.%02d", ("+" if cents.positive?), cents.abs / 100, cents.abs % 100)
+    end
+
     def set_transaction
       @transaction = Current.user.transactions.find(params.expect(:id))
     end
 
     def before
-      Date.iso8601(params[:before].to_s)
+      iso_date(params[:before])
+    end
+
+    def iso_date(text)
+      Date.iso8601(text.to_s)
     rescue Date::Error
       nil
     end

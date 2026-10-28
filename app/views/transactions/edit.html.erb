@@ -1,6 +1,7 @@
-<%= turbo_frame_tag "sheet" do %>
-  <div class="flex flex-col gap-5 px-5 pt-2.5 pb-8">
-    <div class="mx-auto h-1 w-9 rounded-full bg-(--border-color-primary)"></div>
+<% field_class = "h-11 w-full rounded-md border border-primary bg-level-2 px-3 text-md outline-none placeholder:text-tertiary focus:border-(--ring-color-focus)" %>
+<%= turbo_frame_tag "sheet", data: { sheet_target: "frame" } do %>
+  <div class="flex flex-col gap-5 px-5 pt-2.5 pb-8 md:pt-6">
+    <div class="mx-auto h-1 w-9 rounded-full bg-(--border-color-primary) md:hidden"></div>
 
     <div class="flex flex-col gap-1">
       <div class="flex items-baseline justify-between gap-4">
@@ -10,6 +11,34 @@
       <p class="text-sm text-tertiary"><%= [ day_heading(@transaction.occurred_on), @transaction.bank_account_name, ("Excluded" if @transaction.excluded?) ].compact.join(" · ") %></p>
     </div>
 
+    <%= form_with url: transaction_path(@transaction), method: :patch, scope: :transaction, id: "sheet_edit", autocomplete: "off",
+      data: { turbo_frame: "_top", sheet_stays: true, action: "turbo:submit-end->sheet#closeOnSuccess" }, class: "flex flex-col gap-5" do |form| %>
+      <% if @errors.present? %>
+        <div role="alert" class="flex flex-col gap-1 text-sm text-danger">
+          <% @errors.each do |error| %>
+            <p><%= error %></p>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div class="flex flex-col gap-2">
+        <%= form.label :name, "Name", class: "text-sm text-secondary" %>
+        <%= form.text_field :name, value: @fields[:name], class: field_class %>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="flex min-w-0 flex-1 flex-col gap-2">
+          <%= form.label :amount, "Amount", class: "text-sm text-secondary" %>
+          <%= form.text_field :amount, value: @fields[:amount], inputmode: "decimal", aria: { describedby: "sheet_amount_hint" }, class: "#{field_class} font-amount" %>
+          <p id="sheet_amount_hint" class="text-xs text-tertiary">Start with + for money in.</p>
+        </div>
+        <div class="flex min-w-0 flex-1 flex-col gap-2">
+          <%= form.label :occurred_on, "Date", class: "text-sm text-secondary" %>
+          <%= form.date_field :occurred_on, value: @fields[:occurred_on], class: field_class %>
+        </div>
+      </div>
+    <% end %>
+
     <div class="flex flex-col gap-2" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>" data-category-picker-size-value="large">
       <p class="text-sm text-secondary">Category</p>
       <span class="flex" data-category-picker-target="category"><%= render "transactions/category_button", transaction: @transaction,
@@ -17,11 +46,10 @@
         class: "flex h-11 w-full cursor-text items-center rounded-md border border-primary bg-level-2 px-3 text-md hover:border-(--ring-color-focus) #{@transaction.categorization.none? ? "text-tertiary" : "text-primary"}" %></span>
     </div>
 
-    <%= form_with url: transaction_note_path(@transaction), method: :patch, scope: :transaction, id: "sheet_note", data: { turbo_frame: "_top" }, class: "flex flex-col gap-2" do |form| %>
-      <%= form.label :note, "Note", class: "text-sm text-secondary" %>
-      <%= form.text_field :note, value: @transaction.note, placeholder: "Add a note", autocomplete: "off",
-        class: "h-11 w-full rounded-md border border-primary bg-level-2 px-3 text-md outline-none placeholder:text-tertiary focus:border-(--ring-color-focus)" %>
-    <% end %>
+    <div class="flex flex-col gap-2">
+      <%= label_tag "sheet_note", "Note", class: "text-sm text-secondary" %>
+      <%= text_field_tag "transaction[note]", @fields[:note], id: "sheet_note", form: "sheet_edit", placeholder: "Add a note", autocomplete: "off", class: field_class %>
+    </div>
 
     <div class="flex items-center justify-between pt-1">
       <div class="flex items-center gap-5">
@@ -29,7 +57,7 @@
           class: "cursor-pointer rounded-sm py-2 text-md font-medium text-danger" %>
         <%= exclusion_button @transaction, form: { data: { turbo_frame: "_top" } }, class: "cursor-pointer rounded-sm py-2 text-md font-medium text-secondary" %>
       </div>
-      <button form="sheet_note" class="h-11 cursor-pointer rounded-md bg-level-3 px-5 text-md font-medium text-primary">Done</button>
+      <button form="sheet_edit" class="h-11 cursor-pointer rounded-md bg-action px-5 text-md font-medium text-on-action hover:brightness-95">Save</button>
     </div>
   </div>
 <% end %>

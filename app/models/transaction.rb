@@ -5,6 +5,11 @@ class Transaction < ApplicationRecord
 
   normalizes :note, with: ->(note) { note.strip.presence }
 
+  validates :name, presence: { message: Shorthand::MISSING_NAME }
+
+  # Undoing a delete puts the shorthand back in the composer, so an edited row must not carry the old one.
+  before_update :forget_shorthand, if: -> { name_changed? || amount_in_cents_changed? || occurred_on_changed? }
+
   scope :latest, -> { order(occurred_on: :desc, id: :desc) }
   scope :occurred_in, ->(dates) { where(occurred_on: dates) }
   scope :counted, -> { where(transfer: false, excluded: false) }
@@ -59,4 +64,9 @@ class Transaction < ApplicationRecord
   def categorize_as(category:, transfer:)
     categorize Transaction::Categorization.from(category:, transfer:, categories: user.categories, money_in: money_in?)
   end
+
+  private
+    def forget_shorthand
+      self.shorthand = nil
+    end
 end

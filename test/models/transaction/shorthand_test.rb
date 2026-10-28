@@ -4,6 +4,16 @@ class Transaction::ShorthandTest < ActiveSupport::TestCase
   SUNDAY = Date.new(2026, 9, 27)
   Aim = Transaction::Shorthand::Aim
 
+  test "reads an amount typed alone, as the composer would" do
+    assert_equal(-12_486, Transaction::Shorthand.amount_in_cents("124.86"))
+    assert_equal(-120_000, Transaction::Shorthand.amount_in_cents(" $1,200 "))
+    assert_equal 240_000, Transaction::Shorthand.amount_in_cents("+2400")
+  end
+
+  test "an amount that is unreadable or zero is nil" do
+    [ "abc", "0", "", "  ", "1 2", nil ].each { assert_nil Transaction::Shorthand.amount_in_cents(_1), _1.inspect }
+  end
+
   test "reads a plain amount as money out" do
     assert_equal({ name: "coffee", amount_in_cents: -500, category_word: nil, occurred_on: SUNDAY, dated: false, errors: [] },
       read("coffee 5"))

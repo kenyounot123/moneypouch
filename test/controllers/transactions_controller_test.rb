@@ -472,7 +472,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "dialog[data-controller=sheet] turbo-frame#sheet"
   end
 
-  test "the sheet holds the category, the note, and Delete" do
+  test "the sheet is the edit form with the category, Delete, and Save" do
     @transaction.update!(note: "With Sam")
 
     get edit_transaction_url(@transaction)
@@ -482,9 +482,98 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#sheet p", text: "Thu, Oct 1"
     assert_select "turbo-frame#sheet [data-category-picker-size-value=large] button[data-category-picker-url-param=?]",
       transaction_categorization_path(@transaction), text: "Food"
-    assert_select "turbo-frame#sheet form[action=?] input[name='transaction[note]'][value='With Sam']", transaction_note_path(@transaction)
+    assert_select "turbo-frame#sheet form[action=?]", transaction_path(@transaction) do
+      assert_select "input[name='transaction[name]'][value='Blue Bottle']"
+      assert_select "input[name='transaction[amount]'][value='5.50']"
+      assert_select "input[type=date][name='transaction[occurred_on]'][value='2026-10-01']"
+    end
+    assert_select "turbo-frame#sheet input[name='transaction[note]'][value='With Sam']"
     assert_select "turbo-frame#sheet form[action=?] button", transaction_path(@transaction), text: "Delete"
-    assert_select "turbo-frame#sheet button[form=sheet_note]", text: "Done"
+    assert_select "turbo-frame#sheet button[form=sheet_edit]", text: "Save"
+  end
+
+  test "the sheet shows money in with a plus" do
+    get edit_transaction_url(transactions(:paycheck))
+
+    assert_select "turbo-frame#sheet input[name='transaction[amount]'][value='+2000.00']"
+  end
+
+  test "each row offers Edit, which opens the sheet" do
+    get transactions_url
+
+    assert_select "li#transaction_#{@transaction.id} [role=group] a[aria-label=Edit][data-turbo-frame=sheet][href=?]", edit_transaction_path(@transaction)
+  end
+
+  test "edits the name, amount, and date, and forgets the shorthand" do
+    patch transaction_url(@transaction), params: { transaction: { name: "Philz", amount: "$6.25", occurred_on: "2026-10-02", note: "" } }
+
+    assert_response :see_other
+    @transaction.reload
+    assert_equal [ "Philz", -625, Date.new(2026, 10, 2), nil ], [ @transaction.name, @transaction.amount_in_cents, @transaction.occurred_on, @transaction.shorthand ]
+  end
+
+  test "a plus amount is money in" do
+    patch transaction_url(@transaction), params: { transaction: { name: "Refund", amount: "+1,200", occurred_on: "2026-10-01", note: "" } }
+
+    assert_equal 120_000, @transaction.reload.amount_in_cents
+  end
+
+  test "a note-only edit keeps the shorthand" do
+    patch transaction_url(@transaction), params: { transaction: { name: "Blue Bottle", amount: "5.50", occurred_on: "2026-10-01", note: "With Sam" } }
+
+    @transaction.reload
+    assert_equal [ "With Sam", "Blue Bottle 5.50" ], [ @transaction.note, @transaction.shorthand ]
+  end
+
+  test "an edit that fails keeps the sheet open with what was typed and changes nothing" do
+    [ [ { name: "", amount: "5", occurred_on: "2026-10-01" }, "Type a name, like coffee" ],
+      [ { name: "Philz", amount: "abc", occurred_on: "2026-10-01" }, "Type an amount, like 5.50" ],
+      [ { name: "Philz", amount: "0", occurred_on: "2026-10-01" }, "Type an amount, like 5.50" ],
+      [ { name: "Philz", amount: "5", occurred_on: "" }, "Pick a date" ] ].each do |fields, message|
+      patch transaction_url(@transaction), params: { transaction: fields.merge(note: "kept") }
+
+      assert_response :unprocessable_entity
+      assert_select "turbo-stream[action=replace][target=sheet]"
+      assert_includes response.body, message
+      assert_includes response.body, "kept"
+      assert_equal [ "Blue Bottle", -550, Date.new(2026, 10, 1), nil ], @transaction.reload.then { [ _1.name, _1.amount_in_cents, _1.occurred_on, _1.note ] }
+    end
+  end
+
+  test "another user's transaction cannot be edited" do
+    sign_in_as(users(:two))
+
+    patch transaction_url(@transaction), params: { transaction: { name: "Mine", amount: "1", occurred_on: "2026-10-01", note: "" } }
+
+    assert_response :not_found
+    assert_equal "Blue Bottle", @transaction.reload.name
+  end
+
+  test "a bank-added row can be edited and its bank name is untouched" do
+    activate(connect_simplefin)
+    transaction = Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: -13_550).transaction_id)
+    bank_transaction = transaction.bank_transaction
+    key = bank_transaction.name_key
+
+    patch transaction_url(transaction), params: { transaction: { name: "Costco run", amount: "140", occurred_on: transaction.occurred_on.iso8601, note: "" } }
+
+    assert_response :see_other
+    assert_equal [ "Costco run", -14_000 ], [ transaction.reload.name, transaction.amount_in_cents ]
+    assert_equal key, bank_transaction.reload.name_key
+    assert_includes users(:one).transactions_named(key), transaction
+  end
+
+  test "a renamed bank row still takes the rule made from its bank name" do
+    activate(connect_simplefin)
+    user = users(:one)
+    transaction = Transaction.find(BankTransaction.unmatched.find_by!(amount_in_cents: -13_550).transaction_id)
+    bank_name = transaction.bank_transaction_name
+
+    patch transaction_url(transaction), params: { transaction: { name: "Costco run", amount: "135.50", occurred_on: transaction.occurred_on.iso8601, note: "" } }
+    user.remember(bank_name, Transaction::Categorization.new(category: categories(:food)))
+
+    assert_equal categories(:food), transaction.reload.category
+    assert transaction.offers_rule? == false
   end
 
   test "another user's sheet is not found" do
