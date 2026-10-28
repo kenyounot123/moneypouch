@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.0](https://github.com/kenyounot123/moneypouch/compare/v0.17.0...v0.18.0) (2026-10-28)
+
+
+### Features
+
+* **brand:** replace the EXP pouch with Pip ([#178](https://github.com/kenyounot123/moneypouch/issues/178)) ([27bad81](https://github.com/kenyounot123/moneypouch/commit/27bad81f8738c87ebc8b1c3b1cd6cb89f9c24e98))
+* **transactions:** edit a transaction's name, amount, and date ([#176](https://github.com/kenyounot123/moneypouch/issues/176)) ([1214734](https://github.com/kenyounot123/moneypouch/commit/12147349f4f7bac71444b18e308f2db59c5afff4))
+
 ## [0.17.0](https://github.com/kenyounot123/moneypouch/compare/v0.16.0...v0.17.0) (2026-10-28)
 
 
