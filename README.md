@@ -1,4 +1,4 @@
-<h1 align="center"><img src="docs/images/pouch.png" width="100" height="100" alt="Pip, the MoneyPouch pouch"><br>MoneyPouch</h1>
+<h1 align="center"><img src="docs/images/pouch.png" width="100" height="100" alt="The MoneyPouch pouch"><br>MoneyPouch</h1>
 
 <p align="center">No budgets. No net worth. Just see where your money goes.<br>Log an expense in a few seconds, on your own server, for free.</p>
 
