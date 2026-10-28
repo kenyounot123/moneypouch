@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.0](https://github.com/kenyounot123/moneypouch/compare/v0.16.0...v0.17.0) (2026-10-28)
+
+
+### Features
+
+* **layout:** fill the page width on Settings, Categories and Trends ([#174](https://github.com/kenyounot123/moneypouch/issues/174)) ([aeca4dd](https://github.com/kenyounot123/moneypouch/commit/aeca4ddcf30bb97c0a8604078c765d8f761b3e13))
+* **transactions:** show that columns sort and teach the search syntax ([#173](https://github.com/kenyounot123/moneypouch/issues/173)) ([42fea0f](https://github.com/kenyounot123/moneypouch/commit/42fea0f0ec6cf900c2ad53fe8711d6f4e49f48d3))
+
 ## [0.16.0](https://github.com/kenyounot123/moneypouch/compare/v0.15.0...v0.16.0) (2026-10-27)
 
 
