@@ -103,7 +103,7 @@ export default class extends Controller {
   }
 
   previousOption() {
-    this.index = (this.index - 1 + this.options.length) % this.options.length
+    this.index = (Math.max(this.index, 0) - 1 + this.options.length) % this.options.length
     this.render()
   }
 
@@ -133,7 +133,13 @@ export default class extends Controller {
   }
 
   pick(option) {
-    this.go([...splitInput(this.inputTarget.value).done, option.token])
+    const { done } = splitInput(this.inputTarget.value)
+    if (option.token) {
+      this.go([...done, option.token])
+    } else {
+      this.inputTarget.value = [...done, option.marker].join(" ")
+      option.marker ? this.refresh(true) : this.dismiss()
+    }
   }
 
   submit(event) {
@@ -187,6 +193,7 @@ export default class extends Controller {
     row.setAttribute("aria-selected", String(index === this.index))
     row.append(element("span", `size-2 shrink-0 rounded-[2px] ${SWATCHES[option.kind]}`), element("span", "min-w-0 flex-1 truncate", option.label))
     if (option.count) row.append(element("span", "shrink-0 font-mono text-xs text-tertiary", String(option.count)))
+    if (option.example) row.append(element("span", "shrink-0 font-mono text-xs whitespace-pre text-tertiary", option.example))
     return row
   }
 
