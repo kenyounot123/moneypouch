@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/kenyounot123/moneypouch/compare/v0.18.0...v0.19.0) (2026-10-28)
+
+
+### Features
+
+* **transactions:** add to an income category as money in ([#180](https://github.com/kenyounot123/moneypouch/issues/180)) ([c9e1b6a](https://github.com/kenyounot123/moneypouch/commit/c9e1b6ac28f6bd531d123db0b5bb5634f03e3760))
+
 ## [0.18.0](https://github.com/kenyounot123/moneypouch/compare/v0.17.0...v0.18.0) (2026-10-28)
 
 
