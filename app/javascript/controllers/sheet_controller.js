@@ -15,6 +15,15 @@ export default class extends Controller {
     this.element.close()
   }
 
+  // The edit form stays open until the server accepts it.
+  closeOnSubmit(event) {
+    if (!event.target.dataset.sheetStays) this.close()
+  }
+
+  closeOnSuccess(event) {
+    if (event.detail.success) this.close()
+  }
+
   // The page morphs after every save, and a morph would strip the open attribute without closing the modal.
   keepClosed(event) {
     if (event.target === this.element && event.detail.attributeName === "open") {
