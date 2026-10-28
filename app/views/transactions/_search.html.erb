@@ -19,12 +19,12 @@
           <% end %>
         </span>
       <% end %>
-      <%= tag.input type: "text", placeholder: query.parts.any? ? "Add more" : "Search merchants, categories, amounts, dates", autocomplete: "off", spellcheck: false,
+      <%= tag.input type: "text", placeholder: query.parts.any? ? "Add more" : "Try #dining >30 @sep", autocomplete: "off", spellcheck: false,
         role: "combobox", aria: { label: "Search transactions", autocomplete: "list", expanded: false, controls: "search-popup" },
         class: "min-w-24 flex-1 bg-transparent py-1 text-md outline-none placeholder:text-tertiary @xl:text-base",
         data: { search_target: "input", action: "input->search#suggest focus->search#suggest blur->search#close keydown->search#keydown" } %>
     </div>
-    <div id="search-popup" hidden role="listbox" aria-label="Suggestions" class="absolute top-full left-0 z-10 mt-1 max-h-[420px] w-full max-w-md overflow-y-auto rounded-lg border border-primary bg-level-2 p-1.5 shadow-control"
+    <div id="search-popup" hidden role="listbox" aria-label="Suggestions" class="absolute top-full left-0 z-10 mt-1 max-h-[460px] w-[calc(100vw-2.5rem)] max-w-md overflow-y-auto rounded-lg border border-primary bg-level-2 p-1.5 shadow-control"
       data-search-target="popup" data-action="mousedown->search#press"></div>
   </div>
 

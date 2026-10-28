@@ -22,6 +22,14 @@ const RANGE = new RegExp(`^${NUMBER}(?:-|\\.\\.)${NUMBER}$`)
 const NUMBER_ONLY = new RegExp(`^${NUMBER}$`)
 const EXACTLY = { marker: "=", token: "=", label: "Exactly" }
 const COMPARISONS = [{ marker: ">", token: ">", label: "Over" }, { marker: "<", token: "<", label: "Under" }, EXACTLY]
+const GUIDE = [
+  { kind: "category", label: "Category", example: "#dining", marker: "#" },
+  { kind: "account", label: "Account", example: "in:amex", marker: "in:" },
+  { kind: "date", label: "Date", example: "@sep  @7d", marker: "@" },
+  { kind: "amount", label: "Amount", example: ">50  20..80", marker: ">" },
+  { kind: "text", label: "Name or note", example: "coffee" },
+  { kind: "text", label: "Mix any of them", example: "#dining >30 @sep" },
+]
 
 // The marker a word starts with decides which kind of token it can still become, and each handler lists that kind's completions.
 const MARKERS = [
@@ -57,6 +65,7 @@ function defaults({ merchants, today, present }) {
     ...(present.has("?") ? [] : [option("Suggested", "status", "Needs a category", "?")]),
     option("Suggested", "date", "Last month", monthToken(last.getFullYear(), last.getMonth())),
     ...merchants.slice(0, 3).map((merchant) => merchantOption(merchant)),
+    ...GUIDE.map(({ kind, label, example, marker }) => option("Search by", kind, label, null, { example, marker })),
   ]
 }
 
