@@ -3,7 +3,7 @@
     <button type="button" data-sidebar-target="opener" data-action="sidebar#open" aria-label="Show sidebar" aria-haspopup="dialog" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary">
       <%= icon_tag "sidebar" %>
     </button>
-    <%= image_tag "pouch.png", alt: "", width: 34, height: 34, class: "size-[34px] shrink-0 [image-rendering:pixelated]" %>
+    <%= render "shared/pip", blinking: true, classes: "-m-[3px] size-10" %>
     <span class="text-heading font-bold whitespace-nowrap">MoneyPouch</span>
     <button type="button" aria-haspopup="dialog" data-controller="dialog-opener" data-action="dialog-opener#open" data-dialog-opener-id-param="palette"
       class="ml-auto flex cursor-pointer items-center gap-1.5 rounded-md bg-action py-2 pr-3.5 pl-3 text-sm font-medium text-on-action hover:brightness-95">

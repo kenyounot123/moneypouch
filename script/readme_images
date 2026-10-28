@@ -24,7 +24,7 @@ trap cleanup EXIT
 )
 "$driver" boot --port "$port" > /dev/null
 mkdir -p "$out"
-magick app/assets/images/pouch.png -filter point -resize 400% -strip "$out/pouch.png"
+magick public/icon.png -crop 500x500+6+6 +repage -sample 200x200 -strip "$out/pouch.png"
 
 mp resize 1100 687
 mp goto /
