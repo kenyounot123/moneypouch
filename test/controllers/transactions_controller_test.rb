@@ -498,6 +498,12 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#sheet input[name='transaction[amount]'][value='+2000.00']"
   end
 
+  test "each row offers Edit, which opens the sheet" do
+    get transactions_url
+
+    assert_select "li#transaction_#{@transaction.id} [role=group] a[aria-label=Edit][data-turbo-frame=sheet][href=?]", edit_transaction_path(@transaction)
+  end
+
   test "edits the name, amount, and date, and forgets the shorthand" do
     patch transaction_url(@transaction), params: { transaction: { name: "Philz", amount: "$6.25", occurred_on: "2026-10-02", note: "" } }
 

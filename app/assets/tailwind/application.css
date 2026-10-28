@@ -315,6 +315,7 @@
   .icon--chevron-right { --svg: url("icons/chevron-right.svg"); }
   .icon--close { --svg: url("icons/close.svg"); }
   .icon--delete { --svg: url("icons/delete.svg"); }
+  .icon--edit { --svg: url("icons/edit.svg"); }
   .icon--exclude { --svg: url("icons/exclude.svg"); }
   .icon--external { --svg: url("icons/external.svg"); }
   .icon--import { --svg: url("icons/import.svg"); }
