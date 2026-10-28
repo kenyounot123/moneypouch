@@ -8,12 +8,18 @@
     <h1 class="text-title">Trends</h1>
 
     <% if @trends.ready? %>
-      <div class="flex max-w-[960px] flex-col gap-12">
+      <div class="flex flex-col gap-12">
         <%= render "trends/glance", trends: @trends %>
-        <%= render "trends/categories", trends: @trends %>
-        <%= render "trends/notes", trends: @trends %>
-        <%= render "trends/recurring", trends: @trends %>
-        <%= render "trends/income", trends: @trends %>
+
+        <div class="grid max-w-[960px] grid-cols-1 items-start gap-12 2xl:max-w-none 2xl:gap-x-16 2xl:has-[>div>section]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <%= render "trends/categories", trends: @trends %>
+
+          <div class="flex flex-col gap-12 not-has-[section]:hidden">
+            <%= render "trends/notes", trends: @trends %>
+            <%= render "trends/recurring", trends: @trends %>
+            <%= render "trends/income", trends: @trends %>
+          </div>
+        </div>
       </div>
     <% else %>
       <%= render "trends/empty", trends: @trends %>

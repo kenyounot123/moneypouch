@@ -10,14 +10,14 @@
     <% end %>
   </p>
 
-  <div class="grid h-5 grid-cols-12 items-end gap-0.5 max-md:hidden" aria-hidden="true">
+  <div class="grid h-5 grid-cols-12 items-end gap-0.5 max-lg:hidden" aria-hidden="true">
     <% months.each do |month, cents| %>
       <div class="<%= class_names "rounded-[1px]", month_bar_color(usage.span, month, cents) %>" style="height: <%= [ month_bar_height(cents, peak, CategoriesHelper::SPARK_HEIGHT), 1 ].max %>px" title="<%= month_title month %> · <%= money cents %>"></div>
     <% end %>
   </div>
 
   <% shared = active && total.positive? && section_total.positive? %>
-  <div class="flex items-center gap-2 max-md:hidden" title="<%= "#{share_of total, section_total} of #{category_kind(category).downcase}" if shared %>">
+  <div class="flex items-center gap-2 max-lg:hidden" title="<%= "#{share_of total, section_total} of #{category_kind(category).downcase}" if shared %>">
     <div class="h-1.5 flex-1 rounded-bar bg-data-track" aria-hidden="true">
       <% if shared %>
         <div class="h-full rounded-bar bg-data" style="width: max(2px, <%= (total * 100.0 / section_total).round(1) %>%)"></div>
