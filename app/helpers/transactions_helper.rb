@@ -36,8 +36,9 @@ module TransactionsHelper
     current = sort.key == key
 
     tag.p role: "columnheader", aria: { sort: (sort.ascending? ? "ascending" : "descending" if current) }, class: options[:class] do
-      link_to search_path(query.to_s, month, sort.toggle(key)), class: class_names("inline-flex items-center gap-1 hover:text-primary", "font-medium text-primary" => current) do
-        safe_join [ sort_label(key), (sort_direction_icon(sort) if current) ]
+      link_to search_path(query.to_s, month, sort.toggle(key)), title: "Sort by #{sort_label(key).downcase}",
+        class: class_names("group inline-flex items-center gap-1 hover:text-primary", "font-medium text-primary" => current) do
+        safe_join [ sort_label(key), (current ? sort_direction_icon(sort) : icon_tag("sort", class: "size-3 opacity-50 group-hover:opacity-100")) ]
       end
     end
   end
