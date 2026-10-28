@@ -597,6 +597,12 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
       Transaction.order(:id).last.slice(:name, :amount_in_cents, :shorthand, :occurred_on, :user_id))
   end
 
+  test "adds a row in an income category as money in" do
+    post transactions_url, params: { shorthand: "work payment 3491.60 #income", idempotency_key: "key-income" }
+
+    assert_equal [ 349160, categories(:income) ], Transaction.order(:id).last.then { |transaction| [ transaction.amount_in_cents, transaction.category ] }
+  end
+
   test "adds one row for a repeated idempotency key" do
     assert_difference("Transaction.count", 1) do
       3.times { post transactions_url, params: { shorthand: "coffee 5.50", idempotency_key: "key-1" } }
