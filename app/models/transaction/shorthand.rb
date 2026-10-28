@@ -3,7 +3,7 @@ module Transaction::Shorthand
   MISSING_NAME = "Type a name, like coffee"
   MISSING_DATE = "Pick a date"
 
-  Parts = Data.define(:name, :amount_in_cents, :category_word, :occurred_on, :dated, :tokens, :errors)
+  Parts = Data.define(:name, :amount_in_cents, :signed, :category_word, :occurred_on, :dated, :tokens, :errors)
   Word = Data.define(:text, :start)
   Token = Data.define(:kind, :start, :finish)
   Aim = Data.define(:on, :exact)
@@ -41,11 +41,11 @@ module Transaction::Shorthand
       dated_on = month_name_date(words, today, tokens) || numeric_date(words, today, tokens) || relative_date(words, today, tokens)
       category_word = take(words, :category, tokens) { |word| word[CATEGORY, 1].presence }
       take_markers(words, tokens)
-      amount_in_cents = take_amount(words, tokens)
+      amount_in_cents, signed = take_amount(words, tokens)
       name = words.map(&:text).join(" ")
       errors = [ (MISSING_AMOUNT unless amount_in_cents), (MISSING_NAME if name.empty?) ].compact.freeze
 
-      Parts.new(name:, amount_in_cents:, category_word:, occurred_on: dated_on || today, dated: dated_on.present?,
+      Parts.new(name:, amount_in_cents:, signed: signed.present?, category_word:, occurred_on: dated_on || today, dated: dated_on.present?,
         tokens: tokens.sort_by(&:start).freeze, errors:)
     end
 
@@ -287,20 +287,20 @@ module Transaction::Shorthand
 
       def take_amount(words, tokens)
         amounts = words.each_with_index.filter_map do |word, index|
-          cents, marked = money(word.text)
+          cents, marked, signed = money(word.text)
 
           if cents
-            [ index, cents, marked ]
+            [ index, cents, marked, signed ]
           end
         end
 
-        index, cents, = amounts.find { |_, _, marked| marked } || amounts.last
+        index, cents, _, signed = amounts.find { |_, _, marked| marked } || amounts.last
 
         if index
           word = words.delete_at(index)
           tokens << token(:amount, word, word)
         end
-        cents
+        [ cents, signed ]
       end
 
       def money(word)
@@ -312,7 +312,7 @@ module Transaction::Shorthand
 
           if dollars.length <= MAX_DOLLAR_DIGITS && cents.nonzero?
             marked = [ amount[:sign], amount[:symbol], amount[:cents] ].any? || amount[:dollars].to_s.include?(",")
-            [ amount[:sign] == "+" ? cents : -cents, marked ]
+            [ amount[:sign] == "+" ? cents : -cents, marked, amount[:sign].present? ]
           end
         end
       end

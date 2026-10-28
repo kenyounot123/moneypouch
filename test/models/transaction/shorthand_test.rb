@@ -29,6 +29,10 @@ class Transaction::ShorthandTest < ActiveSupport::TestCase
       read("+2000 paycheck"))
   end
 
+  test "tells a typed sign from a bare amount" do
+    assert_equal [ true, true, false ], [ "+2000 paycheck", "refund -5", "coffee 5" ].map { Transaction::Shorthand.read(it, today: SUNDAY).signed }
+  end
+
   test "takes the last bare number when no amount is marked" do
     assert_equal({ name: "7 eleven", amount_in_cents: -500, category_word: nil, occurred_on: SUNDAY, dated: false, errors: [] },
       read("7 eleven 5"))
@@ -310,6 +314,6 @@ class Transaction::ShorthandTest < ActiveSupport::TestCase
     end
 
     def read(shorthand, today: SUNDAY)
-      Transaction::Shorthand.read(shorthand, today:).to_h.except(:tokens)
+      Transaction::Shorthand.read(shorthand, today:).to_h.except(:tokens, :signed)
     end
 end

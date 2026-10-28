@@ -87,6 +87,15 @@ class VoucherTest < ActiveSupport::TestCase
     assert_not build("coffee 5").money_in?
   end
 
+  test "an unsigned amount in an income category is money in" do
+    users(:one).transactions.create!(name: "Work payment", amount_in_cents: 349160, occurred_on: "2026-09-15", category: categories(:income))
+
+    assert_equal 349160, build("work payment 3491.60 #income").amount_in_cents
+    assert_equal [ 349160, true ], build("work payment 3491.60").then { |voucher| [ voucher.amount_in_cents, voucher.money_in? ] }
+    assert_equal [ -5000, categories(:income) ], build("work payment -50").then { |voucher| [ voucher.amount_in_cents, voucher.category ] }
+    assert_equal -1200, build("lunch 12 #food").amount_in_cents
+  end
+
   test "runs no query until asked for its category or completion" do
     user = users(:one)
 
