@@ -23,7 +23,6 @@ class Voucher
     @category = resolve_category(completion || name)
   end
 
-  # An unsigned amount in an income category is money in, as if it were typed with a +.
   def amount_in_cents
     if parts.amount_in_cents && !parts.signed && category&.income?
       parts.amount_in_cents.abs
