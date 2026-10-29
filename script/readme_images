@@ -24,6 +24,7 @@ trap cleanup EXIT
     transactions.where(name: "Rent").or(paychecks).or(transactions.where(occurred_on: Date.current)).delete_all' > /dev/null
 )
 "$driver" boot --port "$port" > /dev/null
+mp platform mac
 mkdir -p "$out"
 magick public/icon.png -crop 500x500+6+6 +repage -sample 200x200 -strip "$out/pouch.png"
 

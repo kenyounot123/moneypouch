@@ -25,7 +25,7 @@
 
   <aside id="sidebar" class="sticky top-0 z-10 hidden h-dvh w-sidebar shrink-0 flex-col justify-between border-r border-secondary bg-level-1 px-5 pt-7 pb-6 md:flex in-data-[sidebar=collapsed]:pr-[11px] in-data-[sidebar=collapsed]:pl-3">
     <%= render layout: "shared/sidebar_panel" do %>
-      <button type="button" data-sidebar-target="toggle" data-action="sidebar#toggle" aria-label="Toggle sidebar" aria-keyshortcuts="Meta+B Control+B" title="Toggle sidebar (⌘B)" aria-controls="sidebar" aria-expanded="<%= sidebar_state == "expanded" %>" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary in-data-[sidebar=collapsed]:h-[34px] in-data-[sidebar=collapsed]:w-10">
+      <button type="button" data-sidebar-target="toggle" data-action="sidebar#toggle" aria-label="Toggle sidebar" aria-keyshortcuts="Meta+B Control+B" title="Toggle sidebar (<%= shortcut("B") %>)" aria-controls="sidebar" aria-expanded="<%= sidebar_state == "expanded" %>" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary in-data-[sidebar=collapsed]:h-[34px] in-data-[sidebar=collapsed]:w-10">
         <%= icon_tag "sidebar" %>
       </button>
     <% end %>

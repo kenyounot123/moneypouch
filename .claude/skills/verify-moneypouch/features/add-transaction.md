@@ -9,7 +9,7 @@
 
 ## How to get to it (user POV)
 
-Sign in. On any page with the sidebar press ⌘K or click `Add transaction` at the top of the sidebar (`Add` in the top bar below `md`) to open the composer. Type shorthand such as `coffee 5.50 yesterday`, then press Enter or click `Add ↵`. The sidebar's Transactions link opens `/transactions`.
+Sign in. On any page with the sidebar press ⌘K or click `Add` at the top of the sidebar (in the top bar below `md`) to open the composer. Type shorthand such as `coffee 5.50 yesterday`, then press Enter or click `Add ↵`. The sidebar's Transactions link opens `/transactions`.
 
 ## Driving it with mp.mjs
 

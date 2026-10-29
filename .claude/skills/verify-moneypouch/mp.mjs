@@ -270,7 +270,7 @@ const holderUp = (s, port) => !!s && ours(s.holderPid, holderNeedle(port))
 
 async function hold(flags) {
   const port = Number(flags.port)
-  let session, applied, appliedZone
+  let session, applied, appliedZone, appliedPlatform
   for (;;) {
     const s = readState(port)
     if (!s && !fs.existsSync(path.join(dirFor(port), "state.json"))) return
@@ -278,7 +278,7 @@ async function hold(flags) {
     if (!chromeUp(s, port)) return
     try {
       if (session) await session.evaluate("1")
-    } catch { session = null; applied = null; appliedZone = null }
+    } catch { session = null; applied = null; appliedZone = null; appliedPlatform = null }
     try {
       if (!session) {
         session = await cdpSession(port)
@@ -297,6 +297,11 @@ async function hold(flags) {
       if (appliedZone !== zone) {
         await session.send("Emulation.setTimezoneOverride", { timezoneId: zone })
         appliedZone = zone
+      }
+      const platform = s.platform ?? ""
+      if (appliedPlatform !== platform) {
+        await session.send("Emulation.setUserAgentOverride", platforms[platform] ?? { userAgent: "" })
+        appliedPlatform = platform
       }
     } catch (e) { console.error(e.message); session = null }
     await sleep(150)
@@ -376,6 +381,7 @@ async function doctor(flags) {
   }
   out.holderAlive = holderUp(s, port)
   out.timezone = s?.timezone ?? null
+  out.platform = s?.platform ?? null
   out.recording = recorderUp(s, port) ? s.recording.file : null
   console.log(JSON.stringify(out))
   const innerMatches = out.inner && out.inner[0] === s.viewport.width && out.inner[1] === s.viewport.height
@@ -403,6 +409,28 @@ async function server(flags, action) {
     await waitUp(port, s)
   })
   console.log(`server on ${port} up`)
+}
+
+const platforms = {
+  mac: { userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36", platform: "MacIntel" },
+  windows: { userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36", platform: "Win32" },
+  linux: { userAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36", platform: "Linux x86_64" },
+}
+
+async function platform(flags, name) {
+  const port = resolvePort(flags)
+  if (!(name in platforms) && name !== "off") die(`platform takes ${Object.keys(platforms).join(", ")}, or off`)
+  const s = readState(port)
+  if (name === "off") delete s.platform
+  else s.platform = name
+  writeState(port, s)
+  const b = await cdpSession(port)
+  const applied = (agent) => name === "off" ? !Object.values(platforms).some((p) => p.userAgent === agent) : agent === platforms[name].userAgent
+  let now
+  for (let i = 0; i < 50 && !applied(now = await b.evaluate("navigator.userAgent")); i++) await sleep(100)
+  b.close()
+  if (!applied(now)) die(`browser user agent is ${now}; see ${dirFor(port)}/holder.log`)
+  console.log(`${now} (reload with goto so the server sees it)`)
 }
 
 async function zone(flags, name) {
@@ -577,6 +605,7 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   query <ruby>                       evaluate Ruby against a read-only SQLite connection
   server stop|start                  stop or start only the Rails server; the page and its field stay as they are
   zone <IANA>|off                    emulate the browser time zone; the holder keeps it between commands
+  platform mac|windows|linux|off     emulate the browser's OS in its user agent; the holder keeps it between commands
   record start <file.mp4> | record stop
                                      screencast the page to an mp4 (needs ffmpeg); stop also finalizes it
   latency <Key> --end <event>|paint [--log file.jsonl] [--timeout ms]
@@ -593,6 +622,7 @@ async function main() {
   if (cmd === "recorder") return recorder(flags)
   if (cmd === "server") return server(flags, args[0])
   if (cmd === "zone") return zone(flags, args[0])
+  if (cmd === "platform") return platform(flags, args[0])
   if (cmd === "record") {
     const port = resolvePort(flags)
     if (args[0] === "start") return recordStart(port, args[1])

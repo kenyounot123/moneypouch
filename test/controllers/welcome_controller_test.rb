@@ -350,6 +350,16 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "html[data-sidebar=expanded]"
   end
 
+  test "names the sidebar shortcut for the browser's platform" do
+    get root_url
+
+    assert_select "button[aria-label='Toggle sidebar'][title=?]", "Toggle sidebar (Ctrl B)"
+
+    get root_url, headers: { "HTTP_USER_AGENT" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/130.0" }
+
+    assert_select "button[aria-label='Toggle sidebar'][title=?]", "Toggle sidebar (⌘B)"
+  end
+
   test "marks the added row, shows the toast, and empties the field" do
     post transactions_url, params: { shorthand: "tea 3", idempotency_key: "key-1" }, headers: { "HTTP_REFERER" => root_url }
     follow_redirect!
