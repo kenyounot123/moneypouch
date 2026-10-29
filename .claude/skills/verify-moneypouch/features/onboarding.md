@@ -7,14 +7,15 @@
 - On success the new user is signed in and lands on `/first_transaction`: the heading "What did you last spend on?", the composer, the hint "Only the name and amount are required", and a "Skip for now" link to `/`.
 - Adding a transaction there lands on the Overview with the row marked and the Undo toast. Skip for now lands on the Overview with no toast.
 - `/first_transaction` redirects to `/` once the user has a kept transaction.
-- Open sign-up: anyone can create an account. The page is rate limited like sign-in.
+- Registration closes after the first account. `/account/new` then redirects to `/session/new` with the alert `Registration is closed.`, and the sign-in page has no Create account link. The owner (the oldest account, `demo` in dev) reopens it in Settings, Account, New accounts: `Open registration` or `Close registration` (`form[action="/registration"] button`, `PATCH /registration`, saved on the owner's `users.registration_open`), beside `Anyone who can reach this server can create an account.` or `Registration is closed. Only existing accounts can sign in.` A non-owner gets 403. Creating an account is rate limited like sign-in.
 
 ## How to get to it (user POV)
 
-A fresh server: open `/`, which goes to `/session/new`, which goes to `/account/new` while no users exist. Otherwise click "Create account" under the sign-in form.
+A fresh server: open `/`, which goes to `/session/new`, which goes to `/account/new` while no users exist. Otherwise, once the owner has opened registration, click "Create account" under the sign-in form.
 
 ## Driving it with mp.mjs
 
+- Open registration first: `mp.mjs goto /settings --port N`, `mp.mjs click 'form[action="/registration"] button' --port N`, `mp.mjs wait main --text 'Close registration' --port N`. `mp.mjs query 'User.registration_open?'` prints `true`. Close it the same way when done, then wait for `Open registration`.
 - `mp.mjs signout --port N`, then `mp.mjs goto /account/new --port N`.
 - `mp.mjs type '#user_username' name --port N`, `mp.mjs type '#user_password' secret --port N`, `mp.mjs key Enter --port N`. The URL is then `/first_transaction`.
 - `mp.mjs type '[aria-label="Add"]' 'tea 3' --port N`, `mp.mjs key Enter --port N`, `mp.mjs wait '[id^=toast_transaction]' --port N` prints the toast text on the Overview.
@@ -23,6 +24,6 @@ A fresh server: open `/`, which goes to `/session/new`, which goes to `/account/
 
 ## Gotchas
 
-- The dev database is shared and has the `demo` user, so the no-users redirect only shows on an empty database.
+- The dev database is shared and has the `demo` user, so the no-users redirect only shows on an empty database, and Create account only works after Open registration.
 - Accounts made while driving persist in the dev database. Delete them when done.
 - The first transaction page renders the composer inline, with no palette, so `type` works there without `key Meta+k`. The panel looks the same as inside the Overview's palette, minus the `esc` chip.
