@@ -19,6 +19,27 @@
   <img src="docs/images/demo.gif" alt="Pressing Command K, typing Chip, pressing Tab to complete Chipotle, adding 11.25 yesterday, and pressing Enter. Chipotle appears in Recent and the October total goes up">
 </p>
 
+<table>
+  <tr>
+    <td width="40%"><img src="docs/images/overview.png" alt="The Overview, with this month's spending split by category and the most recent transactions"></td>
+    <td width="40%"><img src="docs/images/trends.png" alt="Trends, with a year of income and spending by month and each category's spending month by month"></td>
+    <td width="20%"><img src="docs/images/phone.png" alt="The Overview on a phone in dark mode"></td>
+  </tr>
+  <tr>
+    <td align="center">Where it went this month</td>
+    <td align="center">A year at a glance</td>
+    <td align="center">On your phone</td>
+  </tr>
+</table>
+
+Try it with one command, then open [localhost:8080](http://localhost:8080). [Getting started](#getting-started) has the details.
+
+```bash
+docker run -d --name moneypouch --restart unless-stopped -p 8080:80 -v moneypouch-data:/rails/storage ghcr.io/kenyounot123/moneypouch:latest
+```
+
+I built MoneyPouch because every app I tried wanted me to budget first, and I only wanted to know where my money went. [The longer story](#why-i-built-moneypouch).
+
 ## Contents
 
 | To | Read |

@@ -20,7 +20,8 @@ trap cleanup EXIT
   bin/setup --skip-server > /dev/null
   bin/rails "dev:transactions[1550]" > /dev/null
   bin/rails runner 'transactions = User.find_by!(username: "demo").transactions
-    transactions.where(name: %w[ Paycheck Rent ]).or(transactions.where(occurred_on: Date.current)).delete_all' > /dev/null
+    paychecks = transactions.where(name: "Paycheck", occurred_on: Date.current.all_month)
+    transactions.where(name: "Rent").or(paychecks).or(transactions.where(occurred_on: Date.current)).delete_all' > /dev/null
 )
 "$driver" boot --port "$port" > /dev/null
 mkdir -p "$out"
@@ -111,4 +112,27 @@ ffmpeg -v error -y -framerate 15 -loop 1 -i "$work/demo-framed.png" -i "$work/de
   "[1]fps=15,scale=$width:$height:flags=lanczos[video];[video][2]alphamerge[window];[0][window]overlay=$x:$y:shortest=1,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff:reserve_transparent=1[palette];[b][palette]paletteuse=dither=none:diff_mode=rectangle:alpha_threshold=128" \
   "$work/demo-frames.gif"
 magick "$work/demo-frames.gif" +dither -layers Optimize "$out/demo.gif"
-echo "$out/pouch.png $out/composer.png $out/demo.gif"
+
+mp resize 1200 960
+mp goto /
+mp js 'document.documentElement.style.scrollbarWidth = "none"'
+mp shot "$work/overview-raw.png" --scale 2
+frame overview "$work/overview-raw.png"
+
+mp resize 1200 960
+mp goto /trends
+mp js 'document.documentElement.style.scrollbarWidth = "none"'
+mp shot "$work/trends-raw.png" --scale 2
+frame trends "$work/trends-raw.png"
+
+mp mode dark
+mp goto /
+mp resize 390 844
+mp js 'document.documentElement.style.scrollbarWidth = "none"'
+mp shot "$work/phone-raw.png" --scale 2
+mp mode light
+magick "$work/phone-raw.png" \
+  \( +clone -alpha transparent -fill white -draw "roundrectangle 0,0 %[fx:w-1],%[fx:h-1] 48,48" \) \
+  -compose CopyOpacity -composite -strip "$out/phone.png"
+
+echo "$out/pouch.png $out/composer.png $out/demo.gif $out/overview.png $out/trends.png $out/phone.png"
