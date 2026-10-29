@@ -6,7 +6,7 @@
   <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
     <h1 class="text-title">Settings</h1>
 
-    <div class="grid max-w-[560px] gap-10 xl:max-w-none xl:grid-cols-2 xl:grid-rows-[repeat(4,auto)_1fr] xl:items-start xl:gap-x-16">
+    <div class="grid max-w-[560px] gap-10 xl:max-w-none xl:grid-cols-2 xl:grid-rows-[repeat(5,auto)_1fr] xl:items-start xl:gap-x-16">
       <section class="flex flex-col gap-4 xl:col-start-1">
         <div class="flex items-baseline justify-between border-b border-secondary pb-3">
           <h2 class="text-heading">Appearance</h2>
@@ -36,7 +36,24 @@
         </div>
       </section>
 
-      <%= turbo_frame_tag "bank_sync", class: "block xl:col-start-2 xl:row-span-5 xl:row-start-1" do %>
+      <section class="flex flex-col gap-4 xl:col-start-1">
+        <div class="flex items-baseline justify-between border-b border-secondary pb-3">
+          <h2 class="text-heading">Keyboard</h2>
+        </div>
+
+        <div class="flex items-center justify-between gap-6">
+          <div class="flex flex-col gap-1">
+            <p class="text-md">Single-key shortcuts</p>
+            <p class="text-sm text-tertiary">Press / to search transactions. Arrows always step months.</p>
+          </div>
+          <div class="flex w-[200px] shrink-0 gap-1 rounded-md bg-level-3 p-1">
+            <%= button_to "On", shortcuts_path, method: :patch, params: { on: true }, form: { class: "flex-1" }, aria: { pressed: Current.user.single_key_shortcuts? }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary aria-pressed:bg-level-2 aria-pressed:text-primary aria-pressed:shadow-control" %>
+            <%= button_to "Off", shortcuts_path, method: :patch, params: { on: false }, form: { class: "flex-1" }, aria: { pressed: !Current.user.single_key_shortcuts? }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary aria-pressed:bg-level-2 aria-pressed:text-primary aria-pressed:shadow-control" %>
+          </div>
+        </div>
+      </section>
+
+      <%= turbo_frame_tag "bank_sync", class: "block xl:col-start-2 xl:row-span-6 xl:row-start-1" do %>
         <% if content_for?(:bank_sync) %>
           <%= yield :bank_sync %>
         <% else %>

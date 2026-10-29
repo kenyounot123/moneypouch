@@ -21,7 +21,8 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+  <body <% if Current.user %><%= tag.attributes(data: { controller: "shortcuts", action: "keydown@window->shortcuts#press",
+    shortcuts_transactions_url_value: transactions_path, shortcuts_single_key_value: Current.user.single_key_shortcuts? }) %><% end %>>
     <%= yield %>
     <% unseen_releases = Current.user ? Current.user.unseen_releases : [] %>
     <% if unseen_releases.any? %>

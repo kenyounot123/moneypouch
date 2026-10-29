@@ -57,7 +57,7 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "button[data-theme]", count: User::THEMES.size
     assert_select "button[data-theme=moss][aria-pressed=true]", text: "Moss"
-    assert_select "button[aria-pressed=true]", count: 1
+    assert_select "button[data-theme][aria-pressed=true]", count: 1
     assert_select "html[data-theme=moss][data-mode=light]"
   end
 
@@ -93,6 +93,42 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_equal "light", users(:one).reload.mode
+  end
+
+  test "single-key shortcuts show as on until turned off" do
+    get settings_url
+
+    assert_select "section:has(h2)", text: /Keyboard/ do
+      assert_select "p", text: "Single-key shortcuts"
+      assert_select "form[action=?] button[aria-pressed=true]", shortcuts_path, text: "On"
+      assert_select "form[action=?] button[aria-pressed=false]", shortcuts_path, text: "Off"
+    end
+    assert_select "body[data-shortcuts-single-key-value=true]"
+
+    users(:one).use_single_key_shortcuts(false)
+    get settings_url
+
+    assert_select "form[action=?] button[aria-pressed=true]", shortcuts_path, text: "Off"
+    assert_select "form[action=?] button[aria-pressed=false]", shortcuts_path, text: "On"
+    assert_select "body[data-shortcuts-single-key-value=false]"
+  end
+
+  test "turning single-key shortcuts off and on returns to settings" do
+    patch shortcuts_url, params: { on: false }, headers: { "HTTP_REFERER" => settings_url }
+
+    assert_redirected_to settings_url
+    assert_not users(:one).reload.single_key_shortcuts?
+
+    patch shortcuts_url, params: { on: true }, headers: { "HTTP_REFERER" => settings_url }
+
+    assert_redirected_to settings_url
+    assert users(:one).reload.single_key_shortcuts?
+  end
+
+  test "the page body listens for shortcuts and knows where transactions are" do
+    get settings_url
+
+    assert_select "body[data-controller=shortcuts][data-action='keydown@window->shortcuts#press'][data-shortcuts-transactions-url-value=?]", transactions_path
   end
 
   test "a theme change returns to settings and keeps the mode" do

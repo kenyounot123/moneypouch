@@ -93,6 +93,10 @@ class User < ApplicationRecord
     update!(theme:)
   end
 
+  def use_single_key_shortcuts(on)
+    update!(single_key_shortcuts: on)
+  end
+
   def unseen_releases
     Release.newer_than(seen_version)
   end

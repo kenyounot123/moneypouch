@@ -14,10 +14,36 @@ const SIZES = {
   },
 }
 const TRANSFER_ICON = `<span class="icon icon--transfer size-3.5 text-tertiary" aria-hidden="true"></span>`
+const NEEDS_CATEGORY = '[aria-label="Needs a category"]'
+const OPENER = 'button[data-action="category-picker#open"]'
+
+// Ids of the rows after a saved uncategorized row that still needed a category, in list order.
+// A filtered list drops the saved row, so the next row is found from these rather than from it.
+let chain = []
 
 export default class extends Controller {
   static targets = ["category"]
   static values = { categories: Array, size: { type: String, default: "small" } }
+
+  connect() {
+    this.resume = this.resume.bind(this)
+    document.addEventListener("turbo:morph", this.resume)
+    this.resume()
+  }
+
+  disconnect() {
+    document.removeEventListener("turbo:morph", this.resume)
+  }
+
+  resume() {
+    if (!chain.length || document.documentElement.hasAttribute("data-turbo-preview")) return
+
+    const rows = chain.map((id) => document.getElementById(id))
+    chain = []
+    const row = rows.find((row) => row?.querySelector(NEEDS_CATEGORY))
+    const opener = row && [...row.querySelectorAll(OPENER)].find((button) => button.checkVisibility())
+    opener?.click()
+  }
 
   open({ currentTarget, params: { url, category, moneyIn } }) {
     this.close()
@@ -196,6 +222,15 @@ export default class extends Controller {
     if (item) this.field.value = item.name
     this.transfer.value = item?.transfer ? "1" : "0"
     this.label.textContent = this.field.value.trim() || "Uncategorized"
+    chain = this.following()
     this.form.requestSubmit()
+  }
+
+  following() {
+    if (!this.row.matches("li") || !this.row.querySelector(NEEDS_CATEGORY)) return []
+
+    return [...this.element.querySelectorAll("li")]
+      .filter((row) => this.row.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING && row.querySelector(NEEDS_CATEGORY))
+      .map((row) => row.id)
   }
 }

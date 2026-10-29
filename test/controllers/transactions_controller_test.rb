@@ -227,6 +227,40 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "the month steps name their arrow keys" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url(month: "2026-09")
+    end
+
+    assert_select "nav[aria-label=Month] a[aria-keyshortcuts=ArrowLeft][title=?]", "August 2026 (←)", text: "‹ Aug"
+    assert_select "nav[aria-label=Month] a[aria-keyshortcuts=ArrowRight][title=?]", "October 2026 (→)", text: "Oct ›"
+    assert_select "nav[aria-label=Month] a[aria-keyshortcuts=ArrowLeft][aria-label=?]", "August 2026", text: "‹"
+    assert_select "nav[aria-label=Month] a[aria-keyshortcuts]", 4
+  end
+
+  test "the months searched offer no arrow keys" do
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url(q: "rent")
+    end
+
+    assert_select "nav[aria-label='Months searched']"
+    assert_select "a[aria-keyshortcuts]", 0
+  end
+
+  test "the search field advertises the slash key while single-key shortcuts are on" do
+    get transactions_url
+
+    assert_select "input[aria-label='Search transactions'][aria-keyshortcuts='/']"
+    assert_select "input[aria-label='Search transactions'] ~ span[aria-hidden=true]", text: "/"
+
+    users(:one).use_single_key_shortcuts(false)
+    get transactions_url
+
+    assert_select "input[aria-label='Search transactions']"
+    assert_select "input[aria-label='Search transactions'][aria-keyshortcuts]", 0
+    assert_select "input[aria-label='Search transactions'] ~ span", text: "/", count: 0
+  end
+
   test "clamps a future month to this one" do
     travel_to Time.utc(2026, 10, 13, 12) do
       get transactions_url(month: "2027-02")

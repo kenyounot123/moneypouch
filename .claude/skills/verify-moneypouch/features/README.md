@@ -6,6 +6,7 @@
 - [onboarding.md](onboarding.md). Create account, the first transaction page, Skip for now, landing on the Overview.
 - [sidebar.md](sidebar.md). The collapsible sidebar, its cookie, tooltips, and the Add button.
 - [theme.md](theme.md). Light and dark switch on the Settings page.
+- [shortcuts.md](shortcuts.md). Single-key shortcuts: `/` to search, the arrow keys to step months, the categorize chain, and the Settings switch that turns `/` off.
 - [add-transaction.md](add-transaction.md). The composer and demo data.
 - [transactions.md](transactions.md). The month ledger at `/transactions`: totals, month switcher, filters, day-grouped rows, and the phone sheet.
 - [categories.md](categories.md). The Categories list and a category's page: the span of months, sections, aligned columns, the Manage menu, month bars, and the empty span.
