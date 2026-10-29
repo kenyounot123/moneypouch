@@ -4,7 +4,7 @@
 - [password-reset.md](password-reset.md). The owner's Reset link in Settings, the one-use reset page, the sign-in hint, and the `password:reset` rake task.
 - [overview.md](overview.md). The signed-in Overview with the composer and sidebar.
 - [onboarding.md](onboarding.md). Create account, the first transaction page, Skip for now, landing on the Overview.
-- [sidebar.md](sidebar.md). The collapsible sidebar, its cookie, tooltips, and the Add transaction button.
+- [sidebar.md](sidebar.md). The collapsible sidebar, its cookie, tooltips, and the Add button.
 - [theme.md](theme.md). Light and dark switch on the Settings page.
 - [add-transaction.md](add-transaction.md). The composer and demo data.
 - [transactions.md](transactions.md). The month ledger at `/transactions`: totals, month switcher, filters, day-grouped rows, and the phone sheet.

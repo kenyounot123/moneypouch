@@ -36,7 +36,7 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
   test "the sidebar opens the add palette here too" do
     get settings_url
 
-    assert_select "aside button[aria-haspopup=dialog][data-action='dialog-opener#open'][data-dialog-opener-id-param=palette]", text: /Add transaction/
+    assert_select "aside button[aria-haspopup=dialog][data-action='dialog-opener#open'][data-dialog-opener-id-param=palette]", text: /Add/
     assert_select "header button[data-dialog-opener-id-param=palette]", text: /Add/
     assert_select "dialog#palette form[action=?] input[name=shorthand]", transactions_path
   end
