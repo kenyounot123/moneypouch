@@ -33,6 +33,17 @@ class UserTest < ActiveSupport::TestCase
     assert User.registration_open?
   end
 
+  test "single-key shortcuts start on and follow the user's choice" do
+    user = User.create!(username: "new", password: "password")
+    assert user.single_key_shortcuts?
+
+    user.use_single_key_shortcuts(false)
+    assert_not user.reload.single_key_shortcuts?
+
+    user.use_single_key_shortcuts(true)
+    assert user.reload.single_key_shortcuts?
+  end
+
   test "transactions hides a discarded row" do
     user = users(:one)
     transactions(:coffee).discard

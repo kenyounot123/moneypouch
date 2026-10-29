@@ -42,6 +42,7 @@ Rails.application.routes.draw do
   resources :users, only: [] do
     resource :password_reset, only: :create, module: :users
   end
+  resource :shortcuts, only: :update
   resource :theme, only: :update
   resource :time_zone, only: :update
 
