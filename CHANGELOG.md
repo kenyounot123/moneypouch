@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.20.0](https://github.com/kenyounot123/moneypouch/compare/v0.19.0...v0.20.0) (2026-10-29)
+
+
+### Features
+
+* keyboard shortcuts for categorizing, search, and months ([#187](https://github.com/kenyounot123/moneypouch/issues/187)) ([dd7669a](https://github.com/kenyounot123/moneypouch/commit/dd7669a78f22eccd6b47ad422e60e608a74d5411))
+
+
+### Bug Fixes
+
+* **sidebar:** keep the Ctrl K chip inside the Add button ([#186](https://github.com/kenyounot123/moneypouch/issues/186)) ([74daf3e](https://github.com/kenyounot123/moneypouch/commit/74daf3ef6bbc7f092473908104c8eaab87f6daa7))
+* **simplefin:** say the overview's bank block is sorted when it has no rows ([#183](https://github.com/kenyounot123/moneypouch/issues/183)) ([2427c45](https://github.com/kenyounot123/moneypouch/commit/2427c4580e7f2085ebbca4143470bfd3a45a81c4))
+
 ## [0.19.0](https://github.com/kenyounot123/moneypouch/compare/v0.18.0...v0.19.0) (2026-10-28)
 
 
