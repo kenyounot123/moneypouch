@@ -6,7 +6,7 @@
   <%= hidden_field_tag :q, query.to_s, id: nil, data: { search_target: "query" } %>
 
   <div class="relative flex min-w-0 flex-1 basis-24">
-    <div class="flex min-h-9 w-full cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-primary bg-level-2 px-3 py-1 shadow-control hover:border-(--ring-color-focus) focus-within:border-(--ring-color-focus) @xl:min-h-8.5"
+    <div class="group flex min-h-9 w-full cursor-text flex-wrap items-center gap-1.5 rounded-lg border border-primary bg-level-2 px-3 py-1 shadow-control hover:border-(--ring-color-focus) focus-within:border-(--ring-color-focus) @xl:min-h-8.5"
       data-action="click->search#focus">
       <%= icon_tag "search", class: "size-3.5 text-secondary" %>
       <% query.parts.each_with_index do |part, index| %>
@@ -20,9 +20,12 @@
         </span>
       <% end %>
       <%= tag.input type: "text", placeholder: query.parts.any? ? "Add more" : "Try #dining >30 @sep", autocomplete: "off", spellcheck: false,
-        role: "combobox", aria: { label: "Search transactions", autocomplete: "list", expanded: false, controls: "search-popup" },
+        role: "combobox", aria: { label: "Search transactions", autocomplete: "list", expanded: false, controls: "search-popup", keyshortcuts: ("/" if Current.user.single_key_shortcuts?) },
         class: "min-w-24 flex-1 bg-transparent py-1 text-md outline-none placeholder:text-tertiary @xl:text-base",
         data: { search_target: "input", action: "input->search#suggest focus->search#suggest blur->search#close keydown->search#keydown" } %>
+      <% if Current.user.single_key_shortcuts? %>
+        <span class="shrink-0 rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary group-focus-within:hidden pointer-coarse:hidden @max-md:hidden" aria-hidden="true">/</span>
+      <% end %>
     </div>
     <div id="search-popup" hidden role="listbox" aria-label="Suggestions" class="absolute top-full left-0 z-10 mt-1 max-h-[460px] w-[calc(100vw-2.5rem)] max-w-md overflow-y-auto rounded-lg border border-primary bg-level-2 p-1.5 shadow-control"
       data-search-target="popup" data-action="mousedown->search#press"></div>

@@ -15,11 +15,13 @@
       <%= link_to "All months", search_path(query.without_dates, month, sort), class: "rounded-sm px-2 py-1.5 text-sm text-secondary hover:text-primary" %>
     <% end %>
     <nav class="flex gap-1 rounded-[10px] bg-level-3 p-1" aria-label="Month">
-      <%= link_to short ? "‹" : "‹ #{month_abbreviation month.previous}", month_step_path(query, month.previous, sort), aria: ({ label: month_title(month.previous) } if short),
+      <%= link_to short ? "‹" : "‹ #{month_abbreviation month.previous}", month_step_path(query, month.previous, sort), title: "#{month_title month.previous} (←)",
+        aria: { label: (month_title(month.previous) if short), keyshortcuts: "ArrowLeft" }, data: { shortcuts_target: "previousMonth" },
         class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
       <span class="rounded-sm bg-level-2 px-3 py-1.5 text-sm font-medium text-primary shadow-control" aria-current="true"><%= short ? short_month_title(month) : month_title(month) %></span>
       <% if month.next %>
-        <%= link_to short ? "›" : "#{month_abbreviation month.next} ›", month_step_path(query, month.next, sort), aria: ({ label: month_title(month.next) } if short),
+        <%= link_to short ? "›" : "#{month_abbreviation month.next} ›", month_step_path(query, month.next, sort), title: "#{month_title month.next} (→)",
+          aria: { label: (month_title(month.next) if short), keyshortcuts: "ArrowRight" }, data: { shortcuts_target: "nextMonth" },
           class: "rounded-sm px-3 py-1.5 text-sm text-secondary hover:text-primary" %>
       <% end %>
     </nav>
