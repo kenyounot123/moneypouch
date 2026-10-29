@@ -98,6 +98,18 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     assert_select "#bank_review li", 3
   end
 
+  test "the overview says the block is sorted when nothing needs a category before Done" do
+    activate(connect_simplefin)
+    Simplefin::Sync.added_transactions.update_all(category_id: categories(:food).id)
+
+    get root_url
+
+    assert_select "#bank_review h2", "From your bank"
+    assert_select "#bank_review li", 0
+    assert_select "#bank_review p", "Everything new has a category."
+    assert_select "#bank_review a[href=?]", simplefin_review_path, text: "Show all"
+  end
+
   test "the overview drops the block after Done once nothing needs a category" do
     activate(connect_simplefin)
     Simplefin::Sync.added_transactions.update_all(category_id: categories(:food).id)

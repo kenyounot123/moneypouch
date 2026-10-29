@@ -16,5 +16,7 @@
         <%= render "transactions/transaction", transaction:, field: true, account: true %>
       <% end %>
     </ul>
+  <% else %>
+    <p class="py-3 text-sm text-tertiary">Everything new has a category.</p>
   <% end %>
 </section>
