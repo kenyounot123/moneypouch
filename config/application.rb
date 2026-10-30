@@ -30,5 +30,8 @@ module Moneypouch
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # A public demo: visitors try MoneyPouch in a private sandbox that is deleted a day later.
+    config.x.demo = ENV["MONEYPOUCH_DEMO"] == "true"
   end
 end
