@@ -8,21 +8,25 @@
       </button>
     </div>
 
-    <div class="gap-10 md:columns-2">
-      <% shortcut_groups.each do |group, rows| %>
-        <section class="flex break-inside-avoid flex-col pb-3">
-          <h3 class="pb-1 text-sm font-medium"><%= group %></h3>
-          <% rows.each do |action, keys| %>
-            <div class="flex items-center justify-between gap-4 py-1.5">
-              <span class="text-sm text-secondary"><%= action %></span>
-              <span class="flex shrink-0 gap-1">
-                <% keys.each do |key| %>
-                  <kbd class="rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary"><%= key %></kbd>
-                <% end %>
-              </span>
-            </div>
+    <div class="grid gap-x-10 md:grid-cols-2">
+      <% shortcut_columns.each do |groups| %>
+        <div>
+          <% groups.each do |group, rows| %>
+            <section class="flex flex-col pb-3">
+              <h3 class="pb-1 text-sm font-medium"><%= group %></h3>
+              <% rows.each do |action, keys| %>
+                <div class="flex items-center justify-between gap-4 py-1.5">
+                  <span class="text-sm text-secondary"><%= action %></span>
+                  <span class="flex shrink-0 gap-1">
+                    <% keys.each do |key| %>
+                      <kbd class="rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary"><%= key %></kbd>
+                    <% end %>
+                  </span>
+                </div>
+              <% end %>
+            </section>
           <% end %>
-        </section>
+        </div>
       <% end %>
     </div>
   </div>
