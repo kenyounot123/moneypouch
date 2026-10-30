@@ -3,6 +3,7 @@
 <p align="center">No budgets. No net worth. Just see where your money goes.<br>Log an expense in a few seconds, on your own server, for free.</p>
 
 <p align="center">
+  <a href="https://demo.moneypouch.app"><b>Try the demo</b></a> ·
   <a href="#getting-started">Getting started</a> ·
   <a href="https://github.com/kenyounot123/moneypouch/releases">Releases</a> ·
   <a href="CHANGELOG.md">Changelog</a> ·
@@ -35,7 +36,9 @@ https://github.com/user-attachments/assets/f27de21b-9cc6-419e-a645-7fa4d32d7968
   </tr>
 </table>
 
-Try it with one command, then open [localhost:8080](http://localhost:8080). [Getting started](#getting-started) has the details.
+**[Try the demo](https://demo.moneypouch.app)** in your browser, with nothing to install and no sign-up. You get a private sandbox with a year of sample spending, and it is deleted after 24 hours.
+
+To run your own, use one command, then open [localhost:8080](http://localhost:8080). [Getting started](#getting-started) has the details.
 
 ```bash
 docker run -d --name moneypouch --restart unless-stopped -p 8080:80 -v moneypouch-data:/rails/storage ghcr.io/kenyounot123/moneypouch:latest
