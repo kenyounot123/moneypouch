@@ -100,17 +100,25 @@ mp key Enter
 mp wait '[data-controller="toast"]' --text Chipotle
 sleep 1.6
 mp key Escape
-sleep 2.5
+sleep 2
+mp key /
+mp wait '[aria-label="Search transactions"]:focus'
+sleep 0.6
+mp type '[aria-label="Search transactions"]' chipotle --delay 120
+mp wait '#search-popup' --text 'Chipotle Alameda'
+sleep 1
+mp key Enter
+mp wait 'nav[aria-label="Months searched"]'
+sleep 1
+mp key Escape
+sleep 2.2
+mp click 'aside a[href="/trends"]'
+mp wait main --text 'Year at a glance'
+sleep 3.5
 mp record stop
 
-ffmpeg -v error -y -i "$work/demo.mp4" -frames:v 1 "$work/demo-raw.png"
-frame demo "$work/demo-raw.png"
-mv "$out/demo.png" "$work/demo-framed.png"
-read -r x y width height <<< "$("$driver" js \
-  'const r = document.querySelector(".window").getBoundingClientRect(); [r.x, r.y, r.width, r.height].map(n => Math.round(n * 2)).join(" ")' --port "$port" | tr -d '"')"
-magick -size "${width}x${height}" xc:black -fill white -draw "roundrectangle 0,0 $((width - 1)),$((height + 40)) 20,20" "$work/window-mask.png"
-ffmpeg -v error -y -framerate 15 -loop 1 -i "$work/demo-framed.png" -i "$work/demo.mp4" -i "$work/window-mask.png" -filter_complex \
-  "[1]fps=15,scale=$width:$height:flags=lanczos[video];[video][2]alphamerge[window];[0][window]overlay=$x:$y:shortest=1,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff:reserve_transparent=1[palette];[b][palette]paletteuse=dither=none:diff_mode=rectangle:alpha_threshold=128" \
+ffmpeg -v error -y -i "$work/demo.mp4" -filter_complex \
+  "fps=15,split[a][b];[a]palettegen=stats_mode=full[palette];[b][palette]paletteuse=dither=none:diff_mode=rectangle" \
   "$work/demo-frames.gif"
 magick "$work/demo-frames.gif" +dither -layers Optimize "$out/demo.gif"
 

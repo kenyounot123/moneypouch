@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/demo.gif" alt="Pressing Command K, typing Chip, pressing Tab to complete Chipotle, adding 11.25 yesterday, and pressing Enter. Chipotle appears in Recent and the October total goes up">
+  <img src="docs/images/demo.gif" alt="Pressing Command K, typing Chip, pressing Tab to complete Chipotle, adding 11.25 yesterday, and pressing Enter. Chipotle appears in Recent and the October total goes up. Then pressing slash to search Transactions for chipotle across all months, and opening Trends for the year at a glance">
 </p>
 
 <table>
