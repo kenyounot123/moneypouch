@@ -1,4 +1,6 @@
 class Users::PasswordResetsController < ApplicationController
+  unavailable_in_demo
+
   before_action :require_owner
   before_action :set_user
 

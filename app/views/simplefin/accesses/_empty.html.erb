@@ -6,7 +6,11 @@
       <p class="text-md">Sync transactions straight from your bank.</p>
       <p class="text-sm text-tertiary">SimpleFIN links your bank to MoneyPouch read-only, so it can't move money. $1.50 a month, paid to them, not us.</p>
     </div>
-    <%= link_to "Connect your bank", new_simplefin_access_path,
-      class: "shrink-0 rounded-md bg-action px-3.5 py-2 text-button whitespace-nowrap text-on-action hover:brightness-95" %>
+    <% if demo? %>
+      <%= not_in_demo_note %>
+    <% else %>
+      <%= link_to "Connect your bank", new_simplefin_access_path,
+        class: "shrink-0 rounded-md bg-action px-3.5 py-2 text-button whitespace-nowrap text-on-action hover:brightness-95" %>
+    <% end %>
   </div>
 </section>

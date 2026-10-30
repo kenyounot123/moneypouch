@@ -1,4 +1,6 @@
 class Simplefin::ReviewsController < ApplicationController
+  unavailable_in_demo
+
   include SimplefinAccessScoped
 
   before_action :set_review

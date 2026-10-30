@@ -1,4 +1,6 @@
 class Imports::ColumnsController < ApplicationController
+  unavailable_in_demo
+
   include ImportScoped
 
   def edit

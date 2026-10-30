@@ -1,4 +1,6 @@
 class ImportsController < ApplicationController
+  unavailable_in_demo
+
   def new
     @import = Current.user.imports.new
     @latest = Current.user.latest_import

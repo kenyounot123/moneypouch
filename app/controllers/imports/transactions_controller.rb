@@ -1,4 +1,6 @@
 class Imports::TransactionsController < ApplicationController
+  unavailable_in_demo
+
   include ImportScoped
 
   def create

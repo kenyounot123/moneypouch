@@ -1,4 +1,6 @@
 class BankAccountsController < ApplicationController
+  unavailable_in_demo
+
   def update
     bank_account = Current.user.bank_accounts.pending.find(params.expect(:id))
 

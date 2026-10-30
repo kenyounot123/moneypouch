@@ -1,4 +1,6 @@
 class Imports::CategoriesController < ApplicationController
+  unavailable_in_demo
+
   include ImportScoped
 
   def edit

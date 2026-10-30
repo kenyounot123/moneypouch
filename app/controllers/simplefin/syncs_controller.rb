@@ -1,4 +1,6 @@
 class Simplefin::SyncsController < ApplicationController
+  unavailable_in_demo
+
   include SimplefinAccessScoped
 
   def create

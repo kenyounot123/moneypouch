@@ -1,4 +1,6 @@
 class Simplefin::Reviews::CompletionsController < ApplicationController
+  unavailable_in_demo
+
   include SimplefinAccessScoped
 
   def create
