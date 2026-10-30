@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.22.0](https://github.com/kenyounot123/moneypouch/compare/v0.21.0...v0.22.0) (2026-10-30)
+
+
+### Features
+
+* **shortcuts:** a cheat sheet of every keyboard shortcut, from Settings or ? ([#199](https://github.com/kenyounot123/moneypouch/issues/199)) ([cc25d1b](https://github.com/kenyounot123/moneypouch/commit/cc25d1b6642ae9077ccae7bd75d07bd50a2b7c07))
+
+
+### Bug Fixes
+
+* **settings:** line up the version and Sign out with the right column ([#198](https://github.com/kenyounot123/moneypouch/issues/198)) ([ed2b6db](https://github.com/kenyounot123/moneypouch/commit/ed2b6db5f5968198a800935f5acb5ce2cbeda38b))
+
 ## [0.21.0](https://github.com/kenyounot123/moneypouch/compare/v0.20.1...v0.21.0) (2026-10-30)
 
 
