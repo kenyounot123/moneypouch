@@ -8,7 +8,7 @@
 
 ## How to get to it (user POV)
 
-Sidebar, Settings. Your data sits between Bank sync and Account.
+Sidebar, Settings. Your data sits under Keyboard and above Account. Bank sync is in the right-hand column from `xl`.
 
 ## Driving it with mp.mjs
 

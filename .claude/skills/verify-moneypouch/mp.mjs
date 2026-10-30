@@ -193,8 +193,10 @@ async function cdpSession(port) {
     await send("Input.dispatchMouseEvent", { type: "mouseMoved", ...box })
     return box
   }
-  const click = async (selector) => {
+  const click = async (selector, { covered = false } = {}) => {
     const box = await hover(selector)
+    const cover = await evaluate(`(() => { const e = document.querySelector(${JSON.stringify(selector)}); const hit = document.elementFromPoint(${box.x}, ${box.y}); if (!hit || e.contains(hit)) return null; const d = hit.closest("dialog[open]") ?? hit; return d.tagName.toLowerCase() + (d.id ? "#" + d.id : "") + (d.dataset.controller ? "[data-controller=" + d.dataset.controller + "]" : "") })()`)
+    if (cover && !covered) die(`${selector} is covered by ${cover}, so a click would land there (--covered clicks anyway)`)
     for (const type of ["mousePressed", "mouseReleased"]) await send("Input.dispatchMouseEvent", { type, ...box, button: "left", clickCount: 1 })
   }
   const on = (method, fn) => listeners.push({ method, fn })
@@ -592,7 +594,7 @@ const USAGE = `usage: mp.mjs <command> [--port N]
   key <Key> [<Key>...]               Enter, Escape, Tab, ArrowDown, Backspace, a, Meta+z, Shift+Tab; several keys go back to back
   wait <selector> [--text s] [--gone] [--timeout ms]
                                      poll until an element matches (and contains s), or until none does; prints its text
-  click <selector>                   mouse click on the element's center
+  click <selector> [--covered]       mouse click on the element's center; --covered clicks even when a dialog is on top
   hover <selector>                   move the mouse to the element's center and leave it there, for :hover states
   shot <file.png> [--full]           screenshot the viewport, or the whole page with --full
   resize <w> <h>                     set the emulated viewport; the per-instance holder keeps it between commands
@@ -696,7 +698,7 @@ async function main() {
       await sleep(100)
       console.log(`hovering ${args[0]}`)
     } else if (cmd === "click") {
-      await b.click(args[0])
+      await b.click(args[0], { covered: flags.covered })
       await b.settle()
       console.log(await b.evaluate("location.href"))
     } else if (cmd === "shot") {

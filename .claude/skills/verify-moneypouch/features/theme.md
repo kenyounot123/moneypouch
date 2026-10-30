@@ -3,7 +3,7 @@
 ## Sub-features
 
 - Mode: Light and Dark buttons in the Appearance section of the Settings page (`/settings`). Persists on `users.mode`, shown as `html[data-mode]`.
-- Theme: a row of swatches (Pouch, Graphite, Moss, Tide, Ember, Rose, Plum). Persists on `users.theme`, shown as `html[data-theme]`. Each theme only shifts the hue of the neutral ramp (and washes the light-mode page), so every theme works in both modes. The chosen swatch has `aria-pressed="true"`.
+- Theme: a row of swatches (Pouch, Graphite, Moss, Tide, Ember, Rose, Plum). Persists on `users.theme`, shown as `html[data-theme]`. Each theme shifts the hue of the neutral ramp (Graphite drops the tint instead), and every theme but Pouch washes the light-mode page, so every theme works in both modes. The chosen swatch has `aria-pressed="true"`.
 
 ## How to get to it (user POV)
 
