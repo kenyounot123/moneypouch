@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.0](https://github.com/kenyounot123/moneypouch/compare/v0.20.1...v0.21.0) (2026-10-30)
+
+
+### Features
+
+* **demo:** a public demo where each visitor tries MoneyPouch in a private sandbox ([#194](https://github.com/kenyounot123/moneypouch/issues/194)) ([23cf42b](https://github.com/kenyounot123/moneypouch/commit/23cf42b8bb347cea10af6396ee0b20957f7a4136))
+
 ## [0.20.1](https://github.com/kenyounot123/moneypouch/compare/v0.20.0...v0.20.1) (2026-10-30)
 
 
