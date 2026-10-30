@@ -7,6 +7,7 @@
 - Sign out destroys the session and lands on `/session/new`.
 - A fresh server with no users sends `/session/new` to `/account/new`, see [onboarding.md](onboarding.md).
 - The sign-in page reads `Welcome back` and `Sign in to your pouch.`, shows `New here? Create account` only while registration is open (see [onboarding.md](onboarding.md)), then a `Forgot your password?` disclosure (see [password-reset.md](password-reset.md)), and ends with the footnote "Your data never leaves your computer". After a wrong password the pouch looks worried.
+- In demo mode the page offers `Try MoneyPouch` instead of the form, see [demo.md](demo.md).
 - A signed-out visit to any page sends you to sign in and remembers the page, so signing in returns there instead of the Overview.
 - Sign out is a button in the Account section of `/settings`, `form[action="/session"] button`. `mp.mjs signout` sends `DELETE /session` with `fetch` instead, so click the button to prove it.
 

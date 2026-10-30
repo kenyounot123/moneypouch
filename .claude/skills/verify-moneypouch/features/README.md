@@ -17,3 +17,4 @@
 - [bank-sync.md](bank-sync.md). Connect SimpleFIN in Settings, pick accounts, sync, Disconnect, the bank icon and marker on rows, and the sync toast.
 - [import.md](import.md). Import a CSV or xlsx file: the Import page and its drop zone, the Columns grid, the Categories step with its tally, Import, the latest import's Undo, and the empty Overview's ways in.
 - [download.md](download.md). Download CSV on the Settings page and what Import reads back.
+- [demo.md](demo.md). The public demo behind `MONEYPOUCH_DEMO=true`: Try MoneyPouch, sandboxes that delete themselves after 24 hours, the demo note, and the features it turns off.
