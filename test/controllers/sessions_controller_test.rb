@@ -19,6 +19,33 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_account_path
   end
 
+  test "new in the demo offers a sandbox instead of the sign-in form" do
+    with_demo do
+      get new_session_path
+    end
+
+    assert_response :success
+    assert_select "form[action=?] button", sandbox_path, text: "Try MoneyPouch"
+    assert_select "p", text: /private sandbox with a year of sample spending. It's deleted after 24 hours/
+    assert_select "#username", count: 0
+    assert_select "details", count: 0
+    assert_select "a[href=?]", new_account_path, count: 0
+  end
+
+  test "new in the demo stays put on a server with no accounts" do
+    Transaction.delete_all
+    Category.delete_all
+    Session.delete_all
+    User.delete_all
+
+    with_demo do
+      get new_session_path
+    end
+
+    assert_response :success
+    assert_select "form[action=?]", sandbox_path
+  end
+
   test "new tells a locked-out user where to get a reset" do
     get new_session_path
 

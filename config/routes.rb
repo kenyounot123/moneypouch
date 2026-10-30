@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   end
   resource :voucher, only: :show
   resource :session, only: %i[ new create destroy ]
+  resource :sandbox, only: :create
   resource :settings, only: :show
   resource :seen_release, only: :create
   resource :account, only: %i[ new create ]
