@@ -125,21 +125,9 @@ Go to [localhost:8080](http://localhost:8080) in your browser and create your ac
 
 MoneyPouch starts again by itself when your computer or Docker restarts. To use a port other than 8080, change the first `8080` in the command. Your data and the app's secret key are in the Docker volume `moneypouch-data`. See [Backups and updates](#backups-and-updates).
 
-### Other ways to install
+### Docker Compose
 
-**ONCE.** Use [ONCE](https://github.com/basecamp/once) on a Linux or macOS server that you want to reach by a domain name. ONCE sets up HTTPS for the domain, backs up your data daily, keeps 30 days of backups, and installs updates.
-
-1. Install ONCE.
-
-   ```bash
-   curl https://get.once.com | sh
-   ```
-
-2. In the ONCE dashboard, choose to install from a Docker image.
-3. Enter the image `ghcr.io/kenyounot123/moneypouch:latest`.
-4. Enter a hostname. `moneypouch.localhost` works on this machine only.
-
-**Docker Compose.** Use Compose if you prefer a file, or if your NAS or Portainer asks for one. Save this as `compose.yaml` in an empty folder, and run `docker compose up -d` in that folder. It uses the same container and volume names as the `docker run` command, so every command below works for both.
+Use Compose if you prefer a file, or if your NAS or Portainer asks for one. Save this as `compose.yaml` in an empty folder, and run `docker compose up -d` in that folder. It uses the same container and volume names as the `docker run` command, so every command below works for both.
 
 ```yaml
 services:
@@ -178,14 +166,14 @@ volumes:
 
 ## Bank sync with SimpleFIN
 
-Bank sync is optional but highly recommended. When you turn it on, MoneyPouch reads your transactions through [SimpleFIN](https://www.simplefin.org/), an open protocol for sharing read-only financial data with apps. Here is why you can trust SimpleFIN:
+Bank sync is optional. When you turn it on, MoneyPouch reads your transactions through [SimpleFIN](https://www.simplefin.org/), an open protocol for sharing read-only financial data with apps. Whether to give an app access to your bank data is your call. Here are some reasons it can be okay:
 
-1. **Read-only.** The [protocol](https://www.simplefin.org/protocol.html) has no way to move money. MoneyPouch can see your transactions, and that's all.
-2. **Your bank login never reaches MoneyPouch.** You add your bank on the [SimpleFIN Bridge](https://bridge.simplefin.org), not in MoneyPouch. The Bridge hands bank connections to [MX](https://www.mx.com/) and says bank credentials never touch its own servers ([security](https://beta-bridge.simplefin.org/info/security)).
-3. **One-time tokens.** You paste a setup token into MoneyPouch, which trades it once for a private access URL. A token that has already been used stops working, so a copied token is useless.
-4. **Stored encrypted, on your server.** MoneyPouch encrypts the access URL in your own database. Nothing passes through a MoneyPouch service, because there isn't one.
-5. **You can cut it off.** Revoke MoneyPouch's access on the Bridge at any time, or disconnect in MoneyPouch's Settings, which deletes the access URL.
-6. **Open about problems.** SimpleFIN publishes its incidents, including an MX bug in May 2026 that briefly showed some users each other's transactions. Bank credentials were not exposed.
+1. **Read-only.** The [protocol](https://www.simplefin.org/protocol.html) has no way to move money. MoneyPouch can see your accounts, balances, and transactions, and that's all.
+2. **Your bank login never reaches MoneyPouch.** You add your bank on the [SimpleFIN Bridge](https://beta-bridge.simplefin.org/), not in MoneyPouch. The Bridge hands bank connections to [MX](https://www.mx.com/) and says bank credentials never touch its own servers ([security](https://beta-bridge.simplefin.org/info/security)).
+3. **One-time tokens.** You paste a setup token into MoneyPouch, which trades it for a private access URL. Once MoneyPouch claims it, the token stops working and can't be used again.
+4. **Stored encrypted, on your server.** MoneyPouch encrypts the access URL in your own database. The key is in the same volume, so this protects a leaked database file, not someone who has the whole volume ([more](#before-you-invite-anyone)). Nothing passes through a MoneyPouch service, because there isn't one.
+5. **You can cut it off.** Disconnecting in MoneyPouch's Settings deletes MoneyPouch's copy of the access URL. Revoking MoneyPouch's access on the Bridge cuts it off for good.
+6. **Problems are public.** SimpleFIN publishes its incidents. On May 28, 2026, an MX bug may have let up to 39 users see each other's transactions, balances, and account names for about four hours. Bank credentials were not exposed.
 
 The Bridge is a paid service, billed by SimpleFIN directly ([pricing](https://beta-bridge.simplefin.org/)). Read its [privacy policy](https://beta-bridge.simplefin.org/info/privacy) and [terms](https://beta-bridge.simplefin.org/info/terms) before you connect.
 
@@ -206,7 +194,6 @@ Your friend's browser needs a way to reach your server. Pick the one that fits:
 
 - **Same home network.** Give them the server's local address, such as `http://192.168.1.20:8080`.
 - **Tailscale.** Install [Tailscale](https://tailscale.com) on the server, then [share the server](https://tailscale.com/kb/1084/sharing) with your friend's Tailscale account. Sharing gives them only that machine, not the rest of your tailnet. They open the server's Tailscale address with `:8080` on the end.
-- **A domain name.** Install with [ONCE](#other-ways-to-install), which sets up HTTPS for the domain. If the domain is public, anyone on the internet can reach the sign-in page, so keep registration closed except while you add someone.
 
 ### Add a friend
 
@@ -231,11 +218,11 @@ If you run the server, you can reset any password from the command line:
 docker exec -it moneypouch bin/rails password:reset
 ```
 
-It asks for a username, then the new password twice. Press Enter at the username to pick the owner. The same command works for `docker run` and Docker Compose installs. This is also the way back in if the owner forgets their own password. On a ONCE install, run `docker ps` to find the app's container name and use it in place of `moneypouch`.
+It asks for a username, then the new password twice. Press Enter at the username to pick the owner. The same command works for `docker run` and Docker Compose installs. This is also the way back in if the owner forgets their own password.
 
 ## Backups and updates
 
-If you installed with ONCE, it does backups and updates for you. The rest of this section is for the `docker run` and Docker Compose installs. Every command works the same in PowerShell, Command Prompt, and macOS or Linux terminals.
+Every command works the same in PowerShell, Command Prompt, and macOS or Linux terminals.
 
 Everything MoneyPouch keeps is in the `moneypouch-data` volume. That includes the secret key that MoneyPouch makes the first time it starts. The key signs the cookie that keeps you signed in, and encrypts your SimpleFIN connection. A backup of the volume holds both your data and the key, so keep your backups private.
 
@@ -271,7 +258,7 @@ The third command makes a new, empty MoneyPouch without starting it. If you use 
 
 ### Update
 
-ONCE installs updates by itself. With `docker run` or Docker Compose, you update by hand. To hear about new versions, open the [MoneyPouch repository](https://github.com/kenyounot123/moneypouch), click **Watch**, choose **Custom**, and select **Releases**. Each release lists what changed.
+You update MoneyPouch by hand. To hear about new versions, open the [MoneyPouch repository](https://github.com/kenyounot123/moneypouch), click **Watch**, choose **Custom**, and select **Releases**. Each release lists what changed.
 
 To update, [back up](#back-up) first. Then get the new image, remove the old container, and start MoneyPouch again with the same command you installed it with. Your data stays in the volume. The next time you open MoneyPouch, it shows what changed in the new version.
 
