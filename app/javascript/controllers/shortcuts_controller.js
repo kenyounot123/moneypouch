@@ -2,10 +2,11 @@ import { Controller } from "@hotwired/stimulus"
 
 const KEYMAP = {
   "/": "search",
+  "?": "showShortcuts",
   ArrowLeft: "previousMonth",
   ArrowRight: "nextMonth",
 }
-const CHARACTER_KEYS = new Set(["/"])
+const CHARACTER_KEYS = new Set(["/", "?"])
 const FIELDS = "input, textarea, select, [contenteditable]"
 const SEARCH = '[aria-label="Search transactions"]'
 
@@ -26,7 +27,7 @@ export default class extends Controller {
     const action = KEYMAP[event.key]
     if (!action || this.busy(event)) return
 
-    // Shift stays allowed for a character key, because some layouts need it to type "/".
+    // Shift stays allowed for a character key, because "?" needs it and some layouts need it to type "/".
     if (CHARACTER_KEYS.has(event.key)) {
       if (this.singleKeyValue) this[action](event)
     } else if (!event.shiftKey) {
@@ -49,6 +50,11 @@ export default class extends Controller {
       searchOnArrival = true
       Turbo.visit(this.transactionsUrlValue)
     }
+  }
+
+  showShortcuts(event) {
+    event.preventDefault()
+    document.getElementById("shortcuts")?.showModal()
   }
 
   previousMonth(event) {

@@ -155,7 +155,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href*='focus=2026-08-01'] span.text-tertiary", text: "−$500"
     assert_select "[role=group][aria-label=Periods] > a[aria-current]", count: 0
     assert_select "a [data-dimmed]", count: 0
-    assert_select "h3", count: 0
+    assert_select "main h3", count: 0
   end
 
   test "summarizes the last six weeks, each linking to its focus" do
@@ -290,7 +290,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
   test "ignores a focus outside the summary chart" do
     get root_url(focus: "2026-09-01")
 
-    assert_select "h3", count: 0
+    assert_select "main h3", count: 0
     assert_select "[data-chart-target=readout]"
   end
 
