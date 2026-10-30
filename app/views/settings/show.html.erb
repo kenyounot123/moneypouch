@@ -44,12 +44,21 @@
         <div class="flex items-center justify-between gap-6">
           <div class="flex flex-col gap-1">
             <p class="text-md">Single-key shortcuts</p>
-            <p class="text-sm text-tertiary">Press / to search transactions. Arrows always step months.</p>
+            <p class="text-sm text-tertiary">Press / to search transactions and ? to see every shortcut. Arrows always step months.</p>
           </div>
           <div class="flex w-[200px] shrink-0 gap-1 rounded-md bg-level-3 p-1">
             <%= button_to "On", shortcuts_path, method: :patch, params: { on: true }, form: { class: "flex-1" }, aria: { pressed: Current.user.single_key_shortcuts? }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary aria-pressed:bg-level-2 aria-pressed:text-primary aria-pressed:shadow-control" %>
             <%= button_to "Off", shortcuts_path, method: :patch, params: { on: false }, form: { class: "flex-1" }, aria: { pressed: !Current.user.single_key_shortcuts? }, class: "w-full cursor-pointer rounded-sm px-3 py-1.5 text-sm text-secondary aria-pressed:bg-level-2 aria-pressed:text-primary aria-pressed:shadow-control" %>
           </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-6 pointer-coarse:hidden">
+          <div class="flex flex-col gap-1">
+            <p class="text-md">All shortcuts</p>
+            <p class="text-sm text-tertiary">Every key MoneyPouch knows, grouped by where you use it.</p>
+          </div>
+          <%= tag.button "Show shortcuts", type: :button, aria: { haspopup: "dialog", keyshortcuts: ("?" if Current.user.single_key_shortcuts?) },
+            data: { controller: "dialog-opener", action: "dialog-opener#open", dialog_opener_id_param: "shortcuts" }, class: "outline-button" %>
         </div>
       </section>
 

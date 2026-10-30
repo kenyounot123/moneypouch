@@ -179,10 +179,14 @@ module TransactionsHelper
   end
 
   def shortcut(key)
-    if request.user_agent.to_s.include?("Macintosh")
+    if mac?
       "⌘#{key}"
     else
       "Ctrl #{key}"
     end
+  end
+
+  def mac?
+    request.user_agent.to_s.include?("Macintosh")
   end
 end

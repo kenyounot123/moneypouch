@@ -125,6 +125,37 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     assert users(:one).reload.single_key_shortcuts?
   end
 
+  test "a button opens every shortcut, grouped by where it works" do
+    get settings_url
+
+    assert_select "button[aria-haspopup=dialog][data-dialog-opener-id-param=shortcuts][aria-keyshortcuts='?']", text: "Show shortcuts"
+    assert_select "dialog#shortcuts h3", text: "Anywhere"
+    assert_select "dialog#shortcuts h3", text: "Adding a transaction"
+    assert_select "dialog#shortcuts h3", text: "Searching"
+    assert_select "dialog#shortcuts section", text: /Search transactions\s+\//
+    assert_select "dialog#shortcuts section", text: /Show these shortcuts\s+\?/
+    assert_select "dialog#shortcuts section", text: /Calendar year\s+Shift PgUp\s+Shift PgDn/
+  end
+
+  test "the shortcut list leaves out single keys while they are off" do
+    users(:one).use_single_key_shortcuts(false)
+
+    get settings_url
+
+    assert_select "button[data-dialog-opener-id-param=shortcuts][aria-keyshortcuts]", 0
+    assert_select "dialog#shortcuts section", text: /Add a transaction/
+    assert_select "dialog#shortcuts kbd", text: "/", count: 0
+    assert_select "dialog#shortcuts kbd", text: "?", count: 0
+  end
+
+  test "the shortcut list names the Ctrl key off a Mac" do
+    get settings_url, headers: { "HTTP_USER_AGENT" => "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+
+    assert_select "dialog#shortcuts kbd", text: "Ctrl K"
+    assert_select "dialog#shortcuts kbd", text: "⌘K", count: 0
+    assert_select "dialog#shortcuts kbd", text: "Backspace"
+  end
+
   test "the page body listens for shortcuts and knows where transactions are" do
     get settings_url
 

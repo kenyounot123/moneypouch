@@ -1,0 +1,33 @@
+<dialog id="shortcuts" aria-labelledby="shortcuts-title" data-controller="sheet" data-action="click->sheet#dismiss turbo:before-morph-attribute->sheet#keepClosed"
+  class="m-auto max-h-[85dvh] w-[calc(100%-2rem)] max-w-[720px] overflow-y-auto rounded-lg border-0 bg-level-2 p-0 text-primary shadow-xl backdrop:bg-scrim">
+  <div tabindex="-1" autofocus class="flex flex-col gap-5 p-6 outline-none">
+    <div class="flex items-center justify-between gap-4">
+      <h2 id="shortcuts-title" class="text-heading">Keyboard shortcuts</h2>
+      <button type="button" data-action="sheet#close" aria-label="Close" class="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary">
+        <%= icon_tag "close" %>
+      </button>
+    </div>
+
+    <div class="grid gap-x-10 md:grid-cols-2">
+      <% shortcut_columns.each do |groups| %>
+        <div>
+          <% groups.each do |group, rows| %>
+            <section class="flex flex-col pb-3">
+              <h3 class="pb-1 text-sm font-medium"><%= group %></h3>
+              <% rows.each do |action, keys| %>
+                <div class="flex items-center justify-between gap-4 py-1.5">
+                  <span class="text-sm text-secondary"><%= action %></span>
+                  <span class="flex shrink-0 gap-1">
+                    <% keys.each do |key| %>
+                      <kbd class="rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary"><%= key %></kbd>
+                    <% end %>
+                  </span>
+                </div>
+              <% end %>
+            </section>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</dialog>
