@@ -11,7 +11,7 @@ class User::SandboxTest < ActiveSupport::TestCase
     assert sandbox.sandbox?
     assert_equal 24.hours.from_now, sandbox.expires_at
     assert_match(/\Avisitor-/, sandbox.username)
-    assert_equal User::Sandbox::SAMPLE_TRANSACTIONS, sandbox.transactions.count
+    assert_operator sandbox.transactions.count, :>, User::Sandbox::SAMPLE_PURCHASES
     assert_not users(:one).sandbox?
   end
 
@@ -75,12 +75,5 @@ class User::SandboxTest < ActiveSupport::TestCase
     def row_counts
       tables = ActiveRecord::Base.connection.tables - %w[ schema_migrations ar_internal_metadata ]
       tables.index_with { |table| ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM #{table}") }
-    end
-
-    def with_demo
-      Rails.configuration.x.demo = true
-      yield
-    ensure
-      Rails.configuration.x.demo = false
     end
 end

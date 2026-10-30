@@ -3,7 +3,7 @@ module User::Sandbox
   extend ActiveSupport::Concern
 
   LIFETIME = 24.hours
-  SAMPLE_TRANSACTIONS = 400
+  SAMPLE_PURCHASES = 300
 
   included do
     scope :sandboxes, -> { where.not(expires_at: nil) }
@@ -15,7 +15,7 @@ module User::Sandbox
     def create_sandbox
       transaction do
         create!(username: "visitor-#{SecureRandom.hex(6)}", password: SecureRandom.base58(32), expires_at: LIFETIME.from_now).tap do |user|
-          user.add_sample_transactions(SAMPLE_TRANSACTIONS)
+          user.add_sample_transactions(SAMPLE_PURCHASES)
         end
       end
     end
