@@ -13,13 +13,21 @@ const SEARCH = '[aria-label="Search transactions"]'
 let searchOnArrival = false
 
 export default class extends Controller {
-  static targets = ["previousMonth", "nextMonth"]
+  static targets = ["previousMonth", "nextMonth", "singleKeyChoice"]
   static values = { transactionsUrl: String, singleKey: Boolean }
 
   connect() {
     if (searchOnArrival && !document.documentElement.hasAttribute("data-turbo-preview")) {
       searchOnArrival = false
       document.querySelector(SEARCH)?.focus()
+    }
+  }
+
+  chooseSingleKey({ currentTarget, params: { on } }) {
+    this.singleKeyValue = on
+
+    for (const choice of this.singleKeyChoiceTargets) {
+      choice.ariaPressed = choice === currentTarget
     }
   }
 
