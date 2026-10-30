@@ -172,14 +172,14 @@ volumes:
 
 ## Bank sync with SimpleFIN
 
-Bank sync is optional but highly recommended. When you turn it on, MoneyPouch reads your transactions through [SimpleFIN](https://www.simplefin.org/), an open protocol for sharing read-only financial data with apps. Here is why you can trust SimpleFIN:
+Bank sync is optional. When you turn it on, MoneyPouch reads your transactions through [SimpleFIN](https://www.simplefin.org/), an open protocol for sharing read-only financial data with apps. Whether to give an app access to your bank data is your call. Here are some reasons it can be okay:
 
-1. **Read-only.** The [protocol](https://www.simplefin.org/protocol.html) has no way to move money. MoneyPouch can see your transactions, and that's all.
-2. **Your bank login never reaches MoneyPouch.** You add your bank on the [SimpleFIN Bridge](https://bridge.simplefin.org), not in MoneyPouch. The Bridge hands bank connections to [MX](https://www.mx.com/) and says bank credentials never touch its own servers ([security](https://beta-bridge.simplefin.org/info/security)).
-3. **One-time tokens.** You paste a setup token into MoneyPouch, which trades it once for a private access URL. A token that has already been used stops working, so a copied token is useless.
-4. **Stored encrypted, on your server.** MoneyPouch encrypts the access URL in your own database. Nothing passes through a MoneyPouch service, because there isn't one.
-5. **You can cut it off.** Revoke MoneyPouch's access on the Bridge at any time, or disconnect in MoneyPouch's Settings, which deletes the access URL.
-6. **Open about problems.** SimpleFIN publishes its incidents, including an MX bug in May 2026 that briefly showed some users each other's transactions. Bank credentials were not exposed.
+1. **Read-only.** The [protocol](https://www.simplefin.org/protocol.html) has no way to move money. MoneyPouch can see your accounts, balances, and transactions, and that's all.
+2. **Your bank login never reaches MoneyPouch.** You add your bank on the [SimpleFIN Bridge](https://beta-bridge.simplefin.org/), not in MoneyPouch. The Bridge hands bank connections to [MX](https://www.mx.com/) and says bank credentials never touch its own servers ([security](https://beta-bridge.simplefin.org/info/security)).
+3. **One-time tokens.** You paste a setup token into MoneyPouch, which trades it for a private access URL. Once MoneyPouch claims it, the token stops working and can't be used again.
+4. **Stored encrypted, on your server.** MoneyPouch encrypts the access URL in your own database. The key is in the same volume, so this protects a leaked database file, not someone who has the whole volume ([more](#before-you-invite-anyone)). Nothing passes through a MoneyPouch service, because there isn't one.
+5. **You can cut it off.** Disconnecting in MoneyPouch's Settings deletes MoneyPouch's copy of the access URL. Revoking MoneyPouch's access on the Bridge cuts it off for good.
+6. **Problems are public.** SimpleFIN publishes its incidents. On May 28, 2026, an MX bug may have let up to 39 users see each other's transactions, balances, and account names for about four hours. Bank credentials were not exposed.
 
 The Bridge is a paid service, billed by SimpleFIN directly ([pricing](https://beta-bridge.simplefin.org/)). Read its [privacy policy](https://beta-bridge.simplefin.org/info/privacy) and [terms](https://beta-bridge.simplefin.org/info/terms) before you connect.
 
