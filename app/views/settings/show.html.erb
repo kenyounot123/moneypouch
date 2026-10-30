@@ -82,7 +82,7 @@
 
         <div class="flex items-center justify-between gap-6">
           <p class="text-md text-secondary">Signed in as <span class="font-medium text-primary"><%= Current.user.username %></span></p>
-          <%= button_to "Sign out", session_path, method: :delete, class: "cursor-pointer rounded-sm px-2 py-1 text-sm font-medium text-secondary hover:bg-level-3 hover:text-primary" %>
+          <%= button_to "Sign out", session_path, method: :delete, class: "header-button" %>
         </div>
 
         <% if Current.user.owner? %>
@@ -130,7 +130,7 @@
 
         <div class="flex items-center justify-between gap-6">
           <p class="text-md">Version</p>
-          <p class="text-md text-secondary"><%= Release.current_version %></p>
+          <p class="text-sm text-secondary"><%= Release.current_version %></p>
         </div>
       </section>
     </div>
