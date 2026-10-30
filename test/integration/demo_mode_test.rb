@@ -85,6 +85,28 @@ class DemoModeTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", new_import_path, count: 0
   end
 
+  test "a sandbox sees when it is deleted, how to install, and where to send feedback" do
+    with_demo do
+      post sandbox_path
+      follow_redirect!
+    end
+
+    assert_select "section[aria-label=Demo]" do
+      assert_select "p", text: "This is a demo"
+      assert_select "p", text: "Your sandbox is deleted in 24 hours."
+      assert_select "a[href=?]", "https://github.com/kenyounot123/moneypouch#getting-started", text: "Install MoneyPouch"
+      assert_select "a[href=?]", "https://github.com/kenyounot123/moneypouch/issues/new", text: "Send feedback"
+    end
+  end
+
+  test "outside the demo there is no demo note" do
+    sign_in_as users(:one)
+
+    get root_path
+
+    assert_select "section[aria-label=Demo]", count: 0
+  end
+
   test "outside the demo Settings keep Connect your bank and the sidebar keeps Import" do
     sign_in_as users(:one)
 
