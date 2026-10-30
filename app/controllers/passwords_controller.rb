@@ -1,4 +1,6 @@
 class PasswordsController < ApplicationController
+  unavailable_in_demo
+
   allow_unauthenticated_access
   rate_limit to: 10, within: 3.minutes, only: :update, with: -> { redirect_to new_session_path, alert: "Try again later." }
   before_action :set_user_by_token

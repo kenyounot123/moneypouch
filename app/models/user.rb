@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  include Sandbox, SampleTransactions
+
   has_secure_password reset_token: { expires_in: 1.day }
 
   MODES = %w[ light dark ]
@@ -9,15 +11,14 @@ class User < ApplicationRecord
   validates :theme, inclusion: { in: THEMES }
 
   has_many :sessions, dependent: :destroy
-
-  has_many :transactions, -> { kept }
-  has_many :categories, dependent: :destroy
+  has_one :simplefin_access, class_name: "Simplefin::Access", dependent: :destroy
   has_many :bank_accounts, dependent: :destroy
   has_many :bank_transactions, through: :bank_accounts
+  before_destroy :delete_transactions_including_deleted
+  has_many :transactions, -> { kept }
+  has_many :categories, dependent: :destroy
   has_many :rules, dependent: :destroy
   has_many :imports, dependent: :destroy
-
-  has_one :simplefin_access, class_name: "Simplefin::Access", dependent: :destroy
 
   attribute :seen_version, default: -> { Release.current_version }
 
@@ -25,11 +26,15 @@ class User < ApplicationRecord
 
   class << self
     def owner
-      order(:created_at, :id).first
+      lasting.order(:created_at, :id).first
     end
 
     def registration_open?
-      owner.nil? || owner.registration_open?
+      if Rails.configuration.x.demo
+        false
+      else
+        owner.nil? || owner.registration_open?
+      end
     end
   end
 
@@ -149,6 +154,10 @@ class User < ApplicationRecord
   end
 
   private
+    def delete_transactions_including_deleted
+      Transaction.where(user: self).delete_all
+    end
+
     def create_income_category
       categories.create!(name: Category::INCOME, income: true)
     end

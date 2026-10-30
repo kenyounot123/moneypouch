@@ -1,4 +1,6 @@
 class RegistrationsController < ApplicationController
+  unavailable_in_demo
+
   def update
     if Current.user.owner?
       Current.user.open_registration(params.expect(:open))

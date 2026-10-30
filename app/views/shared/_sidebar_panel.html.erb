@@ -17,8 +17,13 @@
     <%= sidebar_link_to "Transactions", transactions_path, icon: :transactions %>
     <%= sidebar_link_to "Categories", categories_path, icon: :categories, active: request.path.start_with?(categories_path) %>
     <%= sidebar_link_to "Trends", trends_path, icon: :trends %>
-    <%= sidebar_link_to "Import", new_import_path, icon: :import, active: request.path.start_with?(imports_path) %>
+    <% unless demo? %>
+      <%= sidebar_link_to "Import", new_import_path, icon: :import, active: request.path.start_with?(imports_path) %>
+    <% end %>
   </nav>
 </div>
 
-<%= sidebar_link_to "Settings", settings_path, icon: :settings %>
+<div class="flex flex-col gap-4">
+  <%= render "shared/demo_banner", classes: "max-md:hidden md:in-data-[sidebar=collapsed]:hidden" %>
+  <%= sidebar_link_to "Settings", settings_path, icon: :settings %>
+</div>

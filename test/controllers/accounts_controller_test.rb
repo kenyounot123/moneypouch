@@ -71,6 +71,24 @@ class AccountsControllerTest < ActionDispatch::IntegrationTest
     assert cookies[:session_id]
   end
 
+  test "the demo never takes signups, even on an empty server or with registration open" do
+    users(:one).open_registration(true)
+
+    with_demo do
+      get new_account_path
+      assert_redirected_to new_session_path
+
+      assert_no_difference("User.count") do
+        post account_path, params: { user: { username: "newbie", password: "secret123" } }
+      end
+      assert_redirected_to new_session_path
+
+      empty_instance
+      get new_account_path
+      assert_redirected_to new_session_path
+    end
+  end
+
   test "create with a taken username shows the error and keeps the username" do
     users(:one).open_registration(true)
 

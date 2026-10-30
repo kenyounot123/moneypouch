@@ -16,3 +16,6 @@ production:
   sync_banks:
     command: "Simplefin::Access.sync_due"
     schedule: every hour at minute 7
+  delete_expired_sandboxes:
+    command: "User.delete_expired_sandboxes"
+    schedule: every hour at minute 17

@@ -131,4 +131,20 @@ class UserTest < ActiveSupport::TestCase
     travel 25.hours
     assert_nil User.find_by_password_reset_token(fresh)
   end
+
+  test "sample transactions fill the last 12 months with purchases around monthly bills and paychecks" do
+    user = User.create!(username: "new", password: "password")
+
+    user.add_sample_transactions(300)
+
+    assert_equal 300, user.transactions.where.not(name: User::SampleTransactions::MONTHLY.map(&:first)).count
+    assert_equal 0, user.transactions.uncategorized.count
+    assert user.transactions.where(occurred_on: ...1.year.ago.to_date).none?
+    assert_operator user.transactions.distinct.count(:name), :>, 50
+
+    trends = Trends.new(user.transactions, today: Date.current)
+    assert_includes trends.recurring.map(&:name), "Rent"
+    assert_equal [ "Paycheck" ], trends.sources.map(&:name)
+    assert_equal [ 1, 15 ], trends.sources.first.days
+  end
 end

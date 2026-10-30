@@ -3,7 +3,9 @@ class SessionsController < ApplicationController
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_path, alert: "Try again later." }
 
   def new
-    redirect_to new_account_path if User.none?
+    if User.none? && User.registration_open?
+      redirect_to new_account_path
+    end
   end
 
   def create

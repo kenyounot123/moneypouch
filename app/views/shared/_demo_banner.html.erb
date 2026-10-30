@@ -1,0 +1,10 @@
+<% if demo? && Current.user.sandbox? %>
+  <section aria-label="Demo" class="<%= class_names("flex flex-col gap-1 rounded-md border border-secondary bg-level-2 px-3 py-2.5 text-sm", local_assigns[:classes]) %>">
+    <p class="font-medium text-primary">This is a demo</p>
+    <p class="text-tertiary"><%= sandbox_deletion_note(Current.user) %></p>
+    <p class="flex flex-wrap gap-x-3 gap-y-1 pt-1">
+      <%= link_to "Install MoneyPouch", demo_install_url, class: "font-medium text-secondary hover:text-primary" %>
+      <%= link_to "Send feedback", demo_feedback_url, class: "font-medium text-secondary hover:text-primary" %>
+    </p>
+  </section>
+<% end %>

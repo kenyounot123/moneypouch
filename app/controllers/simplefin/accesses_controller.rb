@@ -1,4 +1,6 @@
 class Simplefin::AccessesController < ApplicationController
+  unavailable_in_demo
+
   include SimplefinAccessScoped
 
   skip_before_action :set_simplefin_access, only: %i[ new create ]

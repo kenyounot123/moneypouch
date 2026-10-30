@@ -12,6 +12,8 @@
     </button>
   </header>
 
+  <%= render "shared/demo_banner", classes: "mx-5 mt-4 md:hidden" %>
+
   <dialog aria-label="Sidebar" data-sidebar-target="sheet" data-action="click->sidebar#dismiss turbo:before-morph-attribute->sidebar#keepClosed"
     class="m-0 h-dvh max-h-none w-60 max-w-none border-0 border-r border-secondary bg-level-1 p-0 text-primary backdrop:bg-scrim">
     <div class="flex h-full flex-col justify-between px-5 pt-7 pb-6">

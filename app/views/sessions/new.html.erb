@@ -2,8 +2,13 @@
   <%= render "shared/pouch", pose: flash[:alert] ? :worried : :idle, classes: "-m-1 size-20" %>
 
   <div class="flex flex-col items-center gap-2 text-center">
-    <h1 class="text-title">Welcome back</h1>
-    <p class="text-secondary">Sign in to your pouch.</p>
+    <% if demo? %>
+      <h1 class="text-title">Welcome to MoneyPouch</h1>
+      <p class="max-w-[360px] text-balance text-secondary">Try it in a private sandbox with a year of sample spending. It's deleted after 24 hours.</p>
+    <% else %>
+      <h1 class="text-title">Welcome back</h1>
+      <p class="text-secondary">Sign in to your pouch.</p>
+    <% end %>
 
     <% if alert = flash[:alert] %>
       <p class="text-sm text-danger" id="alert"><%= alert %></p>
@@ -14,28 +19,35 @@
     <% end %>
   </div>
 
-  <%= form_with url: session_url, class: "flex w-[360px] max-w-full flex-col gap-4 rounded-lg border border-secondary bg-level-2 p-7 shadow-control" do |form| %>
-    <div class="flex flex-col gap-1.5">
-      <%= form.label :username, "Username", class: "text-sm font-medium text-secondary" %>
-      <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", value: params[:username], class: "h-11 rounded-md border border-primary bg-level-2 px-3.5 text-md focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22 focus:outline-none" %>
-    </div>
+  <% if demo? %>
+    <%= button_to "Try MoneyPouch", sandbox_path, form: { class: "w-[360px] max-w-full" }, data: { turbo_submits_with: "Filling your pouch…" },
+      class: "w-full cursor-pointer rounded-md bg-action px-4 py-3 text-button text-on-action hover:brightness-95" %>
 
-    <div class="flex flex-col gap-1.5">
-      <%= form.label :password, "Password", class: "text-sm font-medium text-secondary" %>
-      <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72, class: "h-11 rounded-md border border-primary bg-level-2 px-3.5 text-md focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22 focus:outline-none" %>
-    </div>
+    <p class="text-sm text-tertiary">Like it? <%= link_to "Install MoneyPouch", demo_install_url, class: "font-medium text-secondary hover:text-primary" %> on your own computer.</p>
+  <% else %>
+    <%= form_with url: session_url, class: "flex w-[360px] max-w-full flex-col gap-4 rounded-lg border border-secondary bg-level-2 p-7 shadow-control" do |form| %>
+      <div class="flex flex-col gap-1.5">
+        <%= form.label :username, "Username", class: "text-sm font-medium text-secondary" %>
+        <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", value: params[:username], class: "h-11 rounded-md border border-primary bg-level-2 px-3.5 text-md focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22 focus:outline-none" %>
+      </div>
 
-    <%= form.submit "Open pouch ↵", class: "mt-1 w-full cursor-pointer rounded-md bg-action px-4 py-3 text-button text-on-action hover:brightness-95" %>
-  <% end %>
+      <div class="flex flex-col gap-1.5">
+        <%= form.label :password, "Password", class: "text-sm font-medium text-secondary" %>
+        <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72, class: "h-11 rounded-md border border-primary bg-level-2 px-3.5 text-md focus:border-(--ring-color-focus) focus:ring-3 focus:ring-focus/22 focus:outline-none" %>
+      </div>
 
-  <div class="flex flex-col items-center gap-2">
-    <% if User.registration_open? %>
-      <p class="text-sm text-tertiary">New here? <%= link_to "Create account", new_account_path, class: "font-medium text-secondary hover:text-primary" %></p>
+      <%= form.submit "Open pouch ↵", class: "mt-1 w-full cursor-pointer rounded-md bg-action px-4 py-3 text-button text-on-action hover:brightness-95" %>
     <% end %>
-    <details class="text-center text-sm text-tertiary">
-      <summary class="cursor-pointer hover:text-secondary">Forgot your password?</summary>
-      <p class="mt-1 max-w-[360px]">Ask the owner of this pouch for a reset link. If you run the server, follow <%= link_to "these steps", "https://github.com/kenyounot123/moneypouch#forgot-your-password", class: "font-medium text-secondary hover:text-primary" %>.</p>
-    </details>
-    <p class="text-sm text-tertiary">Your data never leaves your computer</p>
-  </div>
+
+    <div class="flex flex-col items-center gap-2">
+      <% if User.registration_open? %>
+        <p class="text-sm text-tertiary">New here? <%= link_to "Create account", new_account_path, class: "font-medium text-secondary hover:text-primary" %></p>
+      <% end %>
+      <details class="text-center text-sm text-tertiary">
+        <summary class="cursor-pointer hover:text-secondary">Forgot your password?</summary>
+        <p class="mt-1 max-w-[360px]">Ask the owner of this pouch for a reset link. If you run the server, follow <%= link_to "these steps", "https://github.com/kenyounot123/moneypouch#forgot-your-password", class: "font-medium text-secondary hover:text-primary" %>.</p>
+      </details>
+      <p class="text-sm text-tertiary">Your data never leaves your computer</p>
+    </div>
+  <% end %>
 </div>
