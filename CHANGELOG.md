@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.20.1](https://github.com/kenyounot123/moneypouch/compare/v0.20.0...v0.20.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **palette:** center the composer on the content column, like the toast ([#192](https://github.com/kenyounot123/moneypouch/issues/192)) ([3f673c5](https://github.com/kenyounot123/moneypouch/commit/3f673c563ecd09877a2bb705e6f4ed3db7bf506f))
+* **palette:** let a click on the toast's Undo land while the palette is open ([#189](https://github.com/kenyounot123/moneypouch/issues/189)) ([c217a62](https://github.com/kenyounot123/moneypouch/commit/c217a62300491a3aef74bdcba2f67551507a137b))
+* **transactions:** tell the note icon from the edit icon at a glance ([#191](https://github.com/kenyounot123/moneypouch/issues/191)) ([09c4a10](https://github.com/kenyounot123/moneypouch/commit/09c4a107b336969f2f2ab00c8f0917f57ff19126))
+
 ## [0.20.0](https://github.com/kenyounot123/moneypouch/compare/v0.19.0...v0.20.0) (2026-10-29)
 
 
