@@ -76,7 +76,7 @@ MoneyPouch is not a budgeting app. It has no envelopes, no "give every dollar a 
 | [Actual Budget](https://actualbudget.org) | ✅ | ✅ | Assign it to an envelope first | ✅ Optional |
 | [Firefly III](https://www.firefly-iii.org) | ✅ | ✅ | Set up double-entry rules | ✅ Optional |
 
-Bank sync in MoneyPouch uses your own SimpleFIN account. Prices are for yearly plans as of October 2026. If you want a budget, Actual Budget is a good free choice. If you want real accounting, use Firefly III.
+Bank sync in MoneyPouch uses your own SimpleFIN. If you want a budget, Actual Budget is a good free choice.
 
 ## System requirements
 
