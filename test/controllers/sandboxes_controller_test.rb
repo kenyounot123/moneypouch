@@ -27,7 +27,7 @@ class SandboxesControllerTest < ActionDispatch::IntegrationTest
 
   test "one visitor can make five sandboxes in ten minutes" do
     with_demo do
-      with_counting_cache do
+      with_rate_limit_counting do
         5.times { post sandbox_path }
         assert_difference -> { User.sandboxes.count }, 0 do
           post sandbox_path
@@ -46,8 +46,7 @@ class SandboxesControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
-    # The test cache is a null store, which counts nothing, so rate limits never trip.
-    def with_counting_cache
+    def with_rate_limit_counting
       memory = ActiveSupport::Cache::MemoryStore.new
       Rails.cache.define_singleton_method(:increment) { |*args, **options| memory.increment(*args, **options) }
       yield

@@ -1,4 +1,3 @@
-# In the public demo each visitor gets a sandbox: an account of their own, filled with sample transactions and deleted a day later.
 module User::Sandbox
   extend ActiveSupport::Concern
 

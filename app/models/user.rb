@@ -10,12 +10,11 @@ class User < ApplicationRecord
   validates :mode, inclusion: { in: MODES }
   validates :theme, inclusion: { in: THEMES }
 
-  # Destroying a user runs these in order: bank rows point at transactions, which point at categories and imports.
   has_many :sessions, dependent: :destroy
   has_one :simplefin_access, class_name: "Simplefin::Access", dependent: :destroy
   has_many :bank_accounts, dependent: :destroy
   has_many :bank_transactions, through: :bank_accounts
-  before_destroy :delete_every_transaction
+  before_destroy :delete_transactions_including_deleted
   has_many :transactions, -> { kept }
   has_many :categories, dependent: :destroy
   has_many :rules, dependent: :destroy
@@ -26,7 +25,6 @@ class User < ApplicationRecord
   after_create :create_income_category
 
   class << self
-    # A sandbox never owns the server, or the first visitor of the day could see every other sandbox.
     def owner
       lasting.order(:created_at, :id).first
     end
@@ -156,8 +154,7 @@ class User < ApplicationRecord
   end
 
   private
-    # Deleted ones too, which the transactions association leaves out.
-    def delete_every_transaction
+    def delete_transactions_including_deleted
       Transaction.where(user: self).delete_all
     end
 
