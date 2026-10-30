@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  include SampleTransactions
+
   has_secure_password reset_token: { expires_in: 1.day }
 
   MODES = %w[ light dark ]
