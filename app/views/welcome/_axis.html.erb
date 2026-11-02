@@ -1,0 +1,4 @@
+<% ticks.each do |cents| %>
+  <div class="pointer-events-none absolute right-11 left-0 border-t <%= cents.zero? ? "border-primary" : "border-secondary" %>" style="bottom: <%= axis_offset cents, ticks.last %>"></div>
+  <p data-field="tick" class="pointer-events-none absolute right-0 translate-y-1/2 font-amount text-xs text-tertiary" style="bottom: <%= axis_offset cents, ticks.last %>"><%= axis_label cents %></p>
+<% end %>

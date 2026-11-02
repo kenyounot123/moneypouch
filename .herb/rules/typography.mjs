@@ -39,7 +39,7 @@ class TypographyVisitor extends BaseRuleVisitor {
   checkClasses(classes, location) {
     for (const token of classes.split(/[\s"']+/)) {
       if (OFF_SYSTEM.test(token)) {
-        this.addOffense(`Replace \`${token}\` with a type role (text-display, text-title, text-heading, text-button, text-button-sm) or a size from the scale (text-xs to text-lg). Roles live in app/assets/tailwind/application.css.`, location)
+        this.addOffense(`Replace \`${token}\` with a type role (text-display, text-readout, text-title, text-heading, text-button, text-button-sm) or a size from the scale (text-xs to text-lg). Roles live in app/assets/tailwind/application.css.`, location)
       }
     }
   }

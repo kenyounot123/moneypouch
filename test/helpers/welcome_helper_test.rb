@@ -32,17 +32,38 @@ class WelcomeHelperTest < ActionView::TestCase
     assert_equal "<1%", share_of(425, 164_673)
   end
 
-  test "scales a bar against the tallest and never draws less than four pixels" do
-    assert_equal [ 136, 68, 4 ], [ column_height(500, 500), column_height(250, 500), column_height(1, 500) ]
-    assert_equal [ 130, 65 ], [ summary_bar_height(500, 500), summary_bar_height(250, 500) ]
+  test "scales a bar against the top of the axis and never draws less than four pixels" do
+    assert_equal [ 140, 70, 4 ], [ column_height(500, 500), column_height(250, 500), column_height(1, 500) ]
   end
 
-  test "colors the tallest column dark, today a step lighter, and the rest soft" do
-    day = Date.new(2026, 10, 3)
+  test "rounds the axis up past the peak in round steps" do
+    assert_equal [ 0, 500_000, 1_000_000, 1_500_000, 2_000_000 ], axis_ticks(1_795_012)
+    assert_equal [ 0, 1_000_000, 2_000_000, 3_000_000 ], axis_ticks(2_505_000)
+    assert_equal [ 0, 200, 400, 600 ], axis_ticks(550)
+    assert_equal [ 0, 100 ], axis_ticks(0)
+  end
 
-    assert_equal "bg-data-strong", column_color(day, day, day)
-    assert_equal "bg-data", column_color(day, day, day + 1)
-    assert_equal "bg-data-soft", column_color(day, day - 1, day + 1)
+  test "labels the axis in short dollars" do
+    assert_equal [ "$0", "$5", "$500", "$2.5k", "$20k", "$1.2M" ], [ 0, 500, 50_000, 250_000, 2_000_000, 120_000_000 ].map { |cents| axis_label(cents) }
+  end
+
+  test "reads out a column's spending by its day or month" do
+    month = Period.new("month", today: Date.current)
+    year = Period.new("year", today: Date.current)
+
+    assert_equal "Spent today", column_readout(month, Date.current, 550).heading
+    assert_equal "Spent on Oct 3", column_readout(month, Date.new(2026, 10, 3), 550).heading
+    assert_equal "$5.50", column_readout(month, Date.new(2026, 10, 3), 550).amount
+    assert_equal "Spent in September", column_readout(year, Date.new(2026, 9, 1), 0).heading
+    assert_equal "$0.00", column_readout(year, Date.new(2026, 9, 1), 0).amount
+  end
+
+  test "reads out what a period saved or overspent" do
+    saved = Summary::Total.new(period: Period.new("month", today: Date.current, on: "2026-09-01"), income: 789_000, spent: 397_712)
+    overspent = Summary::Total.new(period: Period.new("week", today: Date.current, on: "2026-10-01"), income: 5_000, spent: 6_250)
+
+    assert_equal [ "Saved in September", "$3,912.88", "Income $7,890 · Spent $3,977", "saved" ], net_readout(saved).to_h.values_at(:heading, :amount, :detail, :tone)
+    assert_equal [ "Overspent Sep 28–Oct 4", "$12.50", "overspent" ], net_readout(overspent).to_h.values_at(:heading, :amount, :tone)
   end
 
   test "colors the biggest category dark and the rest a step lighter" do

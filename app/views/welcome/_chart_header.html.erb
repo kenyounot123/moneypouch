@@ -1,0 +1,19 @@
+<div class="flex flex-col gap-0.5" data-field="readout">
+  <div class="flex items-start justify-between gap-4">
+    <div class="flex min-w-0 flex-col gap-0.5">
+      <p class="text-sm text-secondary" data-chart-target="heading"><%= readout.heading %></p>
+      <p class="text-readout data-[tone=overspent]:text-danger data-[tone=saved]:text-success"
+        data-chart-target="amount" data-tone="<%= readout.tone %>"><%= readout.amount %></p>
+    </div>
+    <nav class="flex shrink-0 gap-0.5 rounded-md bg-level-3 p-0.75" aria-label="Chart">
+      <% Chart::KINDS.each do |kind| %>
+        <% active = kind == chart.kind %>
+        <%= link_to kind.capitalize, root_path(period: period.kind, chart: Chart.new(kind)), aria: { current: active ? "true" : nil },
+          class: [ "rounded-sm px-2.5 py-1.25 text-sm", active ? "bg-level-2 text-primary shadow-control" : "text-secondary hover:text-primary" ] %>
+      <% end %>
+    </nav>
+  </div>
+  <% if readout.detail %>
+    <p class="text-sm text-secondary" data-chart-target="detail"><%= readout.detail %></p>
+  <% end %>
+</div>
