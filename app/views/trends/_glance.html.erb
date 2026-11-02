@@ -1,5 +1,5 @@
 <% months = trends.months %>
-<% peak = months.flat_map { |month| [ month.income, month.spent ] }.max %>
+<% axis = chart_axis(months.flat_map { |month| [ month.income, month.spent ] }.max) %>
 <section class="flex flex-col gap-[18px]" aria-labelledby="glance-heading">
   <div class="flex items-baseline justify-between border-b border-secondary pb-3">
     <h2 id="glance-heading" class="text-heading">Year at a glance</h2>
@@ -9,32 +9,37 @@
   <p>You earned <%= money trends.income %> and spent <%= money trends.spent %><% if trends.positive_net %>, for a net of <span class="text-success"><%= signed_money trends.positive_net %></span><% end %>.</p>
 
   <div class="flex gap-4 text-xs text-tertiary" aria-hidden="true">
-    <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-[2px] bg-data-soft"></span>Income</span>
+    <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-[2px] bg-income"></span>Income</span>
     <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-[2px] bg-data"></span>Spent</span>
   </div>
 
-  <div class="flex snap-x snap-mandatory flex-row-reverse gap-1.5 overflow-x-auto" role="group" aria-label="Months">
-    <% months.reverse_each do |month| %>
-      <%= link_to transactions_path(month: month_param(month.month)), aria: { label: month_readout(month) },
-        class: "group flex min-w-14 flex-1 snap-end flex-col items-center gap-1.5 rounded-sm py-1.5 hover:bg-level-3 max-md:shrink-0 max-md:basis-[calc((100%-4*--spacing(1.5))/5)]" do %>
-        <div class="<%= class_names "flex h-[132px] shrink-0 items-end gap-1", "opacity-50": month.partial? %>">
-          <% [ [ month.income, "bg-data-soft" ], [ month.spent, "bg-data" ] ].each do |cents, color| %>
-            <% if cents.positive? %>
-              <div class="w-[18px] shrink-0 rounded-bar <%= color %>" style="height: <%= summary_bar_height cents, peak %>px"></div>
+  <div class="relative">
+    <div class="absolute inset-x-0 top-0" style="height: <%= WelcomeHelper::PLOT_HEIGHT %>px">
+      <%= render "welcome/axis", axis: %>
+    </div>
+    <div class="relative mr-11 flex snap-x snap-mandatory flex-row-reverse gap-1.5 overflow-x-auto" role="group" aria-label="Months">
+      <% months.reverse_each do |month| %>
+        <%= link_to transactions_path(month: month_param(month.month)), aria: { label: month_readout(month) },
+          class: "group flex min-w-14 flex-1 snap-end flex-col items-center gap-1.5 rounded-sm pb-1.5 hover:bg-level-3 max-md:shrink-0 max-md:basis-[calc((100%-4*--spacing(1.5))/5)]" do %>
+          <div class="<%= class_names "flex shrink-0 items-end gap-1", "opacity-50": month.partial? %>" style="height: <%= WelcomeHelper::PLOT_HEIGHT %>px">
+            <% [ [ month.income, "bg-income" ], [ month.spent, "bg-data" ] ].each do |cents, color| %>
+              <% if cents.positive? %>
+                <div class="w-[18px] shrink-0 rounded-t-bar <%= color %>" style="height: <%= column_height cents, axis.top %>px"></div>
+              <% end %>
             <% end %>
-          <% end %>
-        </div>
-        <div class="flex flex-col items-center text-xs">
-          <span class="text-secondary group-hover:font-medium group-hover:text-primary"><%= month_abbreviation month.month %></span>
-          <% if month.partial? %>
-            <span class="text-tertiary">present</span>
-          <% end %>
-          <% if month.positive_net %>
-            <span class="text-sm text-success">Net</span>
-            <span class="font-amount text-sm text-success"><%= signed_money month.positive_net, whole: true %></span>
-          <% end %>
-        </div>
+          </div>
+          <div class="flex flex-col items-center text-xs">
+            <span class="text-secondary group-hover:font-medium group-hover:text-primary"><%= month_abbreviation month.month %></span>
+            <% if month.partial? %>
+              <span class="text-tertiary">present</span>
+            <% end %>
+            <% if month.positive_net %>
+              <span class="text-sm text-success">Net</span>
+              <span class="font-amount text-sm text-success"><%= signed_money month.positive_net, whole: true %></span>
+            <% end %>
+          </div>
+        <% end %>
       <% end %>
-    <% end %>
+    </div>
   </div>
 </section>

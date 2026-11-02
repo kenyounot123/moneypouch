@@ -110,6 +110,7 @@
   --background-color-data-strong: light-dark(var(--slate-600), var(--slate-200));
   --background-color-data-soft: light-dark(var(--slate-300), var(--slate-700));
   --background-color-data-track: light-dark(var(--slate-100), var(--slate-800));
+  --background-color-income: light-dark(var(--green-300), var(--green-600));
 
   --text-color-primary: light-dark(var(--slate-900), var(--slate-50));
   --text-color-secondary: light-dark(var(--slate-700), var(--slate-400));
@@ -188,6 +189,15 @@
     font-size: 64px;
     line-height: var(--tw-leading, 64px);
   }
+}
+
+@utility text-readout {
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  font-size: 28px;
+  line-height: var(--tw-leading, 32px);
+  font-weight: var(--tw-font-weight, 600);
+  letter-spacing: var(--tw-tracking, -0.02em);
 }
 
 @utility text-title {

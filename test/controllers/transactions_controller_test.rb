@@ -533,7 +533,9 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "each row offers Edit, which opens the sheet" do
-    get transactions_url
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url
+    end
 
     assert_select "li#transaction_#{@transaction.id} [role=group] a[aria-label=Edit][data-turbo-frame=sheet][href=?]", edit_transaction_path(@transaction)
   end

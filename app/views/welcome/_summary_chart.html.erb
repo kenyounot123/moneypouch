@@ -1,24 +1,33 @@
 <% totals = summary.totals %>
-<% peak = totals.flat_map { |total| [ total.income, total.spent ] }.max %>
-<div class="flex gap-1.5" role="group" aria-label="Periods">
-  <% totals.each do |total| %>
-    <% readout = total_readout total %>
-    <% focused = total.period == focus %>
-    <%= link_to focused ? root_path(period: period.kind, chart: "summary") : root_path(period: period.kind, chart: "summary", focus: total.period.first_day),
-      aria: { label: readout, current: focused ? "true" : nil },
-      data: { action: "mouseenter->chart#show focus->chart#show mouseleave->chart#clear blur->chart#clear", chart_label_param: readout },
-      class: [ "group flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-sm py-1.5 hover:bg-level-3", ("bg-level-3" if focused) ] do %>
-      <div class="<%= class_names "flex h-[132px] shrink-0 items-end gap-1", "opacity-40": focus && !focused %>" <% if focus && !focused %>data-dimmed<% end %>>
-        <% [ [ total.income, "bg-data-soft" ], [ total.spent, "bg-data" ] ].each do |cents, color| %>
-          <% if cents.positive? %>
-            <div class="w-[18px] shrink-0 rounded-bar <%= color %>" style="height: <%= summary_bar_height cents, peak %>px"></div>
-          <% end %>
+<% axis = chart_axis(totals.flat_map { |total| [ total.income, total.spent ] }.max) %>
+<% resting = totals.find { |total| total.period == (focus || period) } || summary.total(focus) %>
+<%= render "welcome/chart_header", period:, chart:, readout: net_readout(resting) %>
+<div class="flex flex-col gap-3">
+  <div class="relative">
+    <div class="absolute inset-x-0 top-0" style="height: <%= WelcomeHelper::PLOT_HEIGHT %>px">
+      <%= render "welcome/axis", axis: %>
+    </div>
+    <div class="relative flex gap-1.5 pr-11" role="group" aria-label="Periods">
+      <% totals.each do |total| %>
+        <% focused = total.period == focus %>
+        <%= link_to focused ? root_path(period: period.kind, chart: "summary") : root_path(period: period.kind, chart: "summary", focus: total.period.first_day),
+          aria: { label: total_readout(total), current: focused ? "true" : nil },
+          data: { chart_target: "column", active: (true if total == resting), action: "mouseenter->chart#show focus->chart#show mouseleave->chart#clear blur->chart#clear", **net_readout(total).params },
+          class: [ "group flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-sm pb-1.5 hover:bg-level-3", ("bg-level-3" if focused) ] do %>
+          <div class="<%= class_names "flex shrink-0 items-end gap-1", "opacity-40": focus && !focused %>" style="height: <%= WelcomeHelper::PLOT_HEIGHT %>px" <% if focus && !focused %>data-dimmed<% end %>>
+            <% [ [ total.income, "bg-income" ], [ total.spent, "bg-data" ] ].each do |cents, color| %>
+              <% if cents.positive? %>
+                <div class="w-5 shrink-0 rounded-t-bar sm:w-7 <%= color %>" style="height: <%= column_height cents, axis.top %>px"></div>
+              <% end %>
+            <% end %>
+          </div>
+          <span class="text-xs text-secondary group-hover:font-medium group-hover:text-primary group-data-active:font-medium group-data-active:text-primary"><%= period_abbreviation total.period %></span>
         <% end %>
-      </div>
-      <div class="flex flex-col items-center text-xs">
-        <span class="<%= focused ? "font-medium text-primary" : "text-secondary group-hover:font-medium group-hover:text-primary" %>"><%= period_abbreviation total.period %></span>
-        <span class="font-amount <%= money_color total.net, otherwise: (focused ? "text-secondary" : "text-tertiary") %>"><%= signed_money(total.net, whole: true) %></span>
-      </div>
-    <% end %>
-  <% end %>
+      <% end %>
+    </div>
+  </div>
+  <p class="flex items-center gap-3.5 text-sm text-tertiary">
+    <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-[2px] bg-income"></span>Income</span>
+    <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-[2px] bg-data"></span>Spent</span>
+  </p>
 </div>

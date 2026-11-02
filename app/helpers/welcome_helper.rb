@@ -1,6 +1,7 @@
 module WelcomeHelper
-  CHART_HEIGHT = 136
-  SUMMARY_BAR_HEIGHT = 130
+  PLOT_HEIGHT = 140
+  MAX_TICKS = 5
+  ROUND_STEPS = [ 1, 2, 2.5, 5, 10 ]
   LABEL_SPAN = 7
   MAX_LABELLED_COLUMNS = 12
 
@@ -48,20 +49,64 @@ module WelcomeHelper
     end
   end
 
-  def column_title(period, column, cents)
-    if period.unit == :month
-      "#{column.strftime("%B")} · #{money cents}"
-    else
-      "#{short_date column} · #{money cents}"
+  Readout = Data.define(:heading, :amount, :detail, :tone) do
+    def params
+      { chart_heading_param: heading, chart_amount_param: amount, chart_detail_param: detail.to_s, chart_tone_param: tone.to_s }
     end
   end
 
-  def column_height(cents, peak, tallest = CHART_HEIGHT)
-    [ (cents * tallest.to_f / peak).round, 4 ].max
+  def column_readout(period, column, cents)
+    heading =
+      if period.unit == :month
+        "Spent in #{column.strftime("%B")}"
+      elsif column == period.today
+        "Spent today"
+      else
+        "Spent on #{short_date column}"
+      end
+
+    Readout.new(heading:, amount: money(cents.to_i), detail: nil, tone: nil)
   end
 
-  def summary_bar_height(cents, peak)
-    column_height(cents, peak, SUMMARY_BAR_HEIGHT)
+  def net_readout(total)
+    tone = total.net.negative? ? "overspent" : "saved"
+    heading = "#{tone.capitalize} #{"in " unless total.period.kind == "week"}#{period_name total.period}"
+    detail = "Income #{money(total.income, whole: true)} · Spent #{money(total.spent, whole: true)}"
+
+    Readout.new(heading:, amount: money(total.net.abs), detail:, tone:)
+  end
+
+  Axis = Data.define(:ticks) do
+    def top
+      ticks.last
+    end
+  end
+
+  def chart_axis(peak)
+    step = axis_step(peak)
+    count = [ (peak.to_f / step).ceil, 1 ].max
+
+    Axis.new(ticks: (0..count).map { |index| index * step })
+  end
+
+  def axis_label(cents)
+    dollars = cents / 100.0
+
+    if dollars >= 1_000_000
+      "$#{number_with_precision(dollars / 1_000_000, precision: 1, strip_insignificant_zeros: true)}M"
+    elsif dollars >= 1_000
+      "$#{number_with_precision(dollars / 1_000, precision: 1, strip_insignificant_zeros: true)}k"
+    else
+      "$#{number_with_precision(dollars, precision: 1, strip_insignificant_zeros: true)}"
+    end
+  end
+
+  def axis_offset(cents, top)
+    "#{(cents * 100.0 / top).round(2)}%"
+  end
+
+  def column_height(cents, top)
+    [ (cents * PLOT_HEIGHT.to_f / top).round, 4 ].max
   end
 
   def category_color(index)
@@ -69,16 +114,6 @@ module WelcomeHelper
       "bg-data-strong"
     else
       "bg-data"
-    end
-  end
-
-  def column_color(column, today_column, tallest_column)
-    if column == tallest_column
-      "bg-data-strong"
-    elsif column == today_column
-      "bg-data"
-    else
-      "bg-data-soft"
     end
   end
 
@@ -129,6 +164,14 @@ module WelcomeHelper
   end
 
   private
+    def axis_step(peak)
+      rough = [ peak, 100 ].max / 100.0 / MAX_TICKS
+      magnitude = 10**Math.log10(rough).floor
+      step = ROUND_STEPS.map { |round| round * magnitude }.find { |candidate| candidate >= rough }
+
+      ([ step, 1 ].max * 100).round
+    end
+
     def column_label(period, column)
       if period.unit == :month
         column.strftime("%b")

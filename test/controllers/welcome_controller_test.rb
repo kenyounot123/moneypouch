@@ -64,8 +64,9 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "p", text: "Spent in 2026"
-    assert_select "[data-chart-label-param='October · $5.50']"
-    assert_select "p[data-chart-target=readout]", text: ""
+    assert_select "[data-chart-heading-param='Spent in October'][data-chart-amount-param='$5.50'][data-active]"
+    assert_select "p[data-chart-target=heading]", text: "Spent in October"
+    assert_select "p[data-chart-target=amount]", text: "$5.50"
   end
 
   test "falls back to the month for an unknown period" do
@@ -93,16 +94,20 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "nav[aria-label=Period] a[aria-current=true]", text: "Week", count: 1
   end
 
-  test "draws the spending chart by default with a readout label on each column that has spending" do
+  test "draws the spending chart by default with a readout on each column up to today" do
     travel_to Time.utc(2026, 10, 15) do
       get root_url
     end
 
     assert_select "nav[aria-label=Chart] a[aria-current=true]", text: "Spending", count: 1
     assert_select "nav[aria-label=Chart] a[href='#{root_path(period: "month", chart: "summary")}']", text: "Summary"
-    assert_select "[data-chart-label-param='Oct 1 · $5.50'] .bg-data-strong"
-    assert_select "[data-chart-target=readout]", text: ""
-    assert_select "[data-chart-target=key]", count: 0
+    assert_select "[data-chart-heading-param='Spent on Oct 1'][data-chart-amount-param='$5.50'] .bg-data-soft"
+    assert_select "[data-chart-heading-param='Spent today'][data-active]"
+    assert_select "[data-chart-target=column]", count: 15
+    assert_select "p[data-chart-target=heading]", text: "Spent today"
+    assert_select "p[data-chart-target=amount]", text: "$0.00"
+    assert_select "[data-chart-target=detail]", count: 0
+    assert_equal [ "$0", "$2", "$4", "$6" ], css_select("[data-field=tick]").map { |tick| tick.text.strip }
     assert_select "[data-field=caption]", text: "Oct 1"
     assert_select "[data-field=caption]", text: "Oct 29"
     assert_select "[data-field=caption]", text: "Oct 2", count: 0
@@ -129,7 +134,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     get root_url(chart: "pie")
 
     assert_select "nav[aria-label=Chart] a[aria-current=true]", text: "Spending"
-    assert_select "[data-chart-label-param^='Oct 1']"
+    assert_select "[data-chart-heading-param='Spent today']"
   end
 
   test "summarizes the last six months, each linking to its focus" do
@@ -145,14 +150,15 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{root_path(period: "month", chart: "summary", focus: "2026-10-01")}']"
     assert_select "a[href='#{root_path(period: "month", chart: "summary", focus: "2026-09-01")}'][aria-label='Sep · income $7,890 · spent $2,500']" do
       assert_select "span", text: "Sep"
-      assert_select "span.text-success", text: "+$5,390"
-      assert_select ".bg-data-soft"
+      assert_select ".bg-income"
+      assert_select ".bg-data"
     end
-    assert_select "a[href*='focus=2026-10-01'][aria-label^='Oct · income']"
-    assert_select "a[href*='focus=2026-10-01'] span.text-success", text: "+$1,995"
-    assert_select "[data-chart-target=readout]", text: ""
-    assert_equal [ "Income", "Spent", "±Net" ], css_select("[data-chart-target=key] > span").map { |span| span.text.strip }
-    assert_select "a[href*='focus=2026-08-01'] span.text-tertiary", text: "−$500"
+    assert_select "a[href*='focus=2026-09-01'][data-chart-heading-param='Saved in September'][data-chart-amount-param='$5,390.00'][data-chart-detail-param='Income $7,890 · Spent $2,500']"
+    assert_select "a[href*='focus=2026-10-01'][aria-label^='Oct · income'][data-active]"
+    assert_select "p[data-chart-target=heading]", text: "Saved in October"
+    assert_select "p[data-chart-target=amount][data-tone=saved]", text: "$1,994.50"
+    assert_select "p[data-chart-target=detail]", text: "Income $2,000 · Spent $6"
+    assert_select "a[href*='focus=2026-08-01'][data-chart-heading-param='Overspent in August'][data-chart-amount-param='$500.00'][data-chart-tone-param=overspent]"
     assert_select "[role=group][aria-label=Periods] > a[aria-current]", count: 0
     assert_select "a [data-dimmed]", count: 0
     assert_select "main h3", count: 0
@@ -170,8 +176,8 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-10-12")}'][aria-label='Oct 12 · income $0 · spent $0']"
     assert_select "a[href='#{root_path(period: "week", chart: "summary", focus: "2026-10-05")}'][aria-label='Oct 5 · income $7,890 · spent $2,500']" do
       assert_select "span", text: "Oct 5"
-      assert_select "span.text-success", text: "+$5,390"
     end
+    assert_select "a[href*='focus=2026-10-05'][data-chart-heading-param='Saved Oct 5–11'][data-chart-amount-param='$5,390.00']"
     assert_select "a[href*='month=']", count: 0
     assert_select "a[href*='focus=2026-09-01']", count: 0
     assert_select "[role=group][aria-label=Periods] > a", count: 6
@@ -189,8 +195,8 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2026-01-01")}'][aria-label='2026 · income $2,000 · spent $6']"
     assert_select "a[href='#{root_path(period: "year", chart: "summary", focus: "2024-01-01")}'][aria-label='2024 · income $7,890 · spent $2,500']" do
       assert_select "span", text: "2024"
-      assert_select "span.text-success", text: "+$5,390"
     end
+    assert_select "a[href*='focus=2024-01-01'][data-chart-heading-param='Saved in 2024']"
     assert_select "a[href*='focus=2020-01-01']", count: 0
   end
 
@@ -208,14 +214,14 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     unfocused = root_path(period: "month", chart: "summary")
     assert_select "a[href='#{unfocused}'][aria-current=true][aria-label='Sep · income $8,903 · spent $1,653'].bg-level-3" do
       assert_select "span", text: "Sep"
-      assert_select "span.text-success", text: "+$7,250"
       assert_select "[data-dimmed]", count: 0
     end
+    assert_select "a[aria-current=true][data-active]"
     assert_select "[role=group][aria-label=Periods] > a[aria-current]", count: 1
     assert_select "a[href*='focus=2026-08-01'] [data-dimmed]"
     assert_select "a[href*='focus=2026-08-01'] span", text: "Aug"
-    assert_select "[data-chart-target=key]"
-    assert_select "[data-chart-target=readout]"
+    assert_select "p[data-chart-target=heading]", text: "Saved in September"
+    assert_select "p[data-chart-target=amount]", text: "$7,250.38"
     assert_select "h3", text: "September"
     assert_select "p", text: "Income"
     assert_select "p", text: "$8,902.88"
@@ -256,6 +262,8 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "h3", text: "March"
+    assert_select "p[data-chart-target=heading]", text: "Saved in March"
+    assert_select "[data-chart-target=column][data-active]", count: 0
     assert_select "p", text: "Nothing spent."
     assert_select "p", text: "Nothing came in.", count: 0
     assert_select "p", text: "Income", count: 0
@@ -291,7 +299,7 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     get root_url(focus: "2026-09-01")
 
     assert_select "main h3", count: 0
-    assert_select "[data-chart-target=readout]"
+    assert_select "p[data-chart-target=heading]", text: /\ASpent /
   end
 
   test "keeps the period after an add" do
