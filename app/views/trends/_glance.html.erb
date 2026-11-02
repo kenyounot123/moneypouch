@@ -1,5 +1,5 @@
 <% months = trends.months %>
-<% ticks = axis_ticks(months.flat_map { |month| [ month.income, month.spent ] }.max) %>
+<% axis = chart_axis(months.flat_map { |month| [ month.income, month.spent ] }.max) %>
 <section class="flex flex-col gap-[18px]" aria-labelledby="glance-heading">
   <div class="flex items-baseline justify-between border-b border-secondary pb-3">
     <h2 id="glance-heading" class="text-heading">Year at a glance</h2>
@@ -15,7 +15,7 @@
 
   <div class="relative">
     <div class="absolute inset-x-0 top-0" style="height: <%= WelcomeHelper::PLOT_HEIGHT %>px">
-      <%= render "welcome/axis", ticks: %>
+      <%= render "welcome/axis", axis: %>
     </div>
     <div class="relative mr-11 flex snap-x snap-mandatory flex-row-reverse gap-1.5 overflow-x-auto" role="group" aria-label="Months">
       <% months.reverse_each do |month| %>
@@ -24,7 +24,7 @@
           <div class="<%= class_names "flex shrink-0 items-end gap-1", "opacity-50": month.partial? %>" style="height: <%= WelcomeHelper::PLOT_HEIGHT %>px">
             <% [ [ month.income, "bg-income" ], [ month.spent, "bg-data" ] ].each do |cents, color| %>
               <% if cents.positive? %>
-                <div class="w-[18px] shrink-0 rounded-t-bar <%= color %>" style="height: <%= column_height cents, ticks.last %>px"></div>
+                <div class="w-[18px] shrink-0 rounded-t-bar <%= color %>" style="height: <%= column_height cents, axis.top %>px"></div>
               <% end %>
             <% end %>
           </div>

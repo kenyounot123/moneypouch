@@ -37,10 +37,11 @@ class WelcomeHelperTest < ActionView::TestCase
   end
 
   test "rounds the axis up past the peak in round steps" do
-    assert_equal [ 0, 500_000, 1_000_000, 1_500_000, 2_000_000 ], axis_ticks(1_795_012)
-    assert_equal [ 0, 1_000_000, 2_000_000, 3_000_000 ], axis_ticks(2_505_000)
-    assert_equal [ 0, 200, 400, 600 ], axis_ticks(550)
-    assert_equal [ 0, 100 ], axis_ticks(0)
+    assert_equal [ 0, 500_000, 1_000_000, 1_500_000, 2_000_000 ], chart_axis(1_795_012).ticks
+    assert_equal [ 0, 1_000_000, 2_000_000, 3_000_000 ], chart_axis(2_505_000).ticks
+    assert_equal [ 0, 200, 400, 600 ], chart_axis(550).ticks
+    assert_equal [ 0, 100 ], chart_axis(0).ticks
+    assert_equal 2_000_000, chart_axis(1_795_012).top
   end
 
   test "labels the axis in short dollars" do

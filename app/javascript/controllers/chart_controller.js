@@ -1,6 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
 
-// The readout names one column and its amount. It rests on what the page first drew and follows the pointer.
 export default class extends Controller {
   static targets = [ "heading", "amount", "detail", "column" ]
 

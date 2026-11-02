@@ -49,7 +49,6 @@ module WelcomeHelper
     end
   end
 
-  # What the chart's readout says about one column or one period: a heading, the amount, and an optional line under it.
   Readout = Data.define(:heading, :amount, :detail, :tone) do
     def params
       { chart_heading_param: heading, chart_amount_param: amount, chart_detail_param: detail.to_s, chart_tone_param: tone.to_s }
@@ -77,12 +76,17 @@ module WelcomeHelper
     Readout.new(heading:, amount: money(total.net.abs), detail:, tone:)
   end
 
-  # Gridlines from zero up past the peak in round steps, so every one lands on a round amount. The last is the top of the chart.
-  def axis_ticks(peak)
+  Axis = Data.define(:ticks) do
+    def top
+      ticks.last
+    end
+  end
+
+  def chart_axis(peak)
     step = axis_step(peak)
     count = [ (peak.to_f / step).ceil, 1 ].max
 
-    (0..count).map { |index| index * step }
+    Axis.new(ticks: (0..count).map { |index| index * step })
   end
 
   def axis_label(cents)
