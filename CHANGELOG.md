@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.23.0](https://github.com/kenyounot123/moneypouch/compare/v0.22.0...v0.23.0) (2026-11-02)
+
+
+### Features
+
+* **overview:** name the amount on every chart, with a dollar axis ([#208](https://github.com/kenyounot123/moneypouch/issues/208)) ([0f66b1e](https://github.com/kenyounot123/moneypouch/commit/0f66b1ef4b724c9dc12532786e6491c50b214d12))
+
+
+### Bug Fixes
+
+* **settings:** flip the shortcuts toggle on click ([#201](https://github.com/kenyounot123/moneypouch/issues/201)) ([72c1464](https://github.com/kenyounot123/moneypouch/commit/72c1464287d9b4b890ed9577c22cc1dbf6949dbe))
+
 ## [0.22.0](https://github.com/kenyounot123/moneypouch/compare/v0.21.0...v0.22.0) (2026-10-30)
 
 
