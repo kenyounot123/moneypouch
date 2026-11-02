@@ -33,7 +33,9 @@ class Transactions::NotesControllerTest < ActionDispatch::IntegrationTest
   test "a row shows its note on its own line and offers Add a note when it has none" do
     transactions(:coffee).update!(note: "Paid Wendy back")
 
-    get transactions_url
+    travel_to Time.utc(2026, 10, 13, 12) do
+      get transactions_url
+    end
 
     assert_select "li#transaction_#{transactions(:coffee).id} button[data-action='note#open']", text: "Paid Wendy back"
     assert_select "li#transaction_#{transactions(:coffee).id} button[data-action='note#open'][aria-label='Add a note']", count: 0
