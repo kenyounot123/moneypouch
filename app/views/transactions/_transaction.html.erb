@@ -29,8 +29,8 @@
           class: "category-field" %></span>
         <span class="shrink-0 pl-0.5 whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
       <% else %>
-        <span class="flex h-4 items-center [&_input]:h-6" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: categorization_label(transaction),
-          class: "category-link" %></span>
+        <span class="flex h-4 min-w-0 items-center [&_input]:h-6" data-category-picker-target="category"><%= render "transactions/category_button", transaction:, label: categorization_label(transaction),
+          class: "truncate category-link" %></span>
         <span class="whitespace-nowrap">· <%= short_date transaction.occurred_on %></span>
       <% end %>
       <% if local_assigns[:account] %>
