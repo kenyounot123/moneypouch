@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.1](https://github.com/kenyounot123/moneypouch/compare/v0.23.0...v0.23.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **transactions:** truncate a long transfer label on rows ([#209](https://github.com/kenyounot123/moneypouch/issues/209)) ([b5aae06](https://github.com/kenyounot123/moneypouch/commit/b5aae060533893c03f62da29b3119db4c0bc06e5))
+
 ## [0.23.0](https://github.com/kenyounot123/moneypouch/compare/v0.22.0...v0.23.0) (2026-11-02)
 
 
