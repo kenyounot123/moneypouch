@@ -153,16 +153,20 @@ volumes:
 
 ## Type it like you'd say it
 
+Press ⌘K (Ctrl+K) on any page and type one line. MoneyPouch colors each part as it reads it and shows what it will save. Press Enter to add it.
+
 <p align="center">
-  <img src="docs/images/composer.png" alt="The composer reads Chipotle 11.25 yesterday as $11.25 at Chipotle, in Food, yesterday">
+  <img src="docs/images/composer.png" width="672" alt="The composer reads Chipotle 11.25 yesterday #food as $11.25 in Food, yesterday">
 </p>
 
-| | You type | MoneyPouch reads |
+| Part | You type | If you leave it out |
 | :--- | :--- | :--- |
-| **Amount** | `6.25` `$6.25` `1,650` | this is an expense/spending |
-| **Money in** | `+2000` | income, not spending |
-| **Date** | `yesterday` `sep 26` `friday` | that day, or today if left out |
-| **Category** | `#food` | food, or if left out, the category you last used for that name |
+| **Name** | `Chipotle` | Required |
+| **Amount** | `11.25` `$11.25` `1,650` | Required |
+| **Date** | `yesterday` `friday` `sep 26` | Today |
+| **Category** | `#food` | The category you last used for that name |
+
+Parts can go in any order. Put a `+` on the amount for money in, like `Paycheck +2400`. Tab completes a name you have used, `#` lists your categories, and `@` opens a calendar.
 
 ## Bank sync with SimpleFIN
 
