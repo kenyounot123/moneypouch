@@ -25,8 +25,13 @@ class BankAccount < ApplicationRecord
     end
   end
 
-  def start_syncing(from: Date.current)
+  def start_syncing(from:)
     update!(status: :synced, starts_on: from)
+  end
+
+  def sync_recent_history
+    start_syncing(from: simplefin_access.longest_history_start)
+    simplefin_access.sync_later
   end
 
   def skip

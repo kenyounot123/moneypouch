@@ -5,7 +5,7 @@ class BankAccountsController < ApplicationController
     bank_account = Current.user.bank_accounts.pending.find(params.expect(:id))
 
     case params.expect(bank_account: [ :status ])[:status]
-    when "synced" then bank_account.start_syncing
+    when "synced" then bank_account.sync_recent_history
     when "skipped" then bank_account.skip
     else raise ActionController::BadRequest
     end

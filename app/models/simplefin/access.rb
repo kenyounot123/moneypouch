@@ -71,7 +71,11 @@ class Simplefin::Access < ApplicationRecord
 
   def history_start
     earliest = bank_accounts.synced.minimum(:starts_on) || Date.current
-    [ earliest, Date.current - LONGEST_HISTORY ].max.beginning_of_day
+    [ earliest, longest_history_start ].max.beginning_of_day
+  end
+
+  def longest_history_start
+    Date.current - LONGEST_HISTORY
   end
 
   def lapsed?
