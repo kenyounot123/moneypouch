@@ -104,13 +104,13 @@ class Simplefin::SyncTest < ActiveSupport::TestCase
       access.bank_accounts.to_h { |account| [ account.external_id, account.bank_transactions.count ] })
   end
 
-  test "Sync it adds the account from today on the next sync" do
+  test "an account started later keeps only what happened from that day on" do
     report = simplefin_report
     access = connect_simplefin
     activate(access, [ "Demo Savings" ], report:)
 
     travel_to Time.utc(2026, 10, 3, 18)
-    Time.use_zone("America/Los_Angeles") { access.bank_accounts.find_by!(external_id: "Demo Checking").start_syncing }
+    access.bank_accounts.find_by!(external_id: "Demo Checking").start_syncing(from: Date.new(2026, 10, 3))
     sync_again(access, report:)
 
     assert_equal [ -1331, -17_001 ], access.bank_accounts.find_by!(external_id: "Demo Checking").bank_transactions.order(:id).pluck(:amount_in_cents)
