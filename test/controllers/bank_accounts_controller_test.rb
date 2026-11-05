@@ -10,11 +10,23 @@ class BankAccountsControllerTest < ActionDispatch::IntegrationTest
     @card = access.bank_accounts.find_by!(external_id: "Demo Card")
   end
 
-  test "Sync it starts the new account from today" do
+  test "Sync it starts the new account 90 days back" do
     patch bank_account_url(@card), params: { bank_account: { status: "synced" } }
 
     assert_redirected_to settings_url
-    assert_equal [ "synced", Date.new(2026, 10, 6) ], [ @card.reload.status, @card.starts_on ]
+    assert_equal [ "synced", Date.new(2026, 7, 9) ], [ @card.reload.status, @card.starts_on ]
+  end
+
+  test "Sync it brings in the new account's recent history right away" do
+    report = simplefin_report("errlist")
+    demo_account(report, "Demo Card")["transactions"] = [
+      { "id" => "card-1", "posted" => 30.days.ago.to_i, "amount" => "-25.00", "description" => "Bike shop" }
+    ]
+    stub_simplefin_accounts(body: report.to_json)
+
+    perform_enqueued_jobs { patch bank_account_url(@card), params: { bank_account: { status: "synced" } } }
+
+    assert_equal [ -2500 ], @card.bank_transactions.pluck(:amount_in_cents)
   end
 
   test "Skip hides the new account" do
