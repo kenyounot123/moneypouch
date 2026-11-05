@@ -1,15 +1,15 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = [ "heading", "amount", "detail", "column" ]
+  static targets = [ "heading", "income", "spent", "net", "column" ]
 
   connect() {
     this.resting = {
       column: this.columnTargets.find(column => column.hasAttribute("data-active")),
       chartHeadingParam: this.headingTarget.textContent,
-      chartAmountParam: this.amountTarget.textContent,
-      chartDetailParam: this.hasDetailTarget ? this.detailTarget.textContent : "",
-      chartToneParam: this.amountTarget.dataset.tone
+      chartSpentParam: this.spentTarget.textContent,
+      chartIncomeParam: this.hasIncomeTarget ? this.incomeTarget.textContent : "",
+      chartNetParam: this.hasNetTarget ? this.netTarget.textContent : ""
     }
   }
 
@@ -21,11 +21,11 @@ export default class extends Controller {
     this.#read(this.resting, this.resting.column)
   }
 
-  #read({ chartHeadingParam, chartAmountParam, chartDetailParam, chartToneParam }, column) {
+  #read({ chartHeadingParam, chartSpentParam, chartIncomeParam, chartNetParam }, column) {
     this.headingTarget.textContent = chartHeadingParam
-    this.amountTarget.textContent = chartAmountParam
-    this.amountTarget.dataset.tone = chartToneParam
-    if (this.hasDetailTarget) this.detailTarget.textContent = chartDetailParam
+    this.spentTarget.textContent = chartSpentParam
+    if (this.hasIncomeTarget) this.incomeTarget.textContent = chartIncomeParam
+    if (this.hasNetTarget) this.netTarget.textContent = chartNetParam
 
     this.columnTargets.forEach(target => target.toggleAttribute("data-active", target == column))
   }

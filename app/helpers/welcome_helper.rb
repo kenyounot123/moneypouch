@@ -49,9 +49,9 @@ module WelcomeHelper
     end
   end
 
-  Readout = Data.define(:heading, :amount, :detail, :tone) do
+  Readout = Data.define(:heading, :spent, :income, :net) do
     def params
-      { chart_heading_param: heading, chart_amount_param: amount, chart_detail_param: detail.to_s, chart_tone_param: tone.to_s }
+      { chart_heading_param: heading, chart_spent_param: spent, chart_income_param: income.to_s, chart_net_param: net.to_s }
     end
   end
 
@@ -65,15 +65,15 @@ module WelcomeHelper
         "Spent on #{short_date column}"
       end
 
-    Readout.new(heading:, amount: money(cents.to_i), detail: nil, tone: nil)
+    Readout.new(heading:, spent: money(cents.to_i), income: nil, net: nil)
   end
 
-  def net_readout(total)
-    tone = total.net.negative? ? "overspent" : "saved"
-    heading = "#{tone.capitalize} #{"in " unless total.period.kind == "week"}#{period_name total.period}"
-    detail = "Income #{money(total.income, whole: true)} · Spent #{money(total.spent, whole: true)}"
+  def summary_readout(total)
+    heading = "#{period_name total.period}#{" (present)" if total.period.current?}"
+    net = signed_money(total.positive_net, whole: true) if total.positive_net
+    whole = total.period.kind == "year"
 
-    Readout.new(heading:, amount: money(total.net.abs), detail:, tone:)
+    Readout.new(heading:, spent: money(total.spent, whole:), income: money(total.income, whole:), net:)
   end
 
   Axis = Data.define(:ticks) do

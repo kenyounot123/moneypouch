@@ -5,8 +5,9 @@ class TrendsToneTest < ActionDispatch::IntegrationTest
   BANNED_STYLES = /text-danger|\bred-/
   ARROWS = /[▲▼↑↓⬆⬇]/
 
-  test "the Trends source never says or colors anything as bad news" do
-    sources = Rails.root.glob([ "app/views/trends/**/*", "app/models/trends.rb", "app/models/trends/**/*", "app/helpers/trends_helper.rb" ]).select(&:file?)
+  test "the Trends and Overview source never says or colors anything as bad news" do
+    sources = Rails.root.glob([ "app/views/trends/**/*", "app/models/trends.rb", "app/models/trends/**/*", "app/helpers/trends_helper.rb",
+      "app/views/welcome/**/*", "app/models/summary.rb", "app/helpers/welcome_helper.rb" ]).select(&:file?)
 
     assert_operator sources.size, :>=, 8
     sources.each do |source|
@@ -45,6 +46,24 @@ class TrendsToneTest < ActionDispatch::IntegrationTest
     assert_select "a[aria-label^='Aug']" do
       assert_select "span", text: "Net", count: 0
     end
+  end
+
+  test "the Overview summary of a month that spent more than came in shows no loss, flag, or negative money" do
+    travel_to Time.utc(2026, 10, 20, 18)
+    sign_in_as(users(:one))
+    users(:one).transactions.destroy_all
+    add 100_000, "2026-09-01", "Pay"
+    add(-300_000, "2026-09-02", "Rent")
+
+    get root_url(chart: "summary", focus: "2026-09-01")
+
+    assert_response :success
+    assert_select "[data-chart-target=income]", text: "$1,000.00"
+    assert_select "[data-chart-target=spent]", text: "$3,000.00"
+    assert_select "[data-chart-target=net]", text: ""
+    assert_no_match MoneyHelper::MINUS, css_select("[data-field=readout]").to_html
+    assert_no_match BANNED_STYLES, css_select("[data-field=readout]").to_html
+    assert_no_match BANNED_WORDS, css_select("[data-field=readout]").text
   end
 
   private

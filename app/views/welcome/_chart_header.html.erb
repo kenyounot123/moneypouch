@@ -1,19 +1,25 @@
-<div class="flex flex-col gap-0.5" data-field="readout">
-  <div class="flex items-start justify-between gap-4">
-    <div class="flex min-w-0 flex-col gap-0.5">
-      <p class="text-sm text-secondary" data-chart-target="heading"><%= readout.heading %></p>
-      <p class="text-readout data-[tone=overspent]:text-danger data-[tone=saved]:text-success"
-        data-chart-target="amount" data-tone="<%= readout.tone %>"><%= readout.amount %></p>
-    </div>
-    <nav class="flex shrink-0 gap-0.5 rounded-md bg-level-3 p-0.75" aria-label="Chart">
-      <% Chart::KINDS.each do |kind| %>
-        <% active = kind == chart.kind %>
-        <%= link_to kind.capitalize, root_path(period: period.kind, chart: Chart.new(kind)), aria: { current: active ? "true" : nil },
-          class: [ "rounded-sm px-2.5 py-1.25 text-sm", active ? "bg-level-2 text-primary shadow-control" : "text-secondary hover:text-primary" ] %>
-      <% end %>
-    </nav>
-  </div>
-  <% if readout.detail %>
-    <p class="text-sm text-secondary" data-chart-target="detail"><%= readout.detail %></p>
+<div class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-0.5" data-field="readout">
+  <p class="<%= class_names "text-sm text-secondary", "self-center": readout.income %>" data-chart-target="heading"><%= readout.heading %></p>
+  <nav class="<%= class_names "col-start-2 row-start-1 flex gap-0.5 self-start rounded-md bg-level-3 p-0.75", "row-span-2": !readout.income %>" aria-label="Chart">
+    <% Chart::KINDS.each do |kind| %>
+      <% active = kind == chart.kind %>
+      <%= link_to kind.capitalize, root_path(period: period.kind, chart: Chart.new(kind)), aria: { current: active ? "true" : nil },
+        class: [ "rounded-sm px-2.5 py-1.25 text-sm", active ? "bg-level-2 text-primary shadow-control" : "text-secondary hover:text-primary" ] %>
+    <% end %>
+  </nav>
+  <% if readout.income %>
+    <dl class="col-span-2 flex flex-wrap gap-x-7 gap-y-1">
+      <div class="flex flex-col gap-0.5">
+        <dt class="flex items-center gap-1.5 text-sm text-secondary"><span class="size-2.5 rounded-[2px] bg-income"></span>Income</dt>
+        <dd class="text-readout" data-chart-target="income"><%= readout.income %></dd>
+      </div>
+      <div class="flex flex-col gap-0.5">
+        <dt class="flex items-center gap-1.5 text-sm text-secondary"><span class="size-2.5 rounded-[2px] bg-data"></span>Spent</dt>
+        <dd class="text-readout" data-chart-target="spent"><%= readout.spent %></dd>
+      </div>
+    </dl>
+    <p class="col-span-2 h-5 text-sm text-secondary has-[span:empty]:invisible">Net <span class="text-success" data-chart-target="net"><%= readout.net %></span></p>
+  <% else %>
+    <p class="text-readout" data-chart-target="spent"><%= readout.spent %></p>
   <% end %>
 </div>

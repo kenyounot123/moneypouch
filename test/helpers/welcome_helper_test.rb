@@ -54,17 +54,29 @@ class WelcomeHelperTest < ActionView::TestCase
 
     assert_equal "Spent today", column_readout(month, Date.current, 550).heading
     assert_equal "Spent on Oct 3", column_readout(month, Date.new(2026, 10, 3), 550).heading
-    assert_equal "$5.50", column_readout(month, Date.new(2026, 10, 3), 550).amount
+    assert_equal "$5.50", column_readout(month, Date.new(2026, 10, 3), 550).spent
     assert_equal "Spent in September", column_readout(year, Date.new(2026, 9, 1), 0).heading
-    assert_equal "$0.00", column_readout(year, Date.new(2026, 9, 1), 0).amount
+    assert_equal "$0.00", column_readout(year, Date.new(2026, 9, 1), 0).spent
   end
 
-  test "reads out what a period saved or overspent" do
-    saved = Summary::Total.new(period: Period.new("month", today: Date.current, on: "2026-09-01"), income: 789_000, spent: 397_712)
-    overspent = Summary::Total.new(period: Period.new("week", today: Date.current, on: "2026-10-01"), income: 5_000, spent: 6_250)
+  test "reads out what came in and what was spent, with net only when it is positive" do
+    money_left = Summary::Total.new(period: Period.new("month", today: Date.current, on: "2026-09-01"), income: 789_000, spent: 397_712)
+    more_spent = Summary::Total.new(period: Period.new("week", today: Date.current, on: "2026-10-01"), income: 5_000, spent: 6_250)
 
-    assert_equal [ "Saved in September", "$3,912.88", "Income $7,890 · Spent $3,977", "saved" ], net_readout(saved).to_h.values_at(:heading, :amount, :detail, :tone)
-    assert_equal [ "Overspent Sep 28–Oct 4", "$12.50", "overspent" ], net_readout(overspent).to_h.values_at(:heading, :amount, :tone)
+    assert_equal [ "September", "$7,890.00", "$3,977.12", "+$3,913" ], summary_readout(money_left).to_h.values_at(:heading, :income, :spent, :net)
+    assert_equal [ "Sep 28–Oct 4", "$50.00", "$62.50", nil ], summary_readout(more_spent).to_h.values_at(:heading, :income, :spent, :net)
+  end
+
+  test "reads out a year in whole dollars so large figures stay on one line" do
+    year = Summary::Total.new(period: Period.new("year", today: Date.new(2026, 11, 5), on: "2025-01-01"), income: 19_057_336, spent: 14_950_434)
+
+    assert_equal [ "$190,573", "$149,504" ], summary_readout(year).to_h.values_at(:income, :spent)
+  end
+
+  test "marks the period still under way as present" do
+    current = Summary::Total.new(period: Period.new("month", today: Date.new(2026, 11, 5)), income: 0, spent: 60_614)
+
+    assert_equal "November (present)", summary_readout(current).heading
   end
 
   test "colors the biggest category dark and the rest a step lighter" do
