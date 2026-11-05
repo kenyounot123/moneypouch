@@ -36,7 +36,7 @@ https://github.com/user-attachments/assets/f27de21b-9cc6-419e-a645-7fa4d32d7968
   </tr>
 </table>
 
-**[Try the demo](https://demo.moneypouch.app)** in your browser, with nothing to install and no sign-up. You get a private sandbox with a year of sample spending, and it is deleted after 24 hours.
+**[Try the demo](https://demo.moneypouch.app)** in your browser, theres no installing anything or account creation.
 
 To run your own, use one command, then open [localhost:8080](http://localhost:8080). [Getting started](#getting-started) has the details.
 
@@ -66,7 +66,7 @@ I built MoneyPouch because every app I tried wanted me to budget first, and I on
 
 ## What MoneyPouch is not
 
-MoneyPouch is not a budgeting app. It has no envelopes, no "give every dollar a job", no net worth, and no investment tracking. Those features are good for some people, but most of us only want to know where the money went. MoneyPouch does that one job and stays fast.
+MoneyPouch is not a budgeting app. It has no envelopes, no "give every dollar a job", no net worth, and no investment tracking. Those features are good for some people, but for me I just want to know where my money went. MoneyPouch does that one job and stays fast.
 
 ## How it compares
 
