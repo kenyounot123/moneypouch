@@ -31,13 +31,19 @@ magick public/icon.png -crop 500x500+6+6 +repage -sample 200x200 -strip "$out/po
 mp resize 1100 687
 mp goto /
 mp key Meta+k
-mp type '[aria-label="Add"]' 'Chipotle 11.25 yesterday'
+mp type '[aria-label="Add"]' 'Chipotle 11.25 yesterday #food '
 mp wait 'turbo-frame#voucher' --text Yesterday
-mp js 'document.querySelector("[aria-label=Add]").style.caretColor = "transparent"'
+mp js 'document.activeElement.blur()'
+mp wait 'turbo-frame#voucher:not([busy])' --text Yesterday
 mp shot "$work/composer-raw.png" --scale 2
-palette=$("$driver" js \
-  'const r = document.getElementById("palette").getBoundingClientRect(); [r.x, r.y, r.width].join(",")' --port "$port" | tr -d '"')
+card=$("$driver" js \
+  'const r = document.getElementById("palette").getBoundingClientRect(); [r.width, r.height, r.x, r.y].map(n => Math.round(n) * 2).join(" ")' --port "$port" | tr -d '"')
+read -r card_width card_height card_x card_y <<< "$card"
 mp key Escape
+magick "$work/composer-raw.png" -crop "${card_width}x${card_height}+${card_x}+${card_y}" +repage \
+  \( +clone -alpha transparent -fill white -draw "roundrectangle 0,0 %[fx:w-1],%[fx:h-1] 24,24" \) \
+  -compose CopyOpacity -composite \
+  -compose Over \( +clone -background '#1E2140' -shadow 18x16+0+8 \) +swap -background none -layers merge +repage -strip "$out/composer.png"
 
 cat > "$work/frame.html" <<'HTML'
 <!doctype html>
@@ -46,23 +52,10 @@ cat > "$work/frame.html" <<'HTML'
   .backdrop { display: flex; width: 830px; box-sizing: border-box; padding: 40px 48px 0; background: #EEF0F7; border-radius: 12px; overflow: clip; }
   .window { position: relative; flex: 1; overflow: clip; background: #fff; border-radius: 10px 10px 0 0; box-shadow: 0 0 0 1px #1E214014, 0 24px 48px -12px #1E21402E; }
   .window img { display: block; width: 100%; }
-  .crop { padding-top: 32px; }
-  .crop .window { height: 228px; }
-  .crop .window img { position: absolute; width: var(--width); left: var(--left); top: var(--top); }
 </style>
 <div class="backdrop"><div class="window"><img></div></div>
 <script>
-  const [image, palette] = decodeURIComponent(location.search.slice(1)).split(";")
-  document.querySelector("img").src = image
-  if (palette) {
-    const [x, y, width] = palette.split(",").map(Number)
-    const scale = 0.87, windowWidth = 734, dialogTop = 40, imageWidth = 1085 * scale
-    const backdrop = document.querySelector(".backdrop")
-    backdrop.classList.add("crop")
-    backdrop.style.setProperty("--width", `${imageWidth}px`)
-    backdrop.style.setProperty("--left", `${Math.max(windowWidth - imageWidth, windowWidth / 2 - (x + width / 2) * scale)}px`)
-    backdrop.style.setProperty("--top", `${dialogTop - y * scale}px`)
-  }
+  document.querySelector("img").src = decodeURIComponent(location.search.slice(1))
 </script>
 HTML
 
@@ -79,8 +72,6 @@ frame() {
     \( +clone -alpha transparent -fill white -draw "roundrectangle 0,0 %[fx:w-1],%[fx:h-1] 24,24" \) \
     -compose CopyOpacity -composite -strip "$out/$name.png"
 }
-
-frame composer "$work/composer-raw.png;$palette"
 
 mp resize 1200 960
 mp goto /
