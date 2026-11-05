@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.24.0](https://github.com/kenyounot123/moneypouch/compare/v0.23.1...v0.24.0) (2026-11-05)
+
+
+### Features
+
+* **overview:** show Income and Spent side by side instead of Overspent ([#211](https://github.com/kenyounot123/moneypouch/issues/211)) ([dcd98a5](https://github.com/kenyounot123/moneypouch/commit/dcd98a5ac68ec22431c6cdccd55fcbd418e693a2))
+
+
+### Bug Fixes
+
+* **bank-sync:** start Sync it 90 days back and sync at once ([#213](https://github.com/kenyounot123/moneypouch/issues/213)) ([b7c3e34](https://github.com/kenyounot123/moneypouch/commit/b7c3e34fa6b585152efa5f64aa9f66947b893277))
+
 ## [0.23.1](https://github.com/kenyounot123/moneypouch/compare/v0.23.0...v0.23.1) (2026-11-03)
 
 
