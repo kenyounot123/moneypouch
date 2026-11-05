@@ -5,6 +5,10 @@ class Summary
     def net
       income - spent
     end
+
+    def positive_net
+      net if net.positive?
+    end
   end
 
   def initialize(transactions, period)
