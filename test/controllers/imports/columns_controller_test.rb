@@ -24,7 +24,7 @@ class Imports::ColumnsControllerTest < ActionDispatch::IntegrationTest
     assert_select "form p", text: "5 more rows"
     assert_select "input[type=radio][name='import[positive_amounts]'][value=spent][checked]"
     assert_select "form p", text: "Rows with no date, like totals, are left out.", count: 0
-    assert_select "form[action=?] button", import_path(import), text: "Cancel"
+    assert_select "main button", text: "Cancel", count: 0
     assert_select "aside a[aria-current=page]", text: "Import"
     assert_select "h1", text: "Columns"
     assert_select "nav[aria-label=Breadcrumb] li", count: 2
