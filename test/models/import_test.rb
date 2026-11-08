@@ -25,8 +25,8 @@ class ImportTest < ActiveSupport::TestCase
   test "the tally counts what Import would add" do
     import = @user.imports.create!(file: import_file("personal.csv"))
 
-    assert_equal Import::Tally.new(spent: 9, refunds: 1, income: 0, transfers: 0, excluded: 1, unreadable: 1, already_here: 0), import.tally
-    assert_equal 11, import.tally.adding
+    assert_equal [ [ :spent, 9, 337_156 ], [ :refund, 1, -550 ], [ :excluded, 1, 82_000 ] ], import.tally.lines.map { |line| [ line.kind, line.count, line.cents ] }
+    assert_equal [ 11, 418_606 ], [ import.tally.adding, import.tally.total_cents ]
   end
 
   test "money in under a spending word is a refund when it comes to no more than the word's spending" do
@@ -34,7 +34,7 @@ class ImportTest < ActiveSupport::TestCase
     coffee = import.category_words.find { |category_word| category_word.word == "Coffee" }
 
     assert_equal [ 1, nil ], [ coffee.money_in_count, coffee.money_in_name ]
-    assert_equal [ 9, 1, 0 ], [ import.tally.spent, import.tally.refunds, import.tally.income ]
+    assert_equal [ 9, 1, 0 ], counts(import.tally, :spent, :refund, :income)
 
     import.complete
 
@@ -46,7 +46,7 @@ class ImportTest < ActiveSupport::TestCase
     work = import.category_words.first
 
     assert_equal [ "work", false, 2, "Income" ], [ work.name, work.income?, work.money_in_count, work.money_in_name ]
-    assert_equal [ 1, 0, 2 ], [ import.tally.spent, import.tally.refunds, import.tally.income ]
+    assert_equal [ 1, 0, 2 ], counts(import.tally, :spent, :refund, :income)
 
     import.complete
 
@@ -63,7 +63,7 @@ class ImportTest < ActiveSupport::TestCase
     coffee = import.category_words.find { |category_word| category_word.word == "Coffee" }
 
     assert_equal [ "Coffee", "Income" ], [ coffee.name, coffee.money_in_name ]
-    assert_equal [ 9, 0, 1 ], [ import.tally.spent, import.tally.refunds, import.tally.income ]
+    assert_equal [ 9, 0, 1 ], counts(import.tally, :spent, :refund, :income)
 
     import.complete
 
@@ -74,13 +74,13 @@ class ImportTest < ActiveSupport::TestCase
     import = @user.imports.create!(file: upload("work.csv", "Date,Name,Category,Amount\n2024-10-01,Laptop stand,work,-50\n2024-10-02,Upwork,work,2000\n2024-10-03,Upwork,work,1500\n"))
 
     import.choose_categories([ { word: "work", name: "work", money_in: "" } ])
-    assert_equal [ 1, 2, 0 ], [ import.tally.spent, import.tally.refunds, import.tally.income ]
+    assert_equal [ 1, 2, 0 ], counts(import.tally, :spent, :refund, :income)
 
     import.choose_categories([ { word: "work", name: "Food" } ])
     work = import.category_words.first
 
     assert_equal [ "Food", nil ], [ work.name, work.money_in_name ]
-    assert_equal [ 1, 2, 0 ], [ import.tally.spent, import.tally.refunds, import.tally.income ]
+    assert_equal [ 1, 2, 0 ], counts(import.tally, :spent, :refund, :income)
 
     import.complete
 
@@ -115,7 +115,7 @@ class ImportTest < ActiveSupport::TestCase
     [ "Food", "Nope" ].each do |name|
       import.choose_categories([ { word: "work", name: "work", money_in: name } ])
 
-      assert_equal [ nil, 1, 1, 0 ], [ import.category_words.first.money_in_name, import.tally.spent, import.tally.refunds, import.tally.income ]
+      assert_equal [ nil, 1, 1, 0 ], [ import.category_words.first.money_in_name, *counts(import.tally, :spent, :refund, :income) ]
     end
   end
 
@@ -135,7 +135,7 @@ class ImportTest < ActiveSupport::TestCase
     import.complete
 
     counted = import.transactions.counted
-    assert_equal [ 2, 1, 2, 1, 1 ], [ tally.spent, tally.refunds, tally.income, tally.transfers, tally.excluded ]
+    assert_equal [ 2, 1, 2, 1, 1 ], counts(tally, :spent, :refund, :income, :transfer, :excluded)
     assert_equal [ 2, 1, 2 ], [ counted.spending.money_out.count, counted.spending.money_in.count, counted.incoming.count ]
   end
 
@@ -158,7 +158,7 @@ class ImportTest < ActiveSupport::TestCase
 
     assert_equal [ [ "Coffee", "Coffee", false ], [ "Salary", "Salary", true ] ],
       import.category_words.map { |category_word| [ category_word.word, category_word.name, category_word.income? ] }
-    assert_equal [ 1, 1 ], [ import.tally.spent, import.tally.income ]
+    assert_equal [ 1, 1 ], counts(import.tally, :spent, :income)
 
     import.complete
 
@@ -168,7 +168,7 @@ class ImportTest < ActiveSupport::TestCase
   test "money in with no category lands in Income, and money in a spending category is a refund" do
     import = @user.imports.create!(file: upload("in.csv", "Date,Name,Category,Amount\n2024-10-01,Pay,,2000\n2024-10-02,Lunch,Food,-12\n2024-10-03,Lunch refund,Food,12\n"))
 
-    assert_equal [ 1, 1, 1 ], [ import.tally.spent, import.tally.refunds, import.tally.income ]
+    assert_equal [ 1, 1, 1 ], counts(import.tally, :spent, :refund, :income)
 
     import.complete
 
@@ -183,7 +183,7 @@ class ImportTest < ActiveSupport::TestCase
     import = Import.find(import.id)
 
     assert_equal [ "", "Going out" ], [ import.category_words.first.name, import.category_words.find { |category_word| category_word.word == "Fun" }.name ]
-    assert_equal [ 9, 0, 1 ], [ import.tally.spent, import.tally.refunds, import.tally.income ]
+    assert_equal [ 9, 0, 1 ], counts(import.tally, :spent, :refund, :income)
   end
 
   test "Import adds the rows, creating the categories it needs and using the user's own" do
@@ -246,7 +246,7 @@ class ImportTest < ActiveSupport::TestCase
     @user.imports.create!(file: import_file("personal.csv")).complete
     again = @user.imports.create!(file: import_file("personal.csv"))
 
-    assert_equal [ 0, 11 ], [ again.tally.adding, again.tally.already_here ]
+    assert_equal [ 0, 11 ], [ again.tally.adding, again.tally.already_here.size ]
     assert_no_difference -> { Transaction.count } do
       again.complete
     end
@@ -258,7 +258,7 @@ class ImportTest < ActiveSupport::TestCase
     @user.imports.create!(file: import_file("personal.csv")).complete
     newer = @user.imports.create!(file: upload("personal.csv", file_fixture("imports/personal.csv").read + "2024-10-11,Blue Bottle,Coffee,5.50,,\n2024-10-11,Blue Bottle,Coffee,5.50,,\n"))
 
-    assert_equal [ 2, 11 ], [ newer.tally.adding, newer.tally.already_here ]
+    assert_equal [ 2, 11 ], [ newer.tally.adding, newer.tally.already_here.size ]
     newer.complete
     assert_equal [ [ "2024-10-11", -550 ], [ "2024-10-11", -550 ] ], newer.transactions.map { |transaction| [ transaction.occurred_on.iso8601, transaction.amount_in_cents ] }
   end
@@ -268,15 +268,66 @@ class ImportTest < ActiveSupport::TestCase
     @user.transactions.create!(name: "Blue Bottle", amount_in_cents: -550, occurred_on: "2024-10-02").discard
     import = @user.imports.create!(file: upload("coffee.csv", "Date,Name,Amount\n2024-10-01,Blue Bottle,-5.50\n2024-10-01,Blue  Bottle,-5.50\n2024-10-01,Blue Bottle,5.50\n2024-10-02,Blue Bottle,-5.50\n"))
 
-    assert_equal [ 3, 1 ], [ import.tally.adding, import.tally.already_here ]
+    assert_equal [ 3, 1 ], [ import.tally.adding, import.tally.already_here.size ]
     import.complete
     assert_equal [ [ 1, -550 ], [ 1, 550 ], [ 2, -550 ] ], import.transactions.order(:occurred_on, :amount_in_cents).map { |transaction| [ transaction.occurred_on.day, transaction.amount_in_cents ] }
+  end
+
+  test "rows already here are paired with the transaction they match, in file order" do
+    typed, earlier, banked, deleted = have_personal_rows(@user)
+    import = @user.start_import(import_file("personal.csv"))
+    tally = import.tally
+
+    assert_equal [ [ "Whole Foods", typed ], [ "Trader Joe's", earlier ], [ "Rent", banked ], [ "Groceries", deleted ] ], tally.already_here.map { |row, transaction| [ row.name, transaction ] }
+    assert_equal [ 7, 89_140, 329_466, 418_606 ], [ tally.adding, tally.new_cents, tally.already_here_cents, tally.total_cents ]
+  end
+
+  test "an identical row typed in twice is matched to two different transactions" do
+    first = @user.transactions.create!(name: "Coffee", amount_in_cents: -550, occurred_on: "2024-10-01")
+    second = @user.transactions.create!(name: "coffee", amount_in_cents: -550, occurred_on: "2024-10-01")
+    import = @user.start_import(upload("coffee.csv", "Date,Name,Amount\n2024-10-01,Coffee,-5.50\n2024-10-01,Coffee,-5.50\n2024-10-01,Coffee,-5.50\n"))
+
+    assert_equal [ first, second ], import.tally.already_here.values
+    assert_equal 1, import.tally.adding
+  end
+
+  test "the total is checked against the file's own Total row" do
+    tally = @user.start_import(import_file("personal.csv")).tally
+
+    assert_equal [ 418_606, :matches ], [ tally.total_cents, tally.total_check ]
+  end
+
+  test "a Total row that doesn't add up is named" do
+    import = @user.start_import(upload("short.csv", "Date,Name,Amount\n2024-10-01,Coffee,5.50\n2024-10-02,Lunch,12.00\nTotal,,18.00\n"))
+
+    assert_equal Import::StatedTotal.new(tab: nil, cents: 1_800), import.tally.total_check
+    assert_equal 1_750, import.tally.total_cents
+  end
+
+  test "a file with no Total row has nothing to check" do
+    import = @user.start_import(upload("names.csv", "Date,Name,Amount\n2024-10-01,Coffee,5.50\n"))
+
+    assert_nil import.tally.total_check
+  end
+
+  test "a workbook's Total row checks its own tab" do
+    tally = @user.start_import(import_file("history.xlsx")).tally
+
+    assert_equal [ "2024" ], tally.stated_totals.map(&:tab)
+    assert_equal :matches, tally.total_check
+  end
+
+  test "the last Total row in a tab is the one that counts" do
+    import = @user.start_import(upload("twice.csv", "Date,Name,Amount\n2024-10-01,Coffee,5.50\nTotal,,1.00\n2024-10-02,Lunch,12.00\nTotal,,17.50\n"))
+
+    assert_equal [ 1_750 ], import.tally.stated_totals.map(&:cents)
+    assert_equal :matches, import.tally.total_check
   end
 
   test "a transfer is neither spending nor income and needs no category" do
     import = @user.imports.create!(file: upload("moves.csv", "Date,Name,Amount,Category,Transfer\n2024-10-01,To savings,500,Savings,yes\n2024-10-02,Blue Bottle,5.50,Coffee,\n"))
 
-    assert_equal Import::Tally.new(spent: 1, refunds: 0, income: 0, transfers: 1, excluded: 0, unreadable: 0, already_here: 0), import.tally
+    assert_equal [ [ :spent, 1, 550 ], [ :transfer, 1, 50_000 ] ], import.tally.lines.map { |line| [ line.kind, line.count, line.cents ] }
     assert_equal [ "Coffee" ], import.category_words.map(&:word)
     import.complete
     assert_equal [ [ "To savings", true, nil ], [ "Blue Bottle", false, "Coffee" ] ], import.transactions.order(:occurred_on).map { |transaction| [ transaction.name, transaction.transfer?, transaction.category&.name ] }
@@ -289,7 +340,7 @@ class ImportTest < ActiveSupport::TestCase
 
     again = @user.imports.create!(file: import_file("personal.csv"))
 
-    assert_equal [ 0, 11 ], [ again.tally.adding, again.tally.already_here ]
+    assert_equal [ 0, 11 ], [ again.tally.adding, again.tally.already_here.size ]
     assert_no_difference -> { Transaction.count } do
       again.complete
     end
@@ -323,7 +374,7 @@ class ImportTest < ActiveSupport::TestCase
     assert_equal [ [ "Blue Bottle", "Paycheck" ], [ "Food", "Income" ], false ],
       [ @user.transactions.order(:name).pluck(:name), @user.categories.order(:name).pluck(:name), Import.exists?(import.id) ]
     again = @user.imports.create!(file: import_file("personal.csv"))
-    assert_equal [ 11, 0 ], [ again.tally.adding, again.tally.already_here ]
+    assert_equal [ 11, 0 ], [ again.tally.adding, again.tally.already_here.size ]
   end
 
   test "Undo keeps a row a bank sync matched since, and the category it uses" do
@@ -367,4 +418,10 @@ class ImportTest < ActiveSupport::TestCase
     assert_raises(ActiveRecord::RecordNotUnique) { Import.create!(user: @user, file: import_file("bank.csv")) }
     assert_raises(ActiveRecord::StatementInvalid) { import.update_columns(completed_at: Time.current) }
   end
+
+  private
+    def counts(tally, *kinds)
+      by_kind = tally.lines.to_h { |line| [ line.kind, line.count ] }
+      kinds.map { |kind| by_kind.fetch(kind, 0) }
+    end
 end

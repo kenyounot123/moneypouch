@@ -1,1 +1,1 @@
-Import::UnreadableRow = Data.define(:tab, :number, :reason)
+Import::UnreadableRow = Data.define(:tab, :number, :name, :reason)

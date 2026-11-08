@@ -1,4 +1,4 @@
-class Import::Row < Data.define(:tab, :number, :occurred_on, :name, :amount_in_cents, :category_word, :transfer, :excluded, :note, :key)
+class Import::Row < Data.define(:tab, :number, :occurred_on, :name, :amount_in_cents, :written_cents, :category_word, :transfer, :excluded, :note, :key)
   KEY_PREFIX = "import:"
   private_constant :KEY_PREFIX
 

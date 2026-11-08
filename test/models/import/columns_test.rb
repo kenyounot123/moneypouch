@@ -144,7 +144,41 @@ class Import::ColumnsTest < ActiveSupport::TestCase
 
     assert_equal [ [ "2023", 6, Date.new(2023, 12, 30), -41_200, true ], [ "2024", 4, Date.new(2024, 1, 5), -3_640, false ] ],
       rows.values_at(2, 5).map { |row| [ row.tab, row.number, row.occurred_on, row.amount_in_cents, row.excluded? ] }
-    assert_equal 6, rows.size
+    assert_equal 6, rows.grep(Import::Row).size
+  end
+
+  test "each row keeps the amount as the file wrote it, whichever way Positive amounts points" do
+    file = sheet("personal.csv")
+    spent = Import::Columns.guess(file).read(file).grep(Import::Row)
+    income = Import::Columns.new(kinds: %w[ date name category amount excluded note ], positive_amounts: "income").read(file).grep(Import::Row)
+
+    assert_equal [ 550, 550, 550, 123_456, 82_000, 4_210, -550, 200_000, 1_800, 2_400, 3_640 ], spent.map(&:written_cents)
+    assert_equal spent.map(&:written_cents), income.map(&:written_cents)
+    assert_equal spent.map(&:amount_in_cents), income.map { |row| -row.amount_in_cents }
+  end
+
+  test "a dateless row that says Total and has an amount is the file's own total, not a row it skips" do
+    file = Import::Sheet.read(upload("totals.csv", <<~CSV))
+      Date,Name,Amount
+      2024-10-01,Coffee,5.50
+      Total,,5.50
+      ,Grand  Total,"1,000.00"
+      ,Subtotal,3.00
+      ,Total,words
+      ,Totals,
+    CSV
+    readings = Import::Columns.new(kinds: %w[ date name amount ], positive_amounts: "spent").read(file)
+
+    assert_equal [ [ nil, 550 ], [ nil, 100_000 ] ], readings.grep(Import::StatedTotal).map { |total| [ total.tab, total.cents ] }
+    assert_equal [ "Coffee" ], readings.grep(Import::Row).map(&:name)
+    assert_empty readings.grep(Import::UnreadableRow)
+  end
+
+  test "a row it can't read keeps its name, else its category" do
+    file = Import::Sheet.read(upload("names.csv", "Date,Name,Category,Amount\n2024-10-01,Cinema,Fun,abc\n2024-10-02,,Fun,abc\n2024-10-03,,,abc\n"))
+    readings = Import::Columns.new(kinds: %w[ date name category amount ], positive_amounts: "spent").read(file)
+
+    assert_equal [ "Cinema", "Fun", nil ], readings.grep(Import::UnreadableRow).map(&:name)
   end
 
   test "the Columns step's messages say what's missing or chosen twice" do
