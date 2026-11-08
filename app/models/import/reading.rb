@@ -13,8 +13,16 @@ class Import::Reading
     readings.grep(Import::UnreadableRow)
   end
 
+  def stated_totals
+    readings.grep(Import::StatedTotal).group_by(&:tab).values.map(&:last)
+  end
+
+  def already_here
+    @already_here ||= user.imported_already(rows)
+  end
+
   def new_rows
-    @new_rows ||= rows - user.imported_already(rows)
+    @new_rows ||= rows.reject { |row| already_here.key?(row) }
   end
 
   def category_words
@@ -41,19 +49,15 @@ class Import::Reading
   end
 
   def tally
-    counted = new_rows.select(&:counted?)
-    counts = counted.map { |row| category_word_for(row).counts_as(row) }.tally
-    transfers = new_rows.count(&:transfer?)
+    new_by_kind = new_rows.group_by { |row| kind_of(row) }
 
-    Import::Tally.new(
-      spent: counts.fetch(:spent, 0),
-      refunds: counts.fetch(:refund, 0),
-      income: counts.fetch(:income, 0),
-      transfers:,
-      excluded: new_rows.size - counted.size - transfers,
-      unreadable: unreadable_rows.size,
-      already_here: rows.size - new_rows.size
-    )
+    lines = Import::Tally::KINDS.filter_map do |kind|
+      if new_by_kind.key?(kind)
+        Import::Tally::Line.new(kind:, count: new_by_kind[kind].size, cents: new_by_kind[kind].sum(&:written_cents))
+      end
+    end
+
+    Import::Tally.new(lines:, already_here:, unreadable_rows:, stated_totals:, rows:)
   end
 
   private
@@ -61,6 +65,16 @@ class Import::Reading
 
     def readings
       @readings ||= columns.read(sheet)
+    end
+
+    def kind_of(row)
+      if row.transfer?
+        :transfer
+      elsif row.excluded?
+        :excluded
+      else
+        category_word_for(row).counts_as(row)
+      end
     end
 
     def user_categories

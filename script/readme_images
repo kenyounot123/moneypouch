@@ -135,4 +135,34 @@ magick "$work/phone-raw.png" \
   \( +clone -alpha transparent -fill white -draw "roundrectangle 0,0 %[fx:w-1],%[fx:h-1] 48,48" \) \
   -compose CopyOpacity -composite -strip "$out/phone.png"
 
-echo "$out/pouch.png $out/composer.png $out/demo.gif $out/overview.png $out/trends.png $out/phone.png"
+(
+  cd "$app"
+  bin/rails runner 'user = User.find_by!(username: "demo")
+    user.transactions.create!(name: "Whole Foods", amount_in_cents: -123_456, occurred_on: "2024-10-02")
+    rent = user.transactions.create!(name: "Rent", amount_in_cents: -200_000, occurred_on: "2024-10-06")
+    access = Simplefin::Access.create!(user:, status: "disconnected", access_url: "https://demo:secret@example.com/simplefin")
+    account = access.bank_accounts.create!(user:, external_id: "checking", name: "Checking", institution: "Demo Bank", currency: "USD", status: "skipped")
+    account.bank_transactions.create!(simplefin_sync: access.syncs.create!(finished_at: Time.current), transaction_id: rent.id, external_id: "rent",
+      amount_in_cents: -200_000, occurred_on: rent.occurred_on, description: "Rent", name_key: "rent")' > /dev/null
+)
+mp resize 900 1000
+mp goto /imports/new
+mp upload 'input[type=file]' "$app/test/fixtures/files/imports/personal.csv"
+mp click 'main form[action$="/columns"] button'
+mp wait main --text 'Check what comes in'
+categories=$("$driver" js 'location.pathname' --port "$port" | tr -d '"')
+mp js 'document.documentElement.style.scrollbarWidth = "none"'
+mp shot "$work/import-raw.png" --scale 2
+frame import "$work/import-raw.png"
+
+mp mode dark
+mp resize 390 844
+mp goto "$categories"
+mp js 'document.documentElement.style.scrollbarWidth = "none"; window.scrollTo(0, document.documentElement.scrollHeight)'
+mp shot "$work/import-phone-raw.png" --scale 2
+mp mode light
+magick "$work/import-phone-raw.png" \
+  \( +clone -alpha transparent -fill white -draw "roundrectangle 0,0 %[fx:w-1],%[fx:h-1] 48,48" \) \
+  -compose CopyOpacity -composite -strip "$out/import-phone.png"
+
+echo "$out/pouch.png $out/composer.png $out/demo.gif $out/overview.png $out/trends.png $out/phone.png $out/import.png $out/import-phone.png"

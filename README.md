@@ -52,7 +52,7 @@ I built MoneyPouch because every app I tried wanted me to budget first, and I on
 | :--- | :--- |
 | Decide if MoneyPouch is for you | [Features](#features) · [What MoneyPouch is not](#what-moneypouch-is-not) · [How it compares](#how-it-compares) · [Why I built MoneyPouch](#why-i-built-moneypouch) |
 | Install it | [System requirements](#system-requirements) · [Getting started](#getting-started) |
-| Log your spending | [Type it like you'd say it](#type-it-like-youd-say-it) · [Bank sync with SimpleFIN](#bank-sync-with-simplefin) |
+| Log your spending | [Type it like you'd say it](#type-it-like-youd-say-it) · [Import your history](#import-your-history) · [Bank sync with SimpleFIN](#bank-sync-with-simplefin) |
 | Run the server | [Share your server with friends](#share-your-server-with-friends) · [Forgot your password](#forgot-your-password) · [Backups and updates](#backups-and-updates) |
 | Help build it | [Contributing](#contributing) |
 
@@ -167,6 +167,27 @@ Press ⌘K (Ctrl+K) on any page and type one line. MoneyPouch colors each part a
 | **Category** | `#food` | The category you last used for that name |
 
 Parts can go in any order. Put a `+` on the amount for money in, like `Paycheck +2400`. Tab completes a name you have used, `#` lists your categories, and `@` opens a calendar.
+
+## Import your history
+
+Open Import in the sidebar and drop in an Excel (.xlsx) or CSV file. A workbook with one tab per year works too.
+
+1. **Check the columns.** MoneyPouch guesses which column is the date, the name, and the amount. Fix any it got wrong.
+2. **Pick what each category becomes.** Match your file's categories to yours, or let them become new ones.
+3. **Read the preview.** It shows what comes in, what is already here and skipped, and what can't be read. Under them is a total of every row. If your file has its own Total row, MoneyPouch checks that the two agree and tells you when they don't.
+
+Press Import when it looks right. You can undo the whole import later.
+
+<table>
+  <tr>
+    <td width="70%"><img src="docs/images/import.png" alt="The import preview: nine new rows, two rows already here and skipped, one row that can't be read, and a total that matches the file's own Total row"></td>
+    <td width="30%"><img src="docs/images/import-phone.png" alt="The same preview on a phone in dark mode"></td>
+  </tr>
+  <tr>
+    <td align="center">Check the preview before you import</td>
+    <td align="center">On your phone</td>
+  </tr>
+</table>
 
 ## Bank sync with SimpleFIN
 

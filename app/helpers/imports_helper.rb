@@ -18,7 +18,14 @@ module ImportsHelper
 
   POSITIVE_AMOUNTS = { "spent" => "Spent", "income" => "Income" }
 
-  UNREADABLE_SHOWN = 20
+  ROWS_SHOWN = 20
+
+  ALREADY_HERE_SOURCES = {
+    deleted: "deleted before",
+    bank: "from your bank",
+    import: "from %{filename}",
+    typed: "typed in"
+  }
 
   def imported_transactions(import)
     pluralize(number_with_delimiter(import.transactions.count), "transaction")
@@ -133,56 +140,61 @@ module ImportsHelper
     end
   end
 
-  def tally_counts(tally)
-    counts = { "Spent" => tally.spent }
+  def tally_line_label(line)
+    count = number_with_delimiter(line.count)
 
-    if tally.refunds.positive?
-      counts["Refunds"] = tally.refunds
-    end
-
-    counts["Income"] = tally.income
-
-    if tally.transfers.positive?
-      counts["Transfers"] = tally.transfers
-    end
-
-    counts.merge("Excluded" => tally.excluded)
-  end
-
-  def tally_grid_classes(tally)
-    if tally.already_here.positive?
-      "grid-cols-4"
+    case line.kind
+    when :refund, :transfer
+      "#{count} #{line.kind.to_s.pluralize(line.count)}"
     else
-      case tally_counts(tally).size
-      when 3
-        "grid-cols-4"
-      when 4
-        "grid-cols-3 @lg:grid-cols-5"
-      else
-        "grid-cols-3 @lg:grid-cols-6"
-      end
+      "#{count} #{line.kind}"
     end
   end
 
-  def tally_note(tally)
-    if tally.already_here.positive?
-      "Rows you added before are skipped."
+  def new_rows_lines(tally)
+    tally.lines.map { |line| [ tally_line_label(line), money(line.cents) ] }
+  end
+
+  def already_here_lines(tally)
+    tally.already_here.first(ROWS_SHOWN).map do |row, transaction|
+      [ [ row_place(row), short_date(row.occurred_on), row.name, already_here_source(transaction) ].join(" · "), money(row.written_cents) ]
+    end
+  end
+
+  def unreadable_lines(tally)
+    tally.unreadable_rows.first(ROWS_SHOWN).map do |row|
+      [ [ row_place(row), row.name, row.reason.upcase_first ].compact.join(" · "), nil ]
+    end
+  end
+
+  def rows_not_shown(rows)
+    [ rows.size - ROWS_SHOWN, 0 ].max
+  end
+
+  def already_here_source(transaction)
+    source = if transaction.discarded_at
+      :deleted
+    elsif transaction.from_bank?
+      :bank
+    elsif transaction.import
+      :import
     else
-      notes = []
+      :typed
+    end
 
-      if tally.refunds.positive?
-        notes << "Refunds lower spending in their category."
-      end
+    ALREADY_HERE_SOURCES.fetch(source) % { filename: transaction.import&.filename }
+  end
 
-      if tally.income.positive?
-        notes << "Money in with no category counts as income."
-      end
-
-      notes.join(" ").presence
+  def total_check_sentence(check, filename)
+    case check
+    when :matches
+      "Matches the Total row in #{filename}"
+    when Import::StatedTotal
+      "The Total row #{check.tab ? "on the #{check.tab} tab" : "in #{filename}"} says #{money(check.cents)}"
     end
   end
 
-  def unreadable_place(row)
+  def row_place(row)
     if row.tab
       "#{row.tab}, row #{row.number}"
     else
@@ -193,7 +205,7 @@ module ImportsHelper
   def import_footer_note(tally)
     if tally.adding.positive?
       "You can undo the whole import later."
-    elsif tally.already_here.positive?
+    elsif tally.already_here.any?
       "Every row in this file is already here."
     else
       "No row can be read. Go back and check the columns."

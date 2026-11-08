@@ -23,7 +23,7 @@ class Transaction::DownloadTest < ActiveSupport::TestCase
 
     import = one.imports.create!(file: upload("download.csv", one.transactions.to_csv))
 
-    assert_equal [ 0, one.transactions.count ], [ import.tally.adding, import.tally.already_here ]
+    assert_equal [ 0, one.transactions.count ], [ import.tally.adding, import.tally.already_here.size ]
     assert_no_difference -> { Transaction.count } do
       import.complete
     end

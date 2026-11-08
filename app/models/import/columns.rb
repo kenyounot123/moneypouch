@@ -19,9 +19,11 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
 
   NEEDED = { "date" => "Choose a Date column.", "amount" => "Choose an Amount column." }
 
+  TOTAL_WORDS = [ "total", "totals", "grand total" ]
+
   READS_AS = 0.8
   MOSTLY_SPENT = 0.9
-  private_constant :POSITIVE_AMOUNTS, :SPENT_WORDS, :INCOME_WORDS, :NO_WORDS, :HEADER_WORDS, :NEEDED, :READS_AS, :MOSTLY_SPENT
+  private_constant :POSITIVE_AMOUNTS, :SPENT_WORDS, :INCOME_WORDS, :NO_WORDS, :TOTAL_WORDS, :HEADER_WORDS, :NEEDED, :READS_AS, :MOSTLY_SPENT
 
   class << self
     def guess(sheet)
@@ -183,7 +185,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
 
     sheet.rows.filter_map do |sheet_row|
       if Import::DateFormat.dateless?(cell(sheet_row, "date"))
-        next
+        next stated_total(sheet_row, amounts)
       end
 
       occurred_on = dates.read(cell(sheet_row, "date"))
@@ -194,7 +196,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
       reason = unreadable_because(sheet_row, occurred_on:, cents:, direction:, name:)
 
       if reason
-        Import::UnreadableRow.new(tab: sheet_row.tab, number: sheet_row.number, reason:)
+        Import::UnreadableRow.new(tab: sheet_row.tab, number: sheet_row.number, name:, reason:)
       else
         identity = [ occurred_on, cents.abs, name.downcase.squish ]
         ordinals[identity] += 1
@@ -206,6 +208,7 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
           occurred_on:,
           name:,
           amount_in_cents: spent?(direction) ? -cents : cents,
+          written_cents: cents,
           category_word: category_word(category_text, transfer:, spellings:),
           transfer:,
           excluded: yes?(cell(sheet_row, "excluded")),
@@ -231,6 +234,16 @@ class Import::Columns < Data.define(:kinds, :positive_amounts)
 
     def note(cell)
       Import::Sheet.text(cell)&.strip.presence
+    end
+
+    def stated_total(sheet_row, amounts)
+      if sheet_row.cells.any? { |cell| TOTAL_WORDS.include?(text(cell)&.downcase) }
+        cents = amounts.read(cell(sheet_row, "amount"))
+
+        if cents
+          Import::StatedTotal.new(tab: sheet_row.tab, cents:)
+        end
+      end
     end
 
     def quoted(cell)

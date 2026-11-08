@@ -40,34 +40,72 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "select[aria-label^='What Groceries money in']", count: 0
   end
 
-  test "the tally counts what Import adds, and Can't read lists the rows it leaves out" do
+  test "the preview adds up the file: what's new by kind, what can't be read, and a total that matches the file's own" do
     import = @user.start_import(import_file("personal.csv"))
 
     get edit_import_categories_url(import)
 
-    assert_equal [ [ "9", "Spent" ], [ "1", "Refunds" ], [ "0", "Income" ], [ "1", "Excluded" ], [ "1", "Can't read" ] ], tally
-    assert_select "p", text: "Refunds lower spending in their category."
-    assert_select "#unreadable_rows[hidden] li", text: /Row 12\s+Can't read the amount “abc”/
+    assert_equal [ "New", "11 rows", "$4,186.06" ], heading("New")
+    assert_equal [ [ "└ 9 spent", "$3,371.56" ], [ "└ 1 refund", "−$5.50" ], [ "└ 1 excluded", "$820.00" ] ], lines("New")
+    assert_select "section[aria-label='Already here']", count: 0
+    assert_equal [ "Can't read", "1 row, left out" ], heading("Can't read")
+    assert_equal [ [ "└ Row 12 · Cinema · Can't read the amount “abc”" ] ], lines("Can't read")
+    assert_select %(section[aria-label="Can't read"] p.text-danger), text: "1 row, left out"
+    assert_equal [ "Total", "Matches the Total row in personal.csv", "$4,186.06" ], heading("Total")
     assert_select "p", text: "You can undo the whole import later."
     assert_select "form[action=?] button:not([disabled])", import_transactions_path(import), text: "Import 11 ↵"
   end
 
-  test "a file with transfers counts them on their own, five to a row" do
-    import = @user.start_import(upload("moves.csv", "Date,Name,Amount,Transfer\n2024-10-01,To savings,500,yes\n2024-10-02,Blue Bottle,5.50,\n"))
+  test "rows already here list where they came from, and the total still counts them" do
+    have_personal_rows(@user)
+    import = @user.start_import(import_file("personal.csv"))
 
     get edit_import_categories_url(import)
 
-    assert_equal [ [ "1", "Spent" ], [ "0", "Income" ], [ "1", "Transfers" ], [ "0", "Excluded" ] ], tally
-    assert_select "dl.grid-cols-3.\\@lg\\:grid-cols-5"
+    assert_equal [ "New", "7 rows", "$891.40" ], heading("New")
+    assert_equal [ "Already here", "4 rows, skipped", "$3,294.66" ], heading("Already here")
+    assert_equal [ [ "└ Row 5 · Oct 2, 2024 · Whole Foods · typed in", "$1,234.56" ], [ "└ Row 8 · Oct 4, 2024 · Trader Joe's · from earlier.csv", "$42.10" ],
+                   [ "└ Row 10 · Oct 6, 2024 · Rent · from your bank", "$2,000.00" ], [ "└ Row 11 · Oct 7, 2024 · Groceries · deleted before", "$18.00" ] ], lines("Already here")
+    assert_equal [ "Total", "Matches the Total row in personal.csv", "$4,186.06" ], heading("Total")
   end
 
-  test "a file with refunds and transfers counts six to a row" do
-    import = @user.start_import(upload("moves.csv", "Date,Name,Category,Amount,Transfer\n2024-10-01,To savings,,500,yes\n2024-10-02,Lunch,Food,-12,\n2024-10-03,Lunch refund,Food,5,\n"))
+  test "each list shows its first 20 rows and counts the rest" do
+    rows = (1..25).map { |day| "2024-09-#{day.to_s.rjust(2, "0")},Shop #{day},abc\n" }.join
+    import = @user.start_import(upload("many.csv", "Date,Name,Amount\n#{rows}"))
 
     get edit_import_categories_url(import)
 
-    assert_equal [ [ "1", "Spent" ], [ "1", "Refunds" ], [ "0", "Income" ], [ "1", "Transfers" ], [ "0", "Excluded" ] ], tally
-    assert_select "dl.grid-cols-3.\\@lg\\:grid-cols-6"
+    assert_equal [ "Can't read", "25 rows, left out" ], heading("Can't read")
+    assert_equal 20, lines("Can't read").size
+    assert_select %(section[aria-label="Can't read"] p), text: "And 5 more."
+    assert_select "section[aria-label=Total]", count: 0
+    assert_select "form[action=?] button[disabled]", import_transactions_path(import), text: "Import 0 ↵"
+    assert_select "p", text: "No row can be read. Go back and check the columns."
+  end
+
+  test "a Total row that doesn't add up says what it says" do
+    import = @user.start_import(upload("short.csv", "Date,Name,Amount\n2024-10-01,Coffee,5.50\n2024-10-02,Lunch,12.00\nTotal,,\"1,800.00\"\n"))
+
+    get edit_import_categories_url(import)
+
+    assert_equal [ "Total", "The Total row in short.csv says $1,800.00", "$17.50" ], heading("Total")
+    assert_select "section[aria-label=Total] p.text-danger", text: "The Total row in short.csv says $1,800.00"
+  end
+
+  test "a file with no Total row has no check line" do
+    import = @user.start_import(upload("names.csv", "Date,Name,Amount\n2024-10-01,Coffee,5.50\n"))
+
+    get edit_import_categories_url(import)
+
+    assert_equal [ "Total", "$5.50" ], heading("Total")
+  end
+
+  test "a file with transfers lists them after income, and refunds before" do
+    import = @user.start_import(upload("moves.csv", "Date,Name,Category,Amount,Transfer\n2024-10-01,To savings,,500,yes\n2024-10-02,Lunch,Food,-12,\n2024-10-03,Lunch refund,Food,5,\n2024-10-04,Lunch,Food,-12,\n"))
+
+    get edit_import_categories_url(import)
+
+    assert_equal [ [ "└ 2 spent", "−$24.00" ], [ "└ 1 refund", "$5.00" ], [ "└ 1 transfer", "$500.00" ] ], lines("New")
   end
 
   test "a choice saves and the tally follows it" do
@@ -79,8 +117,7 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_select "select[aria-label='What Coffee becomes'] option[selected]", text: "No category"
     assert_select "select[aria-label='What Groceries becomes'] option[selected]", text: "Food"
-    assert_equal [ [ "9", "Spent" ], [ "1", "Income" ], [ "1", "Excluded" ], [ "1", "Can't read" ] ], tally
-    assert_select "p", text: "Money in with no category counts as income."
+    assert_equal [ [ "└ 9 spent", "$3,371.56" ], [ "└ 1 income", "−$5.50" ], [ "└ 1 excluded", "$820.00" ] ], lines("New")
   end
 
   test "a matched word with money in stays out of the fold so its money-in choice shows" do
@@ -101,8 +138,7 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_select "select[aria-label='What Coffee money in becomes'] option[selected]", text: "Income"
-    assert_equal [ [ "9", "Spent" ], [ "1", "Income" ], [ "1", "Excluded" ], [ "1", "Can't read" ] ], tally
-    assert_select "p", text: "Money in with no category counts as income."
+    assert_equal [ [ "└ 9 spent", "$3,371.56" ], [ "└ 1 income", "−$5.50" ], [ "└ 1 excluded", "$820.00" ] ], lines("New")
   end
 
   test "Refund to follows the word's category" do
@@ -120,8 +156,9 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
 
     get edit_import_categories_url(newer)
 
-    assert_equal [ [ "1", "New" ], [ "11", "Already here" ], [ "1", "Can't read" ] ], tally
-    assert_select "p", text: "Rows you added before are skipped."
+    assert_equal [ "New", "1 row", "$5.50" ], heading("New")
+    assert_equal [ "Already here", "11 rows, skipped", "$4,186.06" ], heading("Already here")
+    assert_equal [ "Total", "The Total row in personal.csv says $4,186.06", "$4,191.56" ], heading("Total")
     assert_select "form[action=?] button:not([disabled])", import_transactions_path(newer), text: "Import 1 ↵"
   end
 
@@ -131,18 +168,20 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
 
     get edit_import_categories_url(again)
 
-    assert_equal [ [ "0", "New" ], [ "11", "Already here" ], [ "1", "Can't read" ] ], tally
+    assert_select "section[aria-label=New]", count: 0
+    assert_equal [ "Already here", "11 rows, skipped", "$4,186.06" ], heading("Already here")
     assert_select "p", text: "Every row in this file is already here."
     assert_select "form[action=?] button[disabled]", import_transactions_path(again), text: "Import 0 ↵"
   end
 
-  test "a file with no category column shows only the tally" do
+  test "a file with no category column shows only the preview" do
     import = @user.start_import(upload("names.csv", "Date,Name,Amount\n2024-10-01,Coffee,5.50\n"))
 
     get edit_import_categories_url(import)
 
     assert_select "select", count: 0
-    assert_equal [ [ "1", "Spent" ], [ "0", "Income" ], [ "0", "Excluded" ] ], tally
+    assert_equal [ "New", "1 row", "$5.50" ], heading("New")
+    assert_equal [ [ "└ 1 spent", "$5.50" ] ], lines("New")
   end
 
   test "another user's import isn't found" do
@@ -157,7 +196,11 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
-    def tally
-      css_select("dl > div").map { |stat| [ stat.at_css("dd").text, stat.at_css("dt").text.strip ] }
+    def heading(name)
+      css_select(%(section[aria-label="#{name}"] > div:first-child p)).map { |paragraph| paragraph.text.squish }
+    end
+
+    def lines(name)
+      css_select(%(section[aria-label="#{name}"] li)).map { |line| line.css("p").map { |paragraph| paragraph.text.squish } }
     end
 end
