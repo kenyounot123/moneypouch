@@ -8,9 +8,7 @@
   <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
     <div class="flex flex-col gap-6">
       <div class="flex flex-col gap-2">
-        <%= render layout: "shared/breadcrumbs", locals: { crumbs: [ [ "Import", new_import_path ], [ "Columns", edit_import_columns_path(@import) ], [ "Categories" ] ] } do %>
-          <%= button_to "Cancel", import_path(@import), method: :delete, class: "header-button" %>
-        <% end %>
+        <%= render "shared/breadcrumbs", crumbs: [ [ "Import", new_import_path ], [ "Columns", edit_import_columns_path(@import) ], [ "Categories" ] ] %>
         <h1 class="text-title">Categories</h1>
       </div>
       <p class="text-secondary"><%= @import.filename %> · <%= sheet_extent @import.sheet %>. Check what comes in, then import.</p>

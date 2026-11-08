@@ -19,7 +19,7 @@ class Imports::CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[aria-controls=matched_categories][aria-expanded=false]", text: /food matched\s+Show/
     assert_select "#matched_categories[hidden] select[aria-label='What food becomes'] option[selected]", text: "Food"
     assert_equal [ "Food", "Income", "No category" ], css_select("select[aria-label='What food becomes'] option").map(&:text)
-    assert_select "form[action=?] button", import_path(import), text: "Cancel"
+    assert_select "main button", text: "Cancel", count: 0
     assert_select "h1", text: "Categories"
     assert_select "nav[aria-label=Breadcrumb] li", count: 3
     assert_select "nav[aria-label=Breadcrumb] a[href=?]", new_import_path, text: "Import"
