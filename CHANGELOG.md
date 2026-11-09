@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.25.0](https://github.com/kenyounot123/moneypouch/compare/v0.24.0...v0.25.0) (2026-11-08)
+
+
+### Features
+
+* **import:** show a money breakdown that adds up to the file ([#218](https://github.com/kenyounot123/moneypouch/issues/218)) ([e048bfb](https://github.com/kenyounot123/moneypouch/commit/e048bfb745da76aa73c1ebb6f9f853e16cbea0ff))
+
+
+### Bug Fixes
+
+* **import:** remove Cancel from the Columns and Categories steps ([#216](https://github.com/kenyounot123/moneypouch/issues/216)) ([bb87bee](https://github.com/kenyounot123/moneypouch/commit/bb87beeb3a925ec42fb04f14226d425275635440))
+
 ## [0.24.0](https://github.com/kenyounot123/moneypouch/compare/v0.23.1...v0.24.0) (2026-11-05)
 
 
