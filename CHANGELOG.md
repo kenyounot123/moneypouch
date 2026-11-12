@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.1](https://github.com/kenyounot123/moneypouch/compare/v0.25.0...v0.25.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **bank-sync:** let a synced account bring in 90 days later ([#221](https://github.com/kenyounot123/moneypouch/issues/221)) ([ed8eb64](https://github.com/kenyounot123/moneypouch/commit/ed8eb642890bed2ba59336e832ce1fbe3818e9d2))
+* **overview:** show the sync spinner next to From your bank ([#219](https://github.com/kenyounot123/moneypouch/issues/219)) ([a379ee0](https://github.com/kenyounot123/moneypouch/commit/a379ee018b95115bc1996ed0a07c1aaa9eb1fa63))
+
 ## [0.25.0](https://github.com/kenyounot123/moneypouch/compare/v0.24.0...v0.25.0) (2026-11-08)
 
 
