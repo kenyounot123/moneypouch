@@ -1,13 +1,19 @@
 <section id="bank_review" class="flex flex-col gap-1" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories categories %>">
-  <div class="flex items-center justify-between border-b border-secondary pb-3">
-    <div class="flex items-center gap-2">
-      <h2 class="text-heading">From your bank</h2>
+  <div class="flex items-center justify-between gap-4 border-b border-secondary pb-3">
+    <div class="flex min-w-0 items-center gap-2">
+      <h2 class="text-heading whitespace-nowrap">From your bank</h2>
       <% if (needing = review.needing_category).any? %>
         <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-highlight/30 px-1.5 font-amount text-xs font-medium text-primary"
           aria-label="<%= need_a_category needing.size %>" title="<%= need_a_category needing.size %>"><%= needing.size %></span>
       <% end %>
+      <% if syncing %>
+        <p class="ml-1 flex min-w-0 items-center gap-1.5 text-sm text-tertiary">
+          <%= icon_tag "spinner", class: "size-3 shrink-0 animate-spin" %>
+          <span class="truncate">Syncing…</span>
+        </p>
+      <% end %>
     </div>
-    <%= link_to "Show all", simplefin_review_path, class: "text-sm font-medium text-secondary hover:text-primary", data: { turbo_frame: "_top" } %>
+    <%= link_to "Show all", simplefin_review_path, class: "shrink-0 text-sm font-medium whitespace-nowrap text-secondary hover:text-primary", data: { turbo_frame: "_top" } %>
   </div>
 
   <% if rows.any? %>
@@ -16,7 +22,7 @@
         <%= render "transactions/transaction", transaction:, field: true, account: true %>
       <% end %>
     </ul>
-  <% else %>
+  <% elsif review.pending? %>
     <p class="py-3 text-sm text-tertiary">Everything new has a category.</p>
   <% end %>
 </section>

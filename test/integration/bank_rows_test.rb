@@ -125,11 +125,13 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     access.update!(status: :active)
 
     get root_url
-    assert_select "section p", text: /Checking your banks/, count: 0
+    assert_select "#bank_review", count: 0
 
     access.syncs.create!
     get root_url
-    assert_select "section p", text: /Checking your banks/, count: 1
+    assert_select "#bank_review h2", "From your bank"
+    assert_select "#bank_review p", text: "Syncing…", count: 1
+    assert_select "#bank_review p", text: "Everything new has a category.", count: 0
   end
 
   test "the count badge follows the rows a rule or a pick already handled" do
