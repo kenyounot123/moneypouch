@@ -25,6 +25,11 @@
   <% elsif show_error %>
     <%= link_to_simplefin "Fix on SimpleFIN" %>
   <% else %>
-    <p class="ml-auto shrink-0 text-right text-sm whitespace-nowrap text-tertiary"><%= pluralize bank_account.bank_transactions.count, "transaction" %></p>
+    <div class="ml-auto flex shrink-0 items-center gap-3">
+      <p class="text-right text-sm whitespace-nowrap text-tertiary"><%= pluralize bank_account.bank_transactions.count, "transaction" %></p>
+      <% if bank_account.short_history? && !dimmed %>
+        <%= button_to "Bring in 90 days", bank_account_history_path(bank_account), class: "outline-button" %>
+      <% end %>
+    </div>
   <% end %>
 </li>
