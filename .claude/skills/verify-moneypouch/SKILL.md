@@ -25,7 +25,7 @@ Prints `http://localhost:3101/ port=3101 user=demo` once the app is signed in on
 
 `boot` is idempotent. A second call on the same port reuses the server and browser and prints the same URL. Two ports run side by side (separate server, separate Chrome profile). Both share the one development SQLite database, so writes from one show in the other.
 
-What it does, in order: builds Tailwind once if `app/assets/builds/tailwind.css` is missing, `bin/rails db:prepare`, `bin/rails db:seed` (creates `demo` or resets its password to the seeded one), starts `bin/rails server` detached on the port, waits for `/up` to return 200, starts headless Chrome, signs in through the real form. It does not use `bin/dev`: foreman exits without a TTY because the Tailwind watcher dies. `.claude/launch.json` still runs `bin/dev` for humans.
+What it does, in order: builds Tailwind when `app/assets/builds/tailwind.css` is missing or older than any file under `app/` (so a pull that changed views or CSS never runs on stale styles), `bin/rails db:prepare`, `bin/rails db:seed` (creates `demo` or resets its password to the seeded one), starts `bin/rails server` detached on the port, waits for `/up` to return 200, starts headless Chrome, signs in through the real form. It does not use `bin/dev`: foreman exits without a TTY because the Tailwind watcher dies. `.claude/launch.json` still runs `bin/dev` for humans.
 
 A fresh clone needs only `bin/setup --skip-server` first (installs gems, prepares the database). Then `boot` works with no other step.
 
@@ -87,7 +87,7 @@ The sign-in form is rate limited to 10 attempts per 3 minutes per client. A wron
 $M stop --port 3101
 ```
 
-Stops that instance's viewport holder, Chrome and Rails server by recorded pid and deletes `tmp/verify/<port>/`. It never kills by name. A recording still running is finalized to its mp4 first. Screenshots, videos, and latency logs you saved outside `tmp/verify/` survive. The development database and the `demo` user stay.
+Stops that instance's viewport holder, Chrome and Rails server by recorded pid and deletes `tmp/verify/<port>/` and `tmp/pids/verify-<port>.pid`. It never kills by name. A recording still running is finalized to its mp4 first. Screenshots, videos, and latency logs you saved outside `tmp/verify/` survive. The development database and the `demo` user stay.
 
 ## Two checkouts side by side
 
@@ -105,7 +105,8 @@ Drive each checkout with its own `mp.mjs`, since `mp.mjs` finds the app from its
 
 - `bin/dev` and the plain `bin/rails server` both want `tmp/pids/server.pid`. `boot` uses `tmp/pids/verify-<port>.pid` so it can coexist with a human's `bin/dev` on 3000.
 - Set `MP_CHROME` to a Chrome or Chromium binary when none is found in the default macOS and Linux locations.
-- The Tailwind CSS is built once and not watched. After editing views with new utility classes, run `bin/rails tailwindcss:build` and reload with `goto`.
+- The Tailwind CSS is not watched. `boot` and `server start` rebuild it when a file under `app/` is newer than the build, but a running server keeps what it has. After editing views with new utility classes, run `bin/rails tailwindcss:build` and reload with `goto`.
+- Chrome starts with `--blink-settings` for a mouse (`(hover: hover)`, `(pointer: fine)`) at every viewport, because headless Chrome on Linux reports no pointer and Tailwind's `hover:` and `group-hover:` variants would never apply. `resize` does not emulate touch, so `pointer-coarse:` styles never show in a drive.
 - Clicking a theme button submits a form and reloads the page, so the composer field empties. Set the theme before typing.
 - A hung or failed `boot`: read `tmp/verify/<port>/server.log` and `chrome.log`.
 - After a version bump the `demo` user's `seen_version` is behind `version.txt`, so the first page opens the release notes modal and `click` exits 1 with `covered by dialog[data-controller=release-notes]`. Close it once with `$M click 'dialog[open] button[data-action="release-notes#close"]' --port N`. See [features/release-notes.md](features/release-notes.md).

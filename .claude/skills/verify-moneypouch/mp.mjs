@@ -241,8 +241,25 @@ async function waitUp(port, s) {
   die(`server on ${port} did not answer /up within 90s\n${tail(path.join(dirFor(port), "server.log"))}`)
 }
 
+const builtCss = path.join(ROOT, "app/assets/builds/tailwind.css")
+
+function cssStale() {
+  if (!fs.existsSync(builtCss)) return true
+  const since = fs.statSync(builtCss).mtimeMs
+  const newer = (dir) => fs.readdirSync(dir, { withFileTypes: true }).some((e) => {
+    const p = path.join(dir, e.name)
+    if (e.isDirectory()) return p !== path.join(ROOT, "app/assets/builds") && newer(p)
+    return fs.statSync(p).mtimeMs > since
+  })
+  return newer(path.join(ROOT, "app"))
+}
+
 async function startServer(port, s) {
-  if (!fs.existsSync(path.join(ROOT, "app/assets/builds/tailwind.css"))) rails(["tailwindcss:build"])
+  if (cssStale()) {
+    rails(["tailwindcss:build"])
+    const now = new Date()
+    fs.utimesSync(builtCss, now, now)
+  }
   rails(["db:prepare"])
   rails(["db:seed"])
   fs.rmSync(path.join(ROOT, `tmp/pids/verify-${port}.pid`), { force: true })
@@ -258,7 +275,8 @@ async function startChrome(port, s) {
   const cdpPort = await freePort()
   const logFile = path.join(dirFor(port), "chrome.log")
   const log = fs.openSync(logFile, "a")
-  const chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${cdpPort}`, chromeNeedle(port), "--no-first-run", "--no-default-browser-check", "about:blank"], { detached: true, stdio: ["ignore", log, log] })
+  const mouse = "--blink-settings=primaryPointerType=4,availablePointerTypes=4,primaryHoverType=2,availableHoverTypes=2"
+  const chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${cdpPort}`, chromeNeedle(port), mouse, "--no-first-run", "--no-default-browser-check", "about:blank"], { detached: true, stdio: ["ignore", log, log] })
   chrome.unref()
   for (let i = 0; i < 150; i++) {
     if (!alive(chrome.pid)) die(`Chrome exited during startup\n${tail(logFile)}`)
@@ -364,6 +382,7 @@ async function stop(flags) {
   if (!allGone()) die(`pids ${targets.filter(([pid]) => alive(pid)).map(([pid]) => pid)} survived SIGKILL; state kept in ${dirFor(port)}`)
   await sleep(300)
   fs.rmSync(dirFor(port), { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })
+  fs.rmSync(path.join(ROOT, `tmp/pids/verify-${port}.pid`), { force: true })
   console.log(`stopped ${port}`)
 }
 
