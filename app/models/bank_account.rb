@@ -34,6 +34,10 @@ class BankAccount < ApplicationRecord
     simplefin_access.sync_later
   end
 
+  def short_history?
+    starts_on > simplefin_access.longest_history_start
+  end
+
   def skip
     update!(status: :skipped)
   end

@@ -24,7 +24,9 @@ Rails.application.routes.draw do
       resource :completion, only: :create, module: :reviews
     end
   end
-  resources :bank_accounts, only: :update
+  resources :bank_accounts, only: :update do
+    resource :history, only: :create, module: :bank_accounts
+  end
   resources :rules, only: :destroy
   resources :categories, only: %i[ index show update destroy ] do
     resource :merge, only: :create, module: :categories
