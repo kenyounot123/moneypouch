@@ -18,7 +18,7 @@ Sign in as the owner, open Settings, click Reset link beside another account, an
 
 ## Driving it with mp.mjs
 
-- Needs a second account. Sign out, create one at `/account/new` after opening registration (see [onboarding.md](onboarding.md)), or from `bin/rails console`, then `mp.mjs boot --port N` to sign back in as the owner.
+- Needs a second account. Sign out, create one at `/account/new` after opening registration (see [onboarding.md](onboarding.md)), or from `bin/rails console`, then `mp.mjs boot --port N` to sign back in as `demo`. `boot` signs in as `demo`, which is the owner only when it is the oldest account (`mp.mjs query 'User.owner.username'`). A dev database with an older account has no owner to drive, so run the owner-only steps (Reset link, Open registration) from a fresh worktree as in the skill's Two checkouts section, after `bin/setup --skip-server` there, where `demo` is the only account.
 - `mp.mjs click 'form[action$="/password_reset"] button' --port N`, then `mp.mjs js 'document.querySelector("#reset_link").value' --port N` prints the link, because `text` does not read input values. Screenshot with `shot`.
 - Proof of success is the sign-in page showing `#notice`, then `signin` with the new password reaching `http://localhost:N/`.
 - CLI: `printf 'demo\nnew-pass\nnew-pass\n' | bin/rails password:reset` prints "Password changed for demo. Every device is signed out."
