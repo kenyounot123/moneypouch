@@ -7,8 +7,6 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 # Layout/SpaceInsideArrayLiteralBrackets:
 #   Enabled: false
 
-# Plain conditionals: no endless methods, no `x or return`, no assignment inside a condition,
-# and an if/elsif chain that compares one value three or more times reads as a case.
 Style/EndlessMethod:
   Enabled: true
   EnforcedStyle: disallow

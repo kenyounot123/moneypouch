@@ -34,10 +34,9 @@ gem "bootsnap", require: false
 # Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false
 
-# Page long lists with 37signals' pagination [https://github.com/basecamp/geared_pagination]
 gem "geared_pagination", "~> 1.2"
 
-# Read uploaded CSV and Excel files for import. csv left the default gems in Ruby 3.4 [https://github.com/roo-rb/roo]
+# csv left the default gems in Ruby 3.4
 gem "csv", "~> 3.3"
 gem "roo", "~> 3.0"
 

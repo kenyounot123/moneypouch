@@ -15,7 +15,6 @@ export default class extends Controller {
     this.element.close()
   }
 
-  // The edit form stays open until the server accepts it.
   closeOnSubmit(event) {
     if (!event.target.dataset.sheetStays) this.close()
   }

@@ -1,4 +1,3 @@
-# What the Transactions page search box holds, like `#dining >30 in:amex @sep`: ordered tokens read against one user's categories and bank accounts.
 class Transaction::Query
   Part = Data.define(:kind, :raw, :label, :problem)
 

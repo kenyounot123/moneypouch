@@ -15,7 +15,7 @@ class PairBankTransfersTest < ActiveSupport::TestCase
     out = add(@checking, -50_000, 3)
     incoming = add(@card, 50_000, 5)
 
-    pair_existing_rows
+    pair_mutual_closest_matches
 
     assert_equal [ incoming.id, out.id ], [ out.reload.transfer_partner_id, incoming.reload.transfer_partner_id ]
     assert_equal [ true, true ], [ out.linked_transaction.transfer?, incoming.linked_transaction.transfer? ]
@@ -26,7 +26,7 @@ class PairBankTransfersTest < ActiveSupport::TestCase
     late_out = add(@checking, -5_000, 3)
     incoming = add(@card, 5_000, 3)
 
-    pair_existing_rows
+    pair_mutual_closest_matches
 
     assert_equal incoming.id, late_out.reload.transfer_partner_id
     assert_equal late_out.id, incoming.reload.transfer_partner_id
@@ -39,7 +39,7 @@ class PairBankTransfersTest < ActiveSupport::TestCase
     second = add(@checking, -5_000, 2)
     incoming = add(@card, 5_000, 3)
 
-    pair_existing_rows
+    pair_mutual_closest_matches
 
     assert_equal first.id, incoming.reload.transfer_partner_id
     assert_nil second.reload.transfer_partner_id
@@ -49,7 +49,7 @@ class PairBankTransfersTest < ActiveSupport::TestCase
     outs = [ add(@checking, -1_000, 1), add(@checking, -2_000, 1) ]
     ins = [ add(@card, 2_000, 2), add(@card, 1_000, 2) ]
 
-    pair_existing_rows
+    pair_mutual_closest_matches
 
     assert_equal [ ins[1].id, ins[0].id ], outs.map { |bank_row| bank_row.reload.transfer_partner_id }
   end
@@ -61,9 +61,9 @@ class PairBankTransfersTest < ActiveSupport::TestCase
     add(@checking, -7_000, 3)
     add(@card, 7_000, 3)
 
-    pair_existing_rows
+    pair_mutual_closest_matches
     snapshot = BankTransaction.order(:id).pluck(:id, :transfer_partner_id)
-    pair_existing_rows
+    pair_mutual_closest_matches
 
     assert_equal snapshot, BankTransaction.order(:id).pluck(:id, :transfer_partner_id)
     assert_equal 4, snapshot.count { |_, partner| partner }
@@ -74,7 +74,7 @@ class PairBankTransfersTest < ActiveSupport::TestCase
     out = add(@checking, -5_000, 3)
     incoming = add(@card, 5_000, 3, transfer: true)
 
-    pair_existing_rows
+    pair_mutual_closest_matches
 
     assert_equal [ incoming.id, out.id ], [ out.reload.transfer_partner_id, incoming.reload.transfer_partner_id ]
     assert out.linked_transaction.transfer?
@@ -97,7 +97,7 @@ class PairBankTransfersTest < ActiveSupport::TestCase
     zeros = [ add(@checking, 0, 3), add(@card, 0, 3) ]
 
     assert_no_difference -> { BankTransaction.where.not(transfer_partner_id: nil).count } do
-      pair_existing_rows
+      pair_mutual_closest_matches
     end
 
     assert_equal [ out, *ineligible, *zeros ].map { |bank_row| bank_row.linked_transaction.transfer? },
@@ -105,9 +105,9 @@ class PairBankTransfersTest < ActiveSupport::TestCase
   end
 
   private
-    def pair_existing_rows
+    def pair_mutual_closest_matches
       migration = PairBankTransfers.new
-      migration.suppress_messages { migration.pair_existing_rows }
+      migration.suppress_messages { migration.pair_mutual_closest_matches }
     end
 
     def add(bank_account, cents, day, owner: @user, matched: false, currency: "USD", **attributes)

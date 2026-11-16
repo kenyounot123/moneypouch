@@ -1,4 +1,3 @@
-# What the preview shows: the new rows by kind, the rows already here, what can't be read, and the total to check against the file.
 class Import::Tally < Data.define(:lines, :already_here, :unreadable_rows, :stated_totals, :rows)
   KINDS = %i[ spent refund income transfer excluded ]
   Line = Data.define(:kind, :count, :cents)
@@ -19,7 +18,6 @@ class Import::Tally < Data.define(:lines, :already_here, :unreadable_rows, :stat
     rows.sum(&:written_cents)
   end
 
-  # nil with no Total row in the file, :matches when every one adds up, else the first that doesn't.
   def total_check
     if stated_totals.any?
       sums = rows.group_by(&:tab).transform_values { |tab_rows| tab_rows.sum(&:written_cents) }

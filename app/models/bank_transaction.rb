@@ -14,8 +14,6 @@ class BankTransaction < ApplicationRecord
     unmatched.where(transaction_id: Transaction.kept.select(:id)).group(:name_key).count
   end
 
-  # The other half of a card payment or account transfer: money of the same size going the other way, in
-  # another account, that the bank added with no category. A row a rule already marked as a transfer still waits for its other half.
   def self.partner_for(amount_in_cents, currency, date, other_than:)
     unless amount_in_cents.zero?
       unmatched.unpaired

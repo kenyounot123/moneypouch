@@ -75,7 +75,6 @@ module TransactionsHelper
     end
   end
 
-  # What the category picker opens with, so a paired transfer's longer label is never read back as a new category.
   def category_field_value(transaction)
     if transaction.transfer?
       "Transfer"

@@ -77,7 +77,6 @@ class User < ApplicationRecord
     import
   end
 
-  # A name ActiveSupport can't read leaves the saved zone alone.
   def adopt_time_zone(name)
     zone = ActiveSupport::TimeZone[name.to_s]
 
@@ -136,7 +135,6 @@ class User < ApplicationRecord
     transactions.behind(bank_transactions.unmatched.where(name_key:))
   end
 
-  # Reads the loaded rules, so one sync that shares this user across its accounts loads them once.
   def rule_for(name)
     rules.find { |rule| rule.matches?(name) }
   end

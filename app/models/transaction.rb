@@ -7,7 +7,6 @@ class Transaction < ApplicationRecord
 
   validates :name, presence: { message: Shorthand::MISSING_NAME }
 
-  # Undoing a delete puts the shorthand back in the composer, so an edited row must not carry the old one.
   before_update :forget_shorthand, if: -> { name_changed? || amount_in_cents_changed? || occurred_on_changed? }
 
   scope :latest, -> { order(occurred_on: :desc, id: :desc) }

@@ -1,7 +1,6 @@
 module MoneyHelper
   MINUS = "−"
 
-  # $5.50, and −$5.50 below zero.
   def money(cents, whole: false)
     if cents.negative?
       "#{MINUS}#{dollars(-cents, whole:)}"
@@ -10,7 +9,6 @@ module MoneyHelper
     end
   end
 
-  # +$5.50 above zero, −$5.50 below, $0.00 at zero.
   def signed_money(cents, whole: false)
     if cents.positive?
       "+#{money(cents, whole:)}"
@@ -19,7 +17,6 @@ module MoneyHelper
     end
   end
 
-  # Money out plain and money in with a plus, as a row or a day total reads.
   def money_flow(cents)
     if cents.positive?
       signed_money(cents)

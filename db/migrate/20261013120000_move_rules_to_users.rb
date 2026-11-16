@@ -12,7 +12,6 @@ class MoveRulesToUsers < ActiveRecord::Migration[8.1]
       t.check_constraint "(category_id IS NULL) = transfer", name: "rule_is_a_category_or_a_transfer"
     end
 
-    # One rule per user and name. When accounts disagree, the most recently updated rule wins.
     execute <<~SQL
       INSERT INTO rules (user_id, name_key, name, category_id, transfer, created_at, updated_at)
       SELECT accounts.user_id, r.name_key, r.name, r.category_id, r.transfer, r.created_at, r.updated_at
@@ -27,7 +26,6 @@ class MoveRulesToUsers < ActiveRecord::Migration[8.1]
       )
     SQL
 
-    # A rule now spans accounts, so fill the waiting rows it would have filled had it always been the user's.
     execute <<~SQL
       UPDATE transactions
       SET category_id = (

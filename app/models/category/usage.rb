@@ -1,4 +1,3 @@
-# What each of a user's categories holds: its transactions and rules, and what it added up to over a span of months.
 class Category::Usage
   attr_reader :span
 
@@ -7,7 +6,6 @@ class Category::Usage
     @span = span
   end
 
-  # Every kept transaction and rule, whatever the span, since a merge or delete moves all of them.
   def transactions_count(category)
     transaction_counts.fetch(category.id, 0)
   end
@@ -16,12 +14,10 @@ class Category::Usage
     rule_counts.fetch(category.id, 0)
   end
 
-  # Spent for a spending category and income for an income one, so a refund lowers what was spent.
   def total(category)
     signed(category, totals.fetch(category.id, 0))
   end
 
-  # Whether the category's own page lists anything in the span, excluded transactions included.
   def active?(category)
     active_ids.include?(category.id)
   end
@@ -30,7 +26,6 @@ class Category::Usage
     last_dates[category.id]
   end
 
-  # Money that came back into a spending category over the span, already taken off its total.
   def refunded(category)
     if category.income?
       0
@@ -39,7 +34,6 @@ class Category::Usage
     end
   end
 
-  # The category's total in each of the last 12 months, oldest first.
   def months(category)
     span.year.months.index_with { |month| signed(category, monthly_totals.fetch([ category.id, month.first_day ], 0)) }
   end

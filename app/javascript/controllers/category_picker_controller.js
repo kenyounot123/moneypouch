@@ -17,8 +17,6 @@ const TRANSFER_ICON = `<span class="icon icon--transfer size-3.5 text-tertiary" 
 const NEEDS_CATEGORY = '[aria-label="Needs a category"]'
 const OPENER = 'button[data-action="category-picker#open"]'
 
-// Ids of the rows after a saved uncategorized row that still needed a category, in list order.
-// A filtered list drops the saved row, so the next row is found from these rather than from it.
 let chain = []
 
 export default class extends Controller {
@@ -95,7 +93,6 @@ export default class extends Controller {
     return form
   }
 
-  // An empty field highlights nothing, so Enter saves it blank and clears the category.
   render(index = this.field.value.trim() ? 0 : -1) {
     const typed = this.field.value.trim()
     const matching = this.categoriesValue.filter(([name]) => name.toLowerCase().startsWith(typed.toLowerCase()))

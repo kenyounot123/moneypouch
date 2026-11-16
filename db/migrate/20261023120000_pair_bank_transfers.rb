@@ -5,22 +5,17 @@ class PairBankTransfers < ActiveRecord::Migration[8.1]
     add_reference :bank_transactions, :transfer_partner, index: { unique: true },
       foreign_key: { to_table: :bank_transactions, on_delete: :nullify }
 
-    pair_existing_rows
+    pair_mutual_closest_matches
   end
 
   def down
     remove_reference :bank_transactions, :transfer_partner, foreign_key: { to_table: :bank_transactions }
   end
 
-  # The sync's pairing rule applied to rows already there, so a row pairs only with the one that also ranks
-  # it first. Rows arriving one at a time pick the closest in time, but here every row is waiting at once and
-  # taking the best for one could steal another's only partner. Safe to run twice: a paired row is no longer eligible.
-  def pair_existing_rows
+  def pair_mutual_closest_matches
     execute "DROP TABLE IF EXISTS temp.transfer_candidates"
     execute "DROP TABLE IF EXISTS temp.transfer_pairs"
 
-    # Joined through an index on the plain magnitude, since a self-join that cannot use an index grows with the square
-    # of the row count and holds the write lock long enough for the running app's writes to time out.
     execute <<~SQL
       CREATE TEMP TABLE transfer_candidates AS
       SELECT bank_transactions.id, bank_transactions.bank_account_id, bank_transactions.amount_in_cents,
