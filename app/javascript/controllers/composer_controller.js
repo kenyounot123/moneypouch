@@ -48,7 +48,6 @@ const MARKS = {
   date: "text-date",
   category: "text-category",
 }
-// The category list fits eight options before it scrolls: each is a line plus py-1.5, inside the list's p-1 and 1px border.
 const POPUP_SIZES = {
   category: ["w-56", "max-h-[calc(8*(var(--text-base--line-height)+--spacing(3))+--spacing(2)+2px)]", "overflow-y-auto"],
   calendar: ["w-[264px]"],
@@ -194,7 +193,6 @@ export default class extends Controller {
     return this.dayCompletion() ? this.complete() : this.pickTyped()
   }
 
-  // Only the server reads typed dates, so without a current answer to pick the text stays as typed, for a name like "@work" or for the server on submit.
   pickTyped() {
     const { fragment, answeredFor, answer } = this.popup
     if (answeredFor === fragment && answer.on && answer.on <= this.max) return this.pickCursor()
@@ -278,7 +276,6 @@ export default class extends Controller {
     return { kind: "category", word, items, index, inferred }
   }
 
-  // The cursor follows the server's answer once per fragment, so arrow keys are not undone by later refreshes.
   calendarPopup(word, previous) {
     const fragment = word.text.slice(1)
     const reply = this.calendarReply(fragment)

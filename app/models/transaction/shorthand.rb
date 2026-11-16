@@ -21,10 +21,8 @@ module Transaction::Shorthand
   AMOUNT = /\A(?<sign>[+-])?(?<symbol>\$)?(?<dollars>\d{1,3}(?:,\d{3})+|\d+)?(?:\.(?<cents>\d{1,2}))?\z/
   MAX_DOLLAR_DIGITS = 7
   LEAP_CYCLE_YEARS = 4
-  # Day words come before months so a prefix aims where the composer's Tab completion would take it: "s" is saturday.
   DAY_WORDS = %w[ today yesterday monday tuesday wednesday thursday friday saturday sunday ].freeze
 
-  # Dates in progress, first row to give an answer wins. A resolver returns an Aim, or nil for "not a date".
   PARTIAL_AIMS = [
     [ %r{\A(\d{1,2})/?\z}, :month_number_aim ],
     [ %r{\A(\d{1,2})/(\d{1,2})/(\d|\d{3})?\z}, :month_day_number_aim ],

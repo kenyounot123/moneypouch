@@ -58,7 +58,6 @@ class Import < ApplicationRecord
     update(columns: Import::Columns.from(choice, sheet:))
   end
 
-  # A choice without :money_in (the word showed no second line) leaves that word's money-in choice as it was.
   def choose_categories(choices)
     names = choices.to_h { |choice| [ choice[:word], choice[:name].to_s.squish ] }
     money_in = choices.reject { |choice| choice[:money_in].nil? }.to_h { |choice| [ choice[:word], choice[:money_in].to_s.squish ] }

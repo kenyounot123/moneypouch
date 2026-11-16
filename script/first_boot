@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Times a brand-new install: from `docker run` on an empty volume to the first page a user sees.
-# Usage: script/first_boot [image] [runs]
 set -euo pipefail
 
 image=${1:-ghcr.io/kenyounot123/moneypouch:latest}

@@ -46,7 +46,6 @@ export function dateWord(day, today) {
   return day.getFullYear() === today.getFullYear() ? word : `${word} ${day.getFullYear()}`
 }
 
-// The text after an @ up to the caret. It spans spaces only when it leads with a month ("@sep 26 2025").
 export function dateFragment(before) {
   const typed = before.match(DATE_FRAGMENT)?.[1]
   if (typed === undefined) return null

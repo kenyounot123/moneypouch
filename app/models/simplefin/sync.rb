@@ -61,7 +61,6 @@ class Simplefin::Sync < ApplicationRecord
       finish("unavailable")
     end
 
-    # A disconnect or stale abandonment can finish this sync while the bank is still answering.
     def finish(failure = nil)
       with_lock do
         unless finished?

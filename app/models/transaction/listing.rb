@@ -1,4 +1,3 @@
-# The transactions behind the Transactions page or a category's page, narrowed by a search query, and their totals. A query that narrows spans every month unless it names its dates.
 class Transaction::Listing
   Day = Data.define(:on, :rows, :net, :spending, :income)
 

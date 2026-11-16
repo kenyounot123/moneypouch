@@ -17,7 +17,6 @@ module Authentication
       resume_session
     end
 
-    # Remembers each account's own address, so a reset link the owner makes for it opens for that person.
     def require_authentication
       if resume_session
         Current.user.visit_from(request.base_url)

@@ -26,7 +26,6 @@ module Transaction::Importable
       end
     end
 
-    # Reads discarded rows too, so a row deleted after one import stays out of the next.
     def already_here(rows)
       if rows.none?
         return {}

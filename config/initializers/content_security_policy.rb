@@ -1,5 +1,3 @@
-# Scripts load only from this origin, and the importmap's inline script carries a per-request nonce.
-# Styles allow inline attributes because the charts size their bars with style="height: ...".
 Rails.application.configure do
   config.content_security_policy do |policy|
     policy.default_src :self

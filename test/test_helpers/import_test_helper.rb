@@ -12,7 +12,6 @@ module ImportTestHelper
     end
   end
 
-  # Four of personal.csv's rows, in file order, each already here a different way: typed in, from an earlier import, from the bank, and deleted.
   def have_personal_rows(user)
     typed = user.transactions.create!(name: "Whole Foods", amount_in_cents: -123_456, occurred_on: "2024-10-02")
     earlier = user.imports.create!(file: upload("earlier.csv", "Date,Item,Category,Amount\n2024-10-04,Trader Joe's,Groceries,42.10\n2024-10-07,Groceries,Groceries,18.00\n"))

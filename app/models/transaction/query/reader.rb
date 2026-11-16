@@ -1,4 +1,3 @@
-# Turns the words of a search into clauses. Each kind of token is a pattern and the method that reads it.
 class Transaction::Query::Reader
   WORDS = /"[^"]*"?|\S+/
   NUMBER = /(\d+(?:\.\d{1,2})?)/

@@ -1,4 +1,3 @@
-# One page of an unbroken list, for the sorts that don't group by day. It cuts the list at fixed row counts and the next page is the next number.
 class Transaction::FlatPage
   attr_reader :number
 

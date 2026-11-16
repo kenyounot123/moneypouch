@@ -73,7 +73,6 @@ export default class extends Controller {
     this.step(event, this.nextMonthTargets)
   }
 
-  // The phone and desktop layouts each render the month steps, and only one of them shows.
   step(event, links) {
     const link = links.find((target) => target.checkVisibility())
 

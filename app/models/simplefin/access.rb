@@ -40,7 +40,6 @@ class Simplefin::Access < ApplicationRecord
     sync_later
   end
 
-  # Past the day's allowance it starts nothing and returns nil.
   def sync_later
     if syncable?
       syncs.abandon_stale

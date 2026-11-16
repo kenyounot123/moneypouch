@@ -1,11 +1,9 @@
-# The run of months the Categories pages add up: the last 1, 3, or 12 months ending with this one, or one earlier month.
 class Category::Span
   LENGTHS = [ 1, 3, 12 ]
   DEFAULT_LENGTH = 3
 
   attr_reader :months
 
-  # Reads ?month=2026-07 for one month, else ?months=3, falling back to the last 3 months.
   def self.from(params, today:)
     if params[:month].present?
       new(last: Period.month(params[:month], today:), length: 1)
@@ -42,7 +40,6 @@ class Category::Span
     months.include?(month)
   end
 
-  # The last 12 months ending with this one, which the Categories pages chart whatever span is open.
   def year
     Category::Span.new(last: Period.new("month", today: last.today), length: 12)
   end

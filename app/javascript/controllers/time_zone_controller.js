@@ -1,6 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Puts the browser's zone in a cookie each request reads, and saves it on the user when it changes, for jobs that run without a request.
 export default class extends Controller {
   static values = { saved: String, url: String }
 

@@ -1,5 +1,3 @@
-# What one sheet says under one choice of columns and category names, worked out once.
-# Import keeps one Reading and starts a new one whenever any of these inputs changes.
 class Import::Reading
   def initialize(sheet:, columns:, category_names:, money_in_names:, user:)
     @sheet, @columns, @category_names, @money_in_names, @user = sheet, columns, category_names, money_in_names, user
@@ -89,8 +87,6 @@ class Import::Reading
       @income_category ||= user.income_category
     end
 
-    # A stored name that isn't one of the user's income categories, "" included, keeps money in with the word,
-    # so a stale or tampered name can never file money in under a spending category.
     def money_in_name_for(word, name:, income:)
       if name.blank?
         income_category&.name
@@ -102,7 +98,6 @@ class Import::Reading
       end
     end
 
-    # A refund never comes to more than the spending it lowers.
     def default_money_in_name(word)
       money_in, money_out = rows_by_word.fetch(word).select(&:counted?).partition(&:money_in?)
 

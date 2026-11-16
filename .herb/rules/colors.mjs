@@ -17,13 +17,11 @@ class ColorsVisitor extends BaseRuleVisitor {
     super.visitHTMLOpenTagNode(node)
   }
 
-  // link_to and tag.* parse into elements whose open tag is ERB.
   visitERBOpenTagNode(node) {
     this.checkAttributes(node)
     super.visitERBOpenTagNode(node)
   }
 
-  // button_to and form builder calls stay Ruby, so read their class: and style: options from the code.
   visitERBContentNode(node) {
     const code = node.content?.value ?? ""
     const { line, column } = node.content?.location.start ?? {}

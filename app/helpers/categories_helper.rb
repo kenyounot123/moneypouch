@@ -2,7 +2,6 @@ module CategoriesHelper
   SPARK_HEIGHT = 20
   MONTH_BAR_HEIGHT = 120
 
-  # Spending and income categories each get a section, and the word for what a category adds up to.
   def category_kind(category)
     if category.income?
       "Income"
@@ -15,7 +14,6 @@ module CategoriesHelper
     Category::Span::LENGTHS.map { |length| Category::Span.new(last: Period.new("month", today:), length:) }
   end
 
-  # October, Last 3 months, Last 12 months, or July 2025 for an earlier month.
   def span_label(span)
     if !span.one_month?
       "Last #{span.length} months"
@@ -26,7 +24,6 @@ module CategoriesHelper
     end
   end
 
-  # in October, in the last 3 months, in July, in July 2025.
   def span_phrase(span)
     if !span.one_month?
       "in the last #{span.length} months"

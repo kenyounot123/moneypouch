@@ -1,5 +1,4 @@
 class Category < ApplicationRecord
-  # Money in with no category of its own lands here, so it keeps its name and can't be merged away or deleted.
   INCOME = "Income"
 
   belongs_to :user
@@ -28,7 +27,6 @@ class Category < ApplicationRecord
     income? && named?(INCOME)
   end
 
-  # Another category's name trips the lower(name) index, not a validation.
   def revise(attributes)
     Transaction.broadcasting_once_for(user) { update(attributes) }
   rescue ActiveRecord::RecordNotUnique
@@ -36,7 +34,6 @@ class Category < ApplicationRecord
     false
   end
 
-  # Moves every transaction, deleted ones too, and every rule onto the other category, then drops this one.
   def merge_into(other)
     if other == self || other.user != user
       raise ArgumentError, "a category merges into another category of the same user"
@@ -51,7 +48,6 @@ class Category < ApplicationRecord
     end
   end
 
-  # Its transactions become uncategorized, and the database drops its rules.
   def remove
     Transaction.broadcasting_once_for(user) { destroy! }
   end

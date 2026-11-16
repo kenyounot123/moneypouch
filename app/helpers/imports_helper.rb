@@ -1,7 +1,6 @@
 module ImportsHelper
   FILE_TYPES = ".xlsx,.csv,.tsv,.txt,.xls,.xlsm,.numbers,.ods"
 
-  # Titled and ordered here, listed in Import::Columns::KINDS. The helper test checks the two agree.
   COLUMN_KINDS = {
     "skip" => { title: "Skip", hint: "Leave this column out." },
     "date" => { title: "Date", hint: "When it happened." },

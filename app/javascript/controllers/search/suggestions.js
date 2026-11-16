@@ -31,7 +31,6 @@ const GUIDE = [
   { kind: "text", label: "Mix any of them", example: "#dining >30 @sep" },
 ]
 
-// The marker a word starts with decides which kind of token it can still become, and each handler lists that kind's completions.
 const MARKERS = [
   [/^#/, (word, context) => categories(word.slice(1), context, true)],
   [/^in:/i, (word, context) => accounts(word.slice(3), context, true)],

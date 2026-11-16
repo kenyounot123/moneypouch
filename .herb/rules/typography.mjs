@@ -14,13 +14,11 @@ class TypographyVisitor extends BaseRuleVisitor {
     super.visitHTMLOpenTagNode(node)
   }
 
-  // link_to and tag.* parse into elements whose open tag is ERB.
   visitERBOpenTagNode(node) {
     this.checkClassAttribute(node)
     super.visitERBOpenTagNode(node)
   }
 
-  // button_to and form builder calls stay Ruby, so read their class: option from the code.
   visitERBContentNode(node) {
     const code = node.content?.value ?? ""
     for (const match of code.matchAll(RUBY_CLASS_OPTION)) {

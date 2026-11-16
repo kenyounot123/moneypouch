@@ -1,4 +1,3 @@
-# How the Transactions page orders its rows, read from the sort and direction in the URL. Every column's ordering lives in COLUMNS, so a header, a link and a query all derive from one table.
 class Transaction::Sort < Data.define(:key, :direction)
   Column = Data.define(:default, :joins, :order)
 
