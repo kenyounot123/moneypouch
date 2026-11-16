@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { Pointer } from "helpers/pointer"
 import { addDays, addMonths, calendarMarkup, dateFragment, dateWord, dayId, earlier, isoDay, parseDay } from "controllers/composer/calendar"
 
 const KEYMAP = {
@@ -56,6 +57,10 @@ const POPUP_SIZES = {
 export default class extends Controller {
   static targets = ["field", "mirror", "row", "popup", "failure"]
   static values = { voucherUrl: String, categories: Array, today: String }
+
+  initialize() {
+    this.pointer = new Pointer()
+  }
 
   connect() {
     this.popup = null
@@ -120,9 +125,7 @@ export default class extends Controller {
   }
 
   point(event) {
-    const moved = event.screenX !== this.pointerX || event.screenY !== this.pointerY
-    this.pointerX = event.screenX
-    this.pointerY = event.screenY
+    const moved = this.pointer.moved(event)
     const target = moved && this.popup && this.popupTarget.contains(event.target) && event.target.closest("[data-index], [data-day]:not(:disabled)")
     if (!target) return
     if (target.dataset.index && Number(target.dataset.index) !== this.popup.index) {

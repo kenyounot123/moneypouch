@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { Pointer } from "helpers/pointer"
 
 const OPTION = "flex cursor-pointer items-center rounded-sm px-2.5 py-1.5"
 const SIZES = {
@@ -22,6 +23,10 @@ let chain = []
 export default class extends Controller {
   static targets = ["category"]
   static values = { categories: Array, size: { type: String, default: "small" } }
+
+  initialize() {
+    this.pointer = new Pointer()
+  }
 
   connect() {
     this.resume = this.resume.bind(this)
@@ -197,8 +202,7 @@ export default class extends Controller {
   }
 
   point(event) {
-    const moved = this.pointer && (this.pointer.x !== event.screenX || this.pointer.y !== event.screenY)
-    this.pointer = { x: event.screenX, y: event.screenY }
+    const moved = this.pointer.moved(event)
     const option = event.target.closest("[data-index]")
 
     if (moved && option && Number(option.dataset.index) !== this.index) {
