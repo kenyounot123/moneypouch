@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
+# This Dockerfile is designed for production, not development. Build and run it by hand:
+# docker build -t moneypouch .
+# docker run -d -p 8080:80 -v moneypouch-data:/rails/storage --name moneypouch moneypouch
+
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
@@ -50,6 +54,9 @@ RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+
+
+
 
 # Final stage for app image
 FROM base
