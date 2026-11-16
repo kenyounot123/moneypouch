@@ -35,7 +35,6 @@ export default class extends Controller {
     const action = KEYMAP[event.key]
     if (!action || this.busy(event)) return
 
-    // Keyboards: Shift stays allowed for a character key, because "?" needs it and some layouts need it to type "/".
     if (CHARACTER_KEYS.has(event.key)) {
       if (this.singleKeyValue) this[action](event)
     } else if (!event.shiftKey) {

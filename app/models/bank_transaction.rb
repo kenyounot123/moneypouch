@@ -49,7 +49,6 @@ class BankTransaction < ApplicationRecord
     partner.linked_transaction.then { |transaction| transaction.update!(categorization: transaction.user.rule_for(partner.name)&.categorization || Transaction::Categorization.none) }
   end
 
-  # Rails: belongs_to :transaction would override ActiveRecord's #transaction, so the row is looked up by id.
   def linked_transaction
     Transaction.find(transaction_id)
   end

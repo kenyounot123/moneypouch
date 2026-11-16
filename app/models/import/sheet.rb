@@ -44,7 +44,6 @@ class Import::Sheet
       end
     end
 
-    # Excel: it shows a number to 15 significant digits, so the 1234.5599999999999 it stored reads 1234.56.
     def text(cell)
       case cell
       when BigDecimal

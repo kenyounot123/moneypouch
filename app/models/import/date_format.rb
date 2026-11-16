@@ -58,7 +58,6 @@ class Import::DateFormat
       end
     end
 
-    # Ruby: Date.strptime's "%Y" reads "24" as the year 24, which the range turns away so "%y" gets its turn.
     def strptime(text, pattern)
       within_range(Date.strptime(text, pattern))
     rescue Date::Error

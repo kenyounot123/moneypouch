@@ -13,7 +13,6 @@ export default class extends Controller {
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(this.sourceTarget.value)
     } else {
-      // Browsers: the Clipboard API exists only on HTTPS and localhost, and many servers are reached over plain HTTP on the LAN.
       this.select()
       document.execCommand("copy")
     }

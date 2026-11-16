@@ -6,7 +6,7 @@ When the operator corrects you, fix the mistake and add its rule here. If the ru
 
 | Rule | Enforced by |
 |------|-------------|
-| No comments. Say it with a name instead. A comment may only state a constraint from outside the app, starting with what imposes it (`SQLite:`, `Turbo:`, `Browsers:` ...). | `test/lint/comments_test.rb` |
+| No comments, none at all. Say it with a name instead. Only the comments Rails and the gem installers generate stay. | Review |
 | The verify-moneypouch feature map names only code that exists. A change that renames or removes a constant, method, route, or file updates `.claude/skills/verify-moneypouch/features/` in the same commit. | `test/lint/feature_map_test.rb` for names. Review for copy, selectors, and behavior: drive the feature with the skill. |
 | Methods are multiline `def ... end`, never endless. | RuboCop `Style/EndlessMethod` |
 | No `and`/`or` control flow. | RuboCop `Style/AndOr` |
