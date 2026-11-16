@@ -15,15 +15,19 @@ export default class extends Controller {
     this.field.focus()
   }
 
-  // Browsers: moving focus off the field fires blur, so the form is forgotten first and the blur save finds nothing to send.
   close(refocus = false) {
-    const form = this.form
+    const form = this.takeForm()
     if (!form) return
 
-    this.form = null
     this.labelTargets.forEach((label) => label.hidden = false)
     if (refocus) this.trigger.focus()
     form.remove()
+  }
+
+  takeForm() {
+    const form = this.form
+    this.form = null
+    return form
   }
 
   editor() {

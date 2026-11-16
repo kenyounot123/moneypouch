@@ -23,7 +23,7 @@ class CommentsTest < ActiveSupport::TestCase
   }.freeze
 
   test "a comment names a constraint from outside the app or is not there" do
-    offenses = comment_blocks.reject { |path, _line, text| allowed?(path, text) }
+    offenses = comments.reject { |path, _line, text| allowed?(path, text) }
 
     assert offenses.empty?, <<~MESSAGE
       Say it in code instead: name the method, variable, or constant for what the comment explains.
@@ -46,9 +46,9 @@ class CommentsTest < ActiveSupport::TestCase
       end
     end
 
-    def comment_blocks
+    def comments
       project_files.flat_map do |path|
-        blocks_of(path, comment_lines(path).sort_by(&:first).uniq(&:first))
+        comment_lines(path).sort_by(&:first).uniq(&:first).map { |line, text| [ path, line, text ] }
       end
     end
 
@@ -104,13 +104,6 @@ class CommentsTest < ActiveSupport::TestCase
         [ line, source.lines[line].strip ]
       else
         [ line, text ]
-      end
-    end
-
-    def blocks_of(path, lines)
-      lines.slice_when { |(previous, _), (current, _)| current != previous + 1 }.map do |block|
-        line, text = block.first
-        [ path, line, text ]
       end
     end
 end

@@ -9,8 +9,6 @@ module Transaction::Bankable
     delegate :name, to: :bank_transaction, prefix: true
 
     scope :matchable, -> { where.missing(:bank_transaction) }
-    # Rails: Transaction shadows ActiveRecord's #transaction, so BankTransaction can't belongs_to it. Every lookup
-    # from bank rows to their transactions goes through these two scopes.
     scope :behind, ->(bank_transactions) { where(id: bank_transactions.select(:transaction_id)) }
     scope :typed_in, -> { where.not(id: BankTransaction.select(:transaction_id)) }
     scope :added_by_bank, -> { behind(BankTransaction.unmatched) }

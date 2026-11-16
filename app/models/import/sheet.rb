@@ -145,7 +145,6 @@ class Import::Sheet
         end
       end
 
-      # Excel: number cells read from the digits Excel stored, never through roo's Float.
       def xlsx_value(roo_cell)
         case roo_cell
         when Roo::Excelx::Cell::Time
@@ -153,12 +152,16 @@ class Import::Sheet
         when Roo::Excelx::Cell::DateTime
           roo_cell.value.to_date
         when Roo::Excelx::Cell::Number
-          BigDecimal(roo_cell.cell_value, exception: false) || roo_cell.cell_value
+          stored_digits(roo_cell)
         when Roo::Excelx::Cell::Boolean
           roo_cell.value
         when Roo::Excelx::Cell::String
           roo_cell.value.to_s.strip.presence
         end
+      end
+
+      def stored_digits(roo_cell)
+        BigDecimal(roo_cell.cell_value, exception: false) || roo_cell.cell_value
       end
 
       def csv_lines(bytes)
