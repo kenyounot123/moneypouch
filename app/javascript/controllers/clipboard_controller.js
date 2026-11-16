@@ -13,11 +13,15 @@ export default class extends Controller {
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(this.sourceTarget.value)
     } else {
-      this.select()
-      document.execCommand("copy")
+      this.copyOverPlainHttp()
     }
     const label = this.buttonTarget.textContent
     this.buttonTarget.textContent = "Copied"
     setTimeout(() => (this.buttonTarget.textContent = label), COPIED_MS)
+  }
+
+  copyOverPlainHttp() {
+    this.select()
+    document.execCommand("copy")
   }
 }

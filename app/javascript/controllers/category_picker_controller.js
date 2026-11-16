@@ -58,12 +58,17 @@ export default class extends Controller {
   }
 
   close() {
-    const form = this.form
+    const form = this.takeForm()
     if (!form) return
 
-    this.form = null
     this.label.hidden = false
     form.remove()
+  }
+
+  takeForm() {
+    const form = this.form
+    this.form = null
+    return form
   }
 
   editor(url) {

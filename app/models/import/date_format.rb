@@ -54,11 +54,11 @@ class Import::DateFormat
       gate, patterns = CANDIDATES.fetch(name)
 
       if text.match?(gate)
-        patterns.filter_map { |pattern| strptime(text, pattern) }.first
+        patterns.filter_map { |pattern| date_in_range(text, pattern) }.first
       end
     end
 
-    def strptime(text, pattern)
+    def date_in_range(text, pattern)
       within_range(Date.strptime(text, pattern))
     rescue Date::Error
       nil

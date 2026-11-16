@@ -6,7 +6,7 @@ const KEYMAP = {
   ArrowLeft: "previousMonth",
   ArrowRight: "nextMonth",
 }
-const CHARACTER_KEYS = new Set(["/", "?"])
+const KEYS_THAT_MAY_NEED_SHIFT = new Set(["/", "?"])
 const FIELDS = "input, textarea, select, [contenteditable]"
 const SEARCH = '[aria-label="Search transactions"]'
 
@@ -35,7 +35,7 @@ export default class extends Controller {
     const action = KEYMAP[event.key]
     if (!action || this.busy(event)) return
 
-    if (CHARACTER_KEYS.has(event.key)) {
+    if (KEYS_THAT_MAY_NEED_SHIFT.has(event.key)) {
       if (this.singleKeyValue) this[action](event)
     } else if (!event.shiftKey) {
       this[action](event)

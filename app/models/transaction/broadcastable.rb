@@ -2,7 +2,7 @@ module Transaction::Broadcastable
   extend ActiveSupport::Concern
 
   included do
-    after_commit -> { broadcast_refresh_to(user, :transactions) }
+    after_commit :refresh_other_screens_at_once
   end
 
   class_methods do
@@ -12,4 +12,9 @@ module Transaction::Broadcastable
       end
     end
   end
+
+  private
+    def refresh_other_screens_at_once
+      broadcast_refresh_to(user, :transactions)
+    end
 end

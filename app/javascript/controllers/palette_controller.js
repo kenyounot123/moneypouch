@@ -30,7 +30,10 @@ export default class extends Controller {
   }
 
   undoTargetConnected(undo) {
-    const toast = undo.closest("[data-controller~=toast]")
+    this.keepClickableAboveModal(undo.closest("[data-controller~=toast]"))
+  }
+
+  keepClickableAboveModal(toast) {
     if (this.dialogTarget.open && !this.dialogTarget.contains(toast)) this.dialogTarget.append(toast)
   }
 

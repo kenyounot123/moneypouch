@@ -47,8 +47,7 @@ class Import::Sheet
     def text(cell)
       case cell
       when BigDecimal
-        shown = cell.mult(1, SHOWN_DIGITS)
-        shown.frac.zero? ? shown.to_i.to_s : shown.to_s("F")
+        digits_excel_shows(cell)
       when Date
         cell.iso8601
       when nil
@@ -56,6 +55,11 @@ class Import::Sheet
       else
         cell.to_s
       end
+    end
+
+    def digits_excel_shows(number)
+      shown = number.mult(1, SHOWN_DIGITS)
+      shown.frac.zero? ? shown.to_i.to_s : shown.to_s("F")
     end
 
     def dump(sheet)
