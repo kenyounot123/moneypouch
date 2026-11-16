@@ -119,7 +119,7 @@ export default class extends Controller {
     if (target.dataset.months) this.moveCursor(addMonths(this.popup.cursor, Number(target.dataset.months)))
   }
 
-  // Chrome sends mouse events to a resting pointer when the popup opens or redraws under it, and only a real move selects.
+  // Chrome: it sends mouse events to a resting pointer when the popup opens or redraws under it, and only a real move selects.
   point(event) {
     const moved = event.screenX !== this.pointerX || event.screenY !== this.pointerY
     this.pointerX = event.screenX

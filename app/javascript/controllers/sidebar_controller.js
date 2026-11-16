@@ -30,7 +30,7 @@ export default class extends Controller {
     if (event.target === this.sheetTarget) this.close()
   }
 
-  // The page morphs after every save, and a morph would strip the open attribute without closing the modal.
+  // Turbo: the page morphs after every save, and a morph would strip the open attribute without closing the modal.
   keepClosed(event) {
     if (event.target === this.sheetTarget && event.detail.attributeName === "open") {
       event.preventDefault()

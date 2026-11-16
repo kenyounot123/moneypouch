@@ -2,7 +2,7 @@ module Transaction::Broadcastable
   extend ActiveSupport::Concern
 
   included do
-    # Not broadcasts_refreshes_to: its debounced job reaches other screens a second or more after the change.
+    # Turbo: not broadcasts_refreshes_to, since its debounced job reaches other screens a second or more after the change.
     after_commit -> { broadcast_refresh_to(user, :transactions) }
   end
 

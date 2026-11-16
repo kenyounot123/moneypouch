@@ -15,7 +15,7 @@ export default class extends Controller {
     this.field.focus()
   }
 
-  // Moving focus off the field fires blur, so the form is forgotten first and the blur save finds nothing to send.
+  // Browsers: moving focus off the field fires blur, so the form is forgotten first and the blur save finds nothing to send.
   close(refocus = false) {
     const form = this.form
     if (!form) return

@@ -49,7 +49,7 @@ class BankTransaction < ApplicationRecord
     partner.linked_transaction.then { |transaction| transaction.update!(categorization: transaction.user.rule_for(partner.name)&.categorization || Transaction::Categorization.none) }
   end
 
-  # Transaction shadows ActiveRecord's #transaction, so there is no belongs_to; see Transaction::Bankable.
+  # Rails: Transaction shadows ActiveRecord's #transaction, so there is no belongs_to; see Transaction::Bankable.
   def linked_transaction
     Transaction.find(transaction_id)
   end

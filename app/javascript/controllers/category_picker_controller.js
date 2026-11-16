@@ -57,7 +57,7 @@ export default class extends Controller {
     this.render()
   }
 
-  // Removing the focused field fires blur, which calls close again before this call finishes.
+  // Browsers: removing the focused field fires blur, which calls close again before this call finishes.
   close() {
     const form = this.form
     if (!form) return
@@ -192,7 +192,7 @@ export default class extends Controller {
     }
   }
 
-  // A popup drawn under a resting pointer gets mouse events too, and only a real move selects.
+  // Browsers: a popup drawn under a resting pointer gets mouse events too, and only a real move selects.
   point(event) {
     const moved = this.pointer && (this.pointer.x !== event.screenX || this.pointer.y !== event.screenY)
     this.pointer = { x: event.screenX, y: event.screenY }
@@ -213,7 +213,7 @@ export default class extends Controller {
     }
   }
 
-  // The editor closes as the request starts, because a morph keeps the focused field and the old label beside the new one.
+  // Turbo: the editor closes as the request starts, because a morph keeps the focused field and the old label beside the new one.
   save() {
     const item = this.items[this.index]
     if (item) this.field.value = item.name

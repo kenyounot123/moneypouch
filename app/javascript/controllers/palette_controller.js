@@ -29,7 +29,7 @@ export default class extends Controller {
     if (event.target === this.dialogTarget) this.dialogTarget.close()
   }
 
-  // The open modal makes everything outside it inert, so a toast drawn above it would ignore clicks.
+  // Browsers: the open modal makes everything outside it inert, so a toast drawn above it would ignore clicks.
   undoTargetConnected(undo) {
     const toast = undo.closest("[data-controller~=toast]")
     if (this.dialogTarget.open && !this.dialogTarget.contains(toast)) this.dialogTarget.append(toast)

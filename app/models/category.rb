@@ -8,7 +8,7 @@ class Category < ApplicationRecord
 
   normalizes :name, with: ->(name) { name.squish }
 
-  # downcase(:ascii) agrees with the lower(name) index, since SQLite lower() folds ASCII only.
+  # SQLite: lower() folds ASCII only, so downcase(:ascii) agrees with the lower(name) index.
   scope :named, ->(name) { where("lower(name) = ?", name.downcase(:ascii)) }
   scope :alphabetically, -> { order(Arel.sql("lower(name)")) }
   scope :unused, -> { where.missing(:transactions, :rules) }

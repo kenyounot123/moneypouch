@@ -44,7 +44,7 @@ class Import::Sheet
       end
     end
 
-    # Excel shows a number to 15 significant digits, so the 1234.5599999999999 it stored reads 1234.56.
+    # Excel: it shows a number to 15 significant digits, so the 1234.5599999999999 it stored reads 1234.56.
     def text(cell)
       case cell
       when BigDecimal
@@ -145,7 +145,7 @@ class Import::Sheet
         end
       end
 
-      # Number cells read from the digits Excel stored, never through roo's Float.
+      # Excel: number cells read from the digits Excel stored, never through roo's Float.
       def xlsx_value(roo_cell)
         case roo_cell
         when Roo::Excelx::Cell::Time
