@@ -274,11 +274,11 @@ class ImportTest < ActiveSupport::TestCase
   end
 
   test "rows already here are paired with the transaction they match, in file order" do
-    typed, earlier, banked, deleted = have_personal_rows(@user)
+    have_personal_rows(@user) => { typed:, imported:, banked:, deleted: }
     import = @user.start_import(import_file("personal.csv"))
     tally = import.tally
 
-    assert_equal [ [ "Whole Foods", typed ], [ "Trader Joe's", earlier ], [ "Rent", banked ], [ "Groceries", deleted ] ], tally.already_here.map { |row, transaction| [ row.name, transaction ] }
+    assert_equal [ [ "Whole Foods", typed ], [ "Trader Joe's", imported ], [ "Rent", banked ], [ "Groceries", deleted ] ], tally.already_here.map { |row, transaction| [ row.name, transaction ] }
     assert_equal [ 7, 89_140, 329_466, 418_606 ], [ tally.adding, tally.new_cents, tally.already_here_cents, tally.total_cents ]
   end
 

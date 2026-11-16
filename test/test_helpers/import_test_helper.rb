@@ -22,7 +22,7 @@ module ImportTestHelper
     access.bank_accounts.find_by!(external_id: "Demo Checking").bank_transactions.create!(simplefin_sync: access.syncs.create!, transaction_id: banked.id, external_id: "rent",
       amount_in_cents: -200_000, occurred_on: banked.occurred_on, description: "Rent", name_key: "rent")
 
-    [ typed, earlier.transactions.find_by!(name: "Trader Joe's"), banked, deleted ]
+    { typed:, imported: earlier.transactions.find_by!(name: "Trader Joe's"), banked:, deleted: }
   end
 
   def xlsx(entries)
