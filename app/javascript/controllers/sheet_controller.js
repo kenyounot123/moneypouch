@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { closeOnMorph } from "helpers/dialog"
 
 export default class extends Controller {
   static targets = ["frame"]
@@ -23,11 +24,8 @@ export default class extends Controller {
     if (event.detail.success) this.close()
   }
 
-  keepClosed(event) {
-    if (event.target === this.element && event.detail.attributeName === "open") {
-      event.preventDefault()
-      this.close()
-    }
+  closeOnMorph(event) {
+    closeOnMorph(this.element, event)
   }
 
   forget() {

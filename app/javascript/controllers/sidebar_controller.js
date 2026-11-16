@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { closeOnMorph } from "helpers/dialog"
 
 export default class extends Controller {
   static targets = [ "toggle", "opener", "sheet" ]
@@ -30,11 +31,8 @@ export default class extends Controller {
     if (event.target === this.sheetTarget) this.close()
   }
 
-  keepClosed(event) {
-    if (event.target === this.sheetTarget && event.detail.attributeName === "open") {
-      event.preventDefault()
-      this.close()
-    }
+  closeOnMorph(event) {
+    closeOnMorph(this.sheetTarget, event)
   }
 
   closeOnDesktop() {
