@@ -3,7 +3,7 @@
 ## Sub-features
 
 - `Transaction::Shorthand.read(shorthand, today:)` reads typed shorthand into a `Transaction::Shorthand::Parts` with `name`, `amount_in_cents`, `category_word`, `occurred_on`, `dated`, `tokens` (the marks the composer colors), and `errors`. It is pure. `dated` is true only when the shorthand names a date, so `coffee 5` is not dated and `coffee 5 today` is.
-- `Voucher.new(shorthand, user:, today:, complete: false)` adds the category and never writes. Construction stores its inputs only. `category` and `completion` each run their query on first call and memoize the result, nil included.
+- `Voucher.new(shorthand, user:, today:, complete: false, calendar: nil)` adds the category and never writes. `calendar:` is the date fragment the `@` calendar is following (`GET /voucher?calendar=sep`); `#aim` reads it through `Transaction::Shorthand.aim(fragment, today:)` into an `Aim(on, exact)` the calendar moves its cursor to, and the preview carries it as `data-calendar`. Construction stores its inputs only. `category` and `completion` each run their query on first call and memoize the result, nil included.
   - With `complete: true`, shorthand of 2 or more non-space characters with no digit, `#`, `@`, `$`, or `+` looks up the user's kept names that start with it (ASCII case-insensitive, LIKE wildcards escaped), ranked by use count then latest `occurred_on`, and takes the first longer than the shorthand. `#completion` is the full completed name in its stored spelling, or nil. The category then comes from the completed name. The lookup is `Transaction.name_starting_with`.
   - A `#word` matches the user's category, ignoring ASCII case. No match gives an unsaved `Category`, an income category when the amount is money in.
   - With no `#word`, the category comes from the user's latest kept transaction with the same name, else, for money in, the user's built-in `Income` category (`User#income_category`). This runs even when the amount is missing, so the preview shows the category while the person is still typing. Shorthand with no name skips the lookup.
@@ -11,7 +11,7 @@
 - Dates: `sep 26`, `sep 1st`, `sep 26 2025`, `9/26`, `9/26/26`, `2026-09-26`, `today`, `yesterday`, and full weekday names, each also with a leading `@` (`@yesterday`, `@9/26`, `@sep 26`). No date means `today`.
 - Errors: `Type an amount, like 5.50` and `Type a name, like coffee`. The preview shows them only after Enter answers 422; while typing, `coffee` previews `Uncategorized · Today`.
 - A bare `#` or `@` is taken out of the name, and a bare `#` leaves the category to inference: `Trader Joe's 64.12 #` reads name `Trader Joe's`. A `#` followed only by punctuation, like `#!`, stays in the name.
-- `#attributes`, `#tokens`, `#valid?`, `#money_in?`, `#dated?`, `#completion`, `#category_word`, `#category_name`, `#inferred?`.
+- `#attributes`, `#tokens`, `#valid?`, `#money_in?`, `#dated?`, `#completion`, `#category_word`, `#category_name`, `#inferred?`, `#aim`, `#calendar`.
 
 ## How to get to it (user POV)
 
