@@ -8,6 +8,7 @@ class FeatureMapTest < ActiveSupport::TestCase
   ROUTE = %r{\A(?:(GET|POST|PATCH|PUT|DELETE) )?(/[\w/:.\-]*[a-z][\w/:.\-]*)(?:\?\S*)?\z}
   PATH = %r{\A[\w.\-]+(?:/[\w.\-*]+)+\.[a-z]+\z}
   DEVTOOLS_DOMAINS = %w[ DOM Input Network Page Runtime ].freeze
+  RUNTIME_OUTPUT = %r{\A(?:log|tmp)/}
   PATH_ROOTS = [ "", "app/views/", "app/javascript/controllers/", "app/javascript/", "app/assets/images/" ].freeze
 
   test "every constant, method, file, and route the feature map names exists" do
@@ -32,7 +33,7 @@ class FeatureMapTest < ActiveSupport::TestCase
 
     def exists?(reference)
       case reference
-      when %r{\Atmp/}, /\A[A-Z0-9_]+[.#]/, /\A(?:#{DEVTOOLS_DOMAINS.join("|")})\./
+      when RUNTIME_OUTPUT, /\A[A-Z0-9_]+[.#]/, /\A(?:#{DEVTOOLS_DOMAINS.join("|")})\./
         true
       when CONSTANT
         constant(reference).present?
