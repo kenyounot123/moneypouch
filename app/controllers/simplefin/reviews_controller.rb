@@ -19,7 +19,6 @@ class Simplefin::ReviewsController < ApplicationController
       @review = @access.review
     end
 
-    # After a pick Turbo reloads each loaded page frame in turn, so the row's own page has to see the flash too.
     def keep_categorized_for_later_page(id)
       if id && @page.before_last? && @page.records.none? { |transaction| transaction.id == id }
         flash.keep(:categorized_id)

@@ -44,12 +44,10 @@ class Import::Sheet
       end
     end
 
-    # Excel shows a number to 15 significant digits, so the 1234.5599999999999 it stored reads 1234.56.
     def text(cell)
       case cell
       when BigDecimal
-        shown = cell.mult(1, SHOWN_DIGITS)
-        shown.frac.zero? ? shown.to_i.to_s : shown.to_s("F")
+        digits_excel_shows(cell)
       when Date
         cell.iso8601
       when nil
@@ -57,6 +55,11 @@ class Import::Sheet
       else
         cell.to_s
       end
+    end
+
+    def digits_excel_shows(number)
+      shown = number.mult(1, SHOWN_DIGITS)
+      shown.frac.zero? ? shown.to_i.to_s : shown.to_s("F")
     end
 
     def dump(sheet)
@@ -145,7 +148,6 @@ class Import::Sheet
         end
       end
 
-      # Number cells read from the digits Excel stored, never through roo's Float.
       def xlsx_value(roo_cell)
         case roo_cell
         when Roo::Excelx::Cell::Time
@@ -153,12 +155,16 @@ class Import::Sheet
         when Roo::Excelx::Cell::DateTime
           roo_cell.value.to_date
         when Roo::Excelx::Cell::Number
-          BigDecimal(roo_cell.cell_value, exception: false) || roo_cell.cell_value
+          stored_digits(roo_cell)
         when Roo::Excelx::Cell::Boolean
           roo_cell.value
         when Roo::Excelx::Cell::String
           roo_cell.value.to_s.strip.presence
         end
+      end
+
+      def stored_digits(roo_cell)
+        BigDecimal(roo_cell.cell_value, exception: false) || roo_cell.cell_value
       end
 
       def csv_lines(bytes)
