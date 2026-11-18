@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.2](https://github.com/kenyounot123/moneypouch/compare/v0.25.1...v0.25.2) (2026-11-18)
+
+
+### Bug Fixes
+
+* focus Got it when the release notes open ([#237](https://github.com/kenyounot123/moneypouch/issues/237)) ([8ea868e](https://github.com/kenyounot123/moneypouch/commit/8ea868e889d1f383637c9576e1b26a4b69dae86f)), closes [#233](https://github.com/kenyounot123/moneypouch/issues/233)
+
 ## [0.25.1](https://github.com/kenyounot123/moneypouch/compare/v0.25.0...v0.25.1) (2026-11-12)
 
 
