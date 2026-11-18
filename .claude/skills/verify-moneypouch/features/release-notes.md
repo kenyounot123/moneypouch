@@ -4,7 +4,7 @@
 
 - After an upgrade, the first signed-in page opens a modal `dialog[data-controller=release-notes]` (`shared/_release_notes`, rendered by the layout while `Current.user.unseen_releases.any?`). Unseen releases are the `CHANGELOG.md` versions above `users.seen_version` and not above `version.txt` (`Release`).
 - It reads `You're now on version <version.txt>` (for example `0.25.1`), the newest unseen release's date, and the changelog's sections (`New`, `Fixed`, `Faster`) as bullets. Several unseen releases each get a version heading. `All releases` links to the GitHub releases page.
-- `Got it` (`button[data-action="release-notes#close"]`), Esc, or a backdrop click closes it, and the close submits `POST /seen_release`, which saves the current version on `users.seen_version`. The next page has no dialog.
+- `Got it` (`button[data-action="release-notes#close"]`) has focus when the dialog opens, so Enter closes it. The notes list stays reachable with Tab and scrolls with the arrow keys. `Got it`, Esc, or a backdrop click closes it, and the close submits `POST /seen_release`, which saves the current version on `users.seen_version`. The next page has no dialog.
 - A new account starts with `seen_version` at the current version, so it never sees the dialog. Settings, About shows the version.
 
 ## How to get to it (user POV)
