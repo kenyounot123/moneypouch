@@ -9,7 +9,7 @@
       <% end %>
     </div>
 
-    <div class="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
+    <div class="-m-2 flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto rounded-md p-2 focus-visible:ring-3 focus-visible:ring-focus/22 focus-visible:outline-none">
       <% releases.each do |release| %>
         <section class="flex flex-col gap-4">
           <% if releases.many? %>
@@ -31,7 +31,7 @@
 
     <%= form_with url: seen_release_path, class: "flex items-center justify-between gap-4", data: { release_notes_target: "form" } do %>
       <%= link_to "All releases", "https://github.com/kenyounot123/moneypouch/releases", target: "_blank", rel: "noopener", class: "header-button" %>
-      <button type="button" data-action="release-notes#close" class="cursor-pointer rounded-md bg-action px-4 py-3 text-button text-on-action hover:brightness-95">Got it</button>
+      <button type="button" autofocus data-action="release-notes#close" class="cursor-pointer rounded-md bg-action px-4 py-3 text-button text-on-action hover:brightness-95">Got it</button>
     <% end %>
   </div>
 </dialog>
