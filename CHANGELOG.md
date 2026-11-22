@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.2](https://github.com/kenyounot123/moneypouch/compare/v0.25.1...v0.25.2) (2026-11-22)
+
+
+### Bug Fixes
+
+* **deps:** patch Ruby 3.4 and Puma security advisories ([#242](https://github.com/kenyounot123/moneypouch/issues/242)) ([2bb04a7](https://github.com/kenyounot123/moneypouch/commit/2bb04a7297bec4aa0984b8a91675ee13ac6a1cd2))
+* focus Got it when the release notes open ([#237](https://github.com/kenyounot123/moneypouch/issues/237)) ([8ea868e](https://github.com/kenyounot123/moneypouch/commit/8ea868e889d1f383637c9576e1b26a4b69dae86f)), closes [#233](https://github.com/kenyounot123/moneypouch/issues/233)
+
 ## [0.25.1](https://github.com/kenyounot123/moneypouch/compare/v0.25.0...v0.25.1) (2026-11-12)
 
 
