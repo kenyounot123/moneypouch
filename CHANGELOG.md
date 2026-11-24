@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.0](https://github.com/kenyounot123/moneypouch/compare/v0.25.3...v0.26.0) (2026-11-24)
+
+
+### Features
+
+* **bank-sync:** review possible duplicates of bank rows ([#248](https://github.com/kenyounot123/moneypouch/issues/248)) ([c752336](https://github.com/kenyounot123/moneypouch/commit/c752336a97304833e20441d4b655436fe747c796))
+
 ## [0.25.3](https://github.com/kenyounot123/moneypouch/compare/v0.25.2...v0.25.3) (2026-11-24)
 
 
