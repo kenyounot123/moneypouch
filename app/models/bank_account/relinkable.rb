@@ -18,11 +18,11 @@ module BankAccount::Relinkable
   end
 
   def replacement
-    if missing?
-      namesakes = simplefin_access.bank_accounts.reported.where(name:, institution:).limit(2).to_a
+    if missing? && namesakes.missing.one? && last_added_at
+      candidates = namesakes.reported.where(created_at: last_added_at..).limit(2).to_a
 
-      if namesakes.one?
-        namesakes.first
+      if candidates.one?
+        candidates.first
       end
     end
   end
@@ -32,7 +32,7 @@ module BankAccount::Relinkable
   end
 
   def carry_on_with_replacement
-    transaction do
+    with_lock do
       replacement&.hand_over_to(self)
     end
 
@@ -46,6 +46,14 @@ module BankAccount::Relinkable
   end
 
   private
+    def namesakes
+      simplefin_access.bank_accounts.where(name:, institution:)
+    end
+
+    def last_added_at
+      bank_transactions.maximum(:created_at)
+    end
+
     def adopt_new_ids(simplefin_transactions)
       if relinked_at
         ids = simplefin_transactions.map(&:id)
