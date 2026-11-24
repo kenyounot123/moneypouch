@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.3](https://github.com/kenyounot123/moneypouch/compare/v0.25.2...v0.25.3) (2026-11-24)
+
+
+### Bug Fixes
+
+* **bank-sync:** carry an account on when its SimpleFIN id changes ([#243](https://github.com/kenyounot123/moneypouch/issues/243)) ([7112637](https://github.com/kenyounot123/moneypouch/commit/7112637ebab87efa7e7fdde7bf575bc42cfccd84))
+
 ## [0.25.2](https://github.com/kenyounot123/moneypouch/compare/v0.25.1...v0.25.2) (2026-11-22)
 
 
