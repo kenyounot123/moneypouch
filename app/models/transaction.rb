@@ -1,5 +1,5 @@
 class Transaction < ApplicationRecord
-  include Bankable, Broadcastable, Categorizable, Discardable, Exportable, Importable, Searchable
+  include Bankable, Broadcastable, Categorizable, Discardable, Exportable, Importable, Mergeable, Searchable
 
   belongs_to :user
 
