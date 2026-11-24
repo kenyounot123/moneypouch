@@ -14,8 +14,7 @@ class BankAccount < ApplicationRecord
         institution: simplefin_account.institution,
         currency: simplefin_account.currency,
         balance_in_cents: simplefin_account.balance_in_cents,
-        error_message: simplefin_account.error_message,
-        missing_since: nil
+        error_message: simplefin_account.error_message
       )
     end
   end

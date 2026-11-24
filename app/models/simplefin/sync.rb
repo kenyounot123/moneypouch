@@ -52,7 +52,7 @@ class Simplefin::Sync < ApplicationRecord
         simplefin_accounts.each do |simplefin_account|
           access.update_account(simplefin_account).add_transactions(simplefin_account.transactions, sync: self)
         end
-        access.note_missing_accounts(simplefin_accounts)
+        access.note_report(simplefin_accounts)
       end
     rescue Simplefin::PaymentRequired
       finish("lapsed")

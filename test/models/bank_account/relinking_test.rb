@@ -114,6 +114,7 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     coffee = bought("twin-1", "-4.00", Time.utc(2026, 10, 4, 18))
     demo_account(report, "Demo Savings")["transactions"].push(coffee, coffee.merge("id" => "twin-2"))
     sync_again(@access, report:)
+    travel 1.hour
 
     report = relinked_report(report)
     sync_again(@access, report:)
@@ -177,6 +178,7 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     twin = @access.bank_accounts.find_by!(external_id: "Twin Savings")
     twin.start_syncing(from: Date.new(2026, 7, 9))
     sync_again(@access, report:)
+    travel 1.hour
 
     sync_again(@access, report: relinked_report)
     assert_equal [ nil, nil ], [ @savings.reload.replacement, twin.reload.replacement ]

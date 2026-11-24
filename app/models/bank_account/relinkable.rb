@@ -8,8 +8,11 @@ module BankAccount::Relinkable
   end
 
   class_methods do
-    def note_missing(simplefin_accounts)
-      synced.reported.where.not(external_id: simplefin_accounts.map(&:id)).update_all(missing_since: Time.current, updated_at: Time.current)
+    def note_report(simplefin_accounts)
+      ids = simplefin_accounts.map(&:id)
+
+      where(external_id: ids).update_all(reported_at: Time.current, missing_since: nil)
+      reported.where.not(external_id: ids).update_all(missing_since: Time.current)
     end
   end
 
@@ -18,8 +21,8 @@ module BankAccount::Relinkable
   end
 
   def replacement
-    if missing? && namesakes.missing.one? && last_added_at
-      candidates = namesakes.reported.where(created_at: last_added_at..).limit(2).to_a
+    if missing? && namesakes.missing.one?
+      candidates = namesakes.reported.where("created_at > ?", reported_at).limit(2).to_a
 
       if candidates.one?
         candidates.first
@@ -42,16 +45,12 @@ module BankAccount::Relinkable
   def hand_over_to(bank_account)
     bank_transactions.update_all(bank_account_id: bank_account.id)
     reload.destroy!
-    bank_account.update!(external_id:, balance_in_cents:, error_message:, missing_since: nil, relinked_at: Time.current)
+    bank_account.update!(external_id:, balance_in_cents:, error_message:, reported_at:, missing_since: nil, relinked_at: Time.current)
   end
 
   private
     def namesakes
       simplefin_access.bank_accounts.where(name:, institution:)
-    end
-
-    def last_added_at
-      bank_transactions.maximum(:created_at)
     end
 
     def adopt_new_ids(simplefin_transactions)
