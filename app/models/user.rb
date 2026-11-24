@@ -151,7 +151,31 @@ class User < ApplicationRecord
     end
   end
 
+  def possible_duplicates
+    Transaction::Duplicates.new(self)
+  end
+
+  def merge_duplicate(transaction_id, bank_transaction_ids)
+    answer_duplicate(transaction_id, bank_transaction_ids, &:merge)
+  end
+
+  def keep_both(transaction_id, bank_transaction_ids)
+    answer_duplicate(transaction_id, bank_transaction_ids, &:keep_both)
+  end
+
   private
+    def answer_duplicate(transaction_id, bank_transaction_ids)
+      Transaction.broadcasting_once_for(self) do
+        with_lock do
+          duplicate = possible_duplicates.between(transaction_id, bank_transaction_ids)
+
+          if duplicate
+            yield duplicate
+          end
+        end
+      end
+    end
+
     def delete_transactions_including_deleted
       Transaction.where(user: self).delete_all
     end

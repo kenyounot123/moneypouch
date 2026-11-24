@@ -9,6 +9,7 @@ class BankTransaction < ApplicationRecord
 
   scope :unmatched, -> { where(matched: false) }
   scope :unpaired, -> { where(transfer_partner_id: nil) }
+  scope :unmerged, -> { where.not(id: Transaction::DuplicateAnswer.same.select(:bank_transaction_id)) }
 
   def self.count_by_name
     unmatched.where(transaction_id: Transaction.kept.select(:id)).group(:name_key).count

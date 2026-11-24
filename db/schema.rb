@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_24_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_180000) do
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -61,6 +61,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_120000) do
     t.boolean "income", default: false, null: false
     t.index "user_id, lower(name)", name: "index_categories_on_user_id_and_lower_name", unique: true
     t.index ["import_id"], name: "index_categories_on_import_id"
+  end
+
+  create_table "duplicate_answers", force: :cascade do |t|
+    t.integer "typed_transaction_id", null: false
+    t.integer "bank_transaction_id", null: false
+    t.boolean "same", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bank_transaction_id"], name: "index_duplicate_answers_on_bank_transaction_id"
+    t.index ["bank_transaction_id"], name: "index_duplicate_answers_one_same_per_bank_row", unique: true, where: "same"
+    t.index ["typed_transaction_id", "bank_transaction_id"], name: "idx_on_typed_transaction_id_bank_transaction_id_56652cc587", unique: true
   end
 
   create_table "imports", force: :cascade do |t|
@@ -171,6 +182,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_120000) do
   add_foreign_key "bank_transactions", "transactions"
   add_foreign_key "categories", "imports", on_delete: :nullify
   add_foreign_key "categories", "users"
+  add_foreign_key "duplicate_answers", "bank_transactions", on_delete: :cascade
+  add_foreign_key "duplicate_answers", "transactions", column: "typed_transaction_id", on_delete: :cascade
   add_foreign_key "imports", "users"
   add_foreign_key "rules", "categories", on_delete: :cascade
   add_foreign_key "rules", "users", on_delete: :cascade

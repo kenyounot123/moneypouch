@@ -1,0 +1,13 @@
+<div class="flex items-center gap-3">
+  <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+    <p class="truncate font-medium"><%= transaction.name %></p>
+    <p class="truncate text-sm text-tertiary"><%= short_date transaction.occurred_on %> · <%= from %></p>
+  </div>
+  <p class="w-[90px] shrink-0 text-right font-amount <%= amount_color transaction %>"><%= money_flow transaction.amount_in_cents %></p>
+  <div class="flex w-4 shrink-0 justify-center text-tertiary">
+    <% if transaction.from_bank? %>
+      <%= icon_tag "bank", class: "size-3.5" %>
+      <span class="sr-only">From your bank</span>
+    <% end %>
+  </div>
+</div>

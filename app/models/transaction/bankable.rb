@@ -6,7 +6,7 @@ module Transaction::Bankable
   included do
     has_one :bank_transaction
 
-    delegate :name, to: :bank_transaction, prefix: true
+    delegate :id, :name, to: :bank_transaction, prefix: true
 
     scope :matchable, -> { where.missing(:bank_transaction) }
     scope :behind, ->(bank_transactions) { where(id: bank_transactions.select(:transaction_id)) }

@@ -1,0 +1,17 @@
+<li id="<%= dom_id duplicate.typed, :duplicate %>" class="flex flex-col gap-3 border-b border-secondary py-4 last:border-b-0">
+  <%= render "simplefin/reviews/duplicate_row", transaction: duplicate.typed, from: duplicate_source(duplicate) %>
+  <% duplicate.bank_rows.each do |bank_row| %>
+    <%= render "simplefin/reviews/duplicate_row", transaction: bank_row, from: bank_row.bank_account_name %>
+  <% end %>
+  <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+    <% if duplicate.several? %>
+      <p class="mr-auto text-sm text-tertiary">Adds up to <%= money duplicate.total_in_cents.abs %></p>
+    <% end %>
+    <div class="flex shrink-0 items-center gap-1">
+      <%= button_to "Keep both", transaction_separation_path(duplicate.typed), params: { bank_transaction_ids: duplicate.bank_transaction_ids }, aria: { label: duplicate_answer_label("Keep both", duplicate) },
+        class: "cursor-pointer rounded-sm px-2.5 py-1.5 text-sm font-medium text-secondary hover:bg-level-3 hover:text-primary" %>
+      <%= button_to "Same transaction", transaction_merge_path(duplicate.typed), params: { bank_transaction_ids: duplicate.bank_transaction_ids }, aria: { label: duplicate_answer_label("Same transaction", duplicate) },
+        class: "outline-button" %>
+    </div>
+  </div>
+</li>

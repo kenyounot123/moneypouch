@@ -2,7 +2,7 @@ module SimplefinHelper
   SIMPLEFIN_URL = "https://bridge.simplefin.org"
   SIMPLEFIN_CREATE_URL = "https://bridge.simplefin.org/simplefin/create"
 
-  REVIEW_LIST_TITLES = { "needing_category" => "Need a category", "categorized" => "Categorized for you", "transfers" => "Transfers" }
+  REVIEW_LIST_TITLES = { "duplicates" => "Possible duplicates", "needing_category" => "Need a category", "categorized" => "Categorized for you", "transfers" => "Transfers" }
 
   def link_to_simplefin(label, url = SIMPLEFIN_URL)
     link_to url, target: "_blank", rel: "noopener", class: "outline-button" do
@@ -30,10 +30,19 @@ module SimplefinHelper
 
   def review_list_empty(list)
     case list
+    when "duplicates" then "No possible duplicates."
     when "needing_category" then "Every row has a category."
     when "categorized" then "Nothing was categorized for you."
     else "No transfers."
     end
+  end
+
+  def duplicate_source(duplicate)
+    already_here_source(duplicate.typed).upcase_first
+  end
+
+  def duplicate_answer_label(answer, duplicate)
+    [ answer, duplicate.typed.name, short_date(duplicate.typed.occurred_on), money_flow(duplicate.typed.amount_in_cents) ].join(", ")
   end
 
   def rule_just_made?(rule)

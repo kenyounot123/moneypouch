@@ -8,6 +8,8 @@ Rails.application.routes.draw do
     resource :rule, only: :create, module: :transactions
     resource :note, only: :update, module: :transactions
     resource :exclusion, only: %i[ create destroy ], module: :transactions
+    resource :merge, only: :create, module: :transactions
+    resource :separation, only: :create, module: :transactions
   end
   resource :voucher, only: :show
   resource :session, only: %i[ new create destroy ]

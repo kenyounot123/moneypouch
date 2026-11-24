@@ -1,12 +1,17 @@
 class Simplefin::Review
-  LISTS = %w[ needing_category categorized transfers ].freeze
+  DUPLICATES = "duplicates"
+  TRANSACTION_LISTS = %w[ needing_category categorized transfers ].freeze
+  LISTS = [ DUPLICATES, *TRANSACTION_LISTS ].freeze
 
-  def initialize(syncs)
+  attr_reader :duplicates
+
+  def initialize(syncs, duplicates:)
     @syncs = syncs
+    @duplicates = duplicates
   end
 
   def pending?
-    needing_category.exists? || completable?
+    needing_category.exists? || completable? || duplicates.present?
   end
 
   def completable?
@@ -29,12 +34,20 @@ class Simplefin::Review
     if LISTS.include?(name)
       name
     else
-      LISTS.find { |list| transactions_in(list).exists? } || LISTS.first
+      LISTS.find { |list| size_of(list).positive? } || TRANSACTION_LISTS.first
+    end
+  end
+
+  def size_of(list)
+    if list == DUPLICATES
+      duplicates.size
+    else
+      transactions_in(list).count
     end
   end
 
   def transactions_in(list, including: nil)
-    if LISTS.include?(list)
+    if TRANSACTION_LISTS.include?(list)
       public_send(list).or(transactions(@syncs).where(id: including))
     else
       raise ArgumentError, "no #{list} list in a review"

@@ -1,0 +1,9 @@
+<% if duplicates.any? %>
+  <p class="text-sm text-tertiary">Same transaction keeps the bank's rows and removes the one you added.</p>
+<% end %>
+<ul class="flex flex-col border-t border-secondary">
+  <%= render partial: "simplefin/reviews/duplicate", collection: duplicates %>
+  <% if duplicates.empty? %>
+    <li class="py-3 text-sm text-tertiary"><%= review_list_empty Simplefin::Review::DUPLICATES %></li>
+  <% end %>
+</ul>
