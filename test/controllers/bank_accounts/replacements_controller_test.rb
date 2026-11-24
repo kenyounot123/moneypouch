@@ -6,6 +6,7 @@ class BankAccounts::ReplacementsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(users(:one))
     @access = activate(connect_simplefin)
     @savings = @access.bank_accounts.find_by!(external_id: "Demo Savings")
+    travel 1.hour
   end
 
   test "settings asks about a relinked account in place of offering it as new" do

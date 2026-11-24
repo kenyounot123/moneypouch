@@ -6,6 +6,7 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     @access = connect_simplefin
     activate(@access)
     @savings = @access.bank_accounts.find_by!(external_id: "Demo Savings")
+    travel 1.hour
   end
 
   test "an account SimpleFIN stops sending is missing until it comes back" do
@@ -184,29 +185,47 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     assert_equal "Relinked Demo Savings", @savings.reload.replacement.external_id
   end
 
-  test "a namesake that was there before the account went missing is not its replacement" do
+  test "a namesake SimpleFIN once sent beside the missing account is not its replacement" do
     report = simplefin_report
-    report["accounts"] << demo_account(report, "Demo Savings").merge("id" => "Twin Savings")
+    report["accounts"] << demo_account(report, "Demo Savings").merge("id" => "Newer Savings")
     sync_again(@access, report:)
-    @access.bank_accounts.find_by!(external_id: "Twin Savings").start_syncing(from: Date.new(2026, 7, 9))
-    travel 1.day
-    demo_account(report, "Demo Savings")["transactions"] << bought("later", "-9.00", Time.utc(2026, 10, 7, 18))
-    sync_again(@access, report:)
+    travel 1.hour
     report["accounts"].delete(demo_account(report, "Demo Savings"))
 
     sync_again(@access, report:)
-
     assert @savings.reload.missing?
+    assert_nil @savings.replacement
+
+    @access.bank_accounts.find_by!(external_id: "Newer Savings").start_syncing(from: Date.new(2026, 10, 6))
     assert_nil @savings.replacement
   end
 
-  test "a missing account with no rows has no replacement" do
-    BankTransaction.where(bank_account: @savings).destroy_all
+  test "a second relink before the first is confirmed offers the account SimpleFIN sends now" do
+    sync_again(@access, report: relinked_report)
+    travel 1.hour
+    again = relinked_report
+    demo_account(again, "Relinked Demo Savings")["id"] = "Relinked twice"
 
-    @savings.update!(missing_since: Time.current)
-    @access.bank_accounts.create!(external_id: "New", name: @savings.name, institution: @savings.institution, currency: "USD")
+    sync_again(@access, report: again)
 
-    assert_nil @savings.replacement
+    assert_equal "Relinked twice", @savings.reload.replacement.external_id
+  end
+
+  test "an account relinked twice keeps its history once" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    travel 1.hour
+    again = relinked_report
+    demo_account(again, "Relinked Demo Savings").then do |savings|
+      savings["id"] = "Relinked twice"
+      savings["transactions"].each { |transaction| transaction["id"] = "again-#{transaction["id"]}" }
+    end
+    sync_again(@access, report: again)
+
+    assert_no_difference -> { Transaction.count } do
+      carry_on(again)
+    end
+    assert_equal "Relinked twice", @savings.reload.external_id
   end
 
   test "an equal purchase on an account that was never relinked is added" do
