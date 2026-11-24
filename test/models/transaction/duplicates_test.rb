@@ -145,6 +145,16 @@ class Transaction::DuplicatesTest < ActiveSupport::TestCase
     assert_empty offered
   end
 
+  test "bank rows in another currency never add up" do
+    euros = report([ bank_row("dollars", -4_820, 10) ], savings: [ bank_row("euros", -1_737, 10), *(1..3).map { |number| bank_row("fare #{number}", -300, 10, "Transit") } ])
+    demo_account(euros, "Demo Savings")["currency"] = "EUR"
+    activate(@access, report: euros)
+    typed "Groceries", -6_557, 10
+    typed "Fares", -900, 10
+
+    assert_empty offered
+  end
+
   test "skips transfers, excluded rows, and discarded rows on either side" do
     sync bank_row("a", -1_100, 10), bank_row("b", -1_200, 10), bank_row("c", -1_300, 10), bank_row("d", -1_400, 10), bank_row("e", -1_500, 10), bank_row("f", -1_600, 10)
     typed("A", -1_100, 10).categorize(Transaction::Categorization.transfer)
