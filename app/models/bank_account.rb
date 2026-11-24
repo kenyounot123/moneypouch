@@ -1,4 +1,6 @@
 class BankAccount < ApplicationRecord
+  include Relinkable
+
   belongs_to :simplefin_access, class_name: "Simplefin::Access"
   belongs_to :user, default: -> { simplefin_access.user }
   has_many :bank_transactions, dependent: :destroy
@@ -48,6 +50,8 @@ class BankAccount < ApplicationRecord
 
   def add_transactions(simplefin_transactions, sync:)
     if synced?
+      adopt_new_ids(simplefin_transactions)
+
       simplefin_transactions.each do |simplefin_transaction|
         if simplefin_transaction.occurred_on >= starts_on
           add_transaction(simplefin_transaction, sync:)

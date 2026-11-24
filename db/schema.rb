@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_30_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_120000) do
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -24,6 +24,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_120000) do
     t.string "error_message"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "reported_at"
+    t.datetime "missing_since"
+    t.datetime "relinked_at"
     t.index ["simplefin_access_id", "external_id"], name: "index_bank_accounts_on_simplefin_access_id_and_external_id", unique: true
     t.index ["user_id"], name: "index_bank_accounts_on_user_id"
   end

@@ -1,4 +1,6 @@
 <% show_error = bank_account.error_message && !dimmed %>
+<% show_missing = bank_account.missing? && !dimmed %>
+<% replacement = bank_account.replacement if show_missing %>
 <li id="<%= dom_id bank_account %>" class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-secondary py-3">
   <div class="flex min-w-0 grow basis-[200px] flex-col gap-0.5">
     <% if bank_account.pending? %>
@@ -10,7 +12,12 @@
     <% else %>
       <p class="truncate text-md font-medium <%= dimmed ? "text-tertiary" : "text-primary" %>"><%= bank_account.name %></p>
       <p class="truncate text-sm text-tertiary"><%= bank_account.institution %></p>
-      <% if show_error %>
+      <% if show_missing %>
+        <p class="text-sm text-danger">SimpleFIN stopped sending this account.</p>
+        <% if replacement %>
+          <p class="text-sm text-tertiary">It now sends another account with this name. Is it the same one?</p>
+        <% end %>
+      <% elsif show_error %>
         <p class="text-sm text-danger"><%= bank_account.error_message %></p>
       <% end %>
     <% end %>
@@ -22,12 +29,22 @@
         class: "cursor-pointer rounded-sm px-2.5 py-1.5 text-sm font-medium text-secondary hover:bg-level-3 hover:text-primary" %>
       <%= button_to "Sync it", bank_account_path(bank_account), method: :patch, params: { bank_account: { status: "synced" } }, class: "outline-button" %>
     </div>
+  <% elsif show_missing %>
+    <div class="ml-auto flex shrink-0 items-center gap-1">
+      <%= button_to "Stop syncing", bank_account_path(bank_account), method: :patch, params: { bank_account: { status: "skipped" } },
+        class: "cursor-pointer rounded-sm px-2.5 py-1.5 text-sm font-medium text-secondary hover:bg-level-3 hover:text-primary" %>
+      <% if replacement %>
+        <%= button_to "Same account", bank_account_replacement_path(bank_account), class: "outline-button" %>
+      <% else %>
+        <%= link_to_simplefin "Fix on SimpleFIN" %>
+      <% end %>
+    </div>
   <% elsif show_error %>
     <%= link_to_simplefin "Fix on SimpleFIN" %>
   <% else %>
     <div class="ml-auto flex shrink-0 items-center gap-3">
       <p class="text-right text-sm whitespace-nowrap text-tertiary"><%= pluralize bank_account.bank_transactions.count, "transaction" %></p>
-      <% if bank_account.short_history? && !dimmed %>
+      <% if bank_account.short_history? && !dimmed && !bank_account.replacing? %>
         <%= button_to "Bring in 90 days", bank_account_history_path(bank_account), class: "outline-button" %>
       <% end %>
     </div>

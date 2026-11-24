@@ -28,6 +28,14 @@ module BankSyncTestHelper
     JSON.parse(simplefin_fixture(fixture))
   end
 
+  def relinked_report(report = simplefin_report, external_id: "Demo Savings")
+    report.tap do
+      savings = demo_account(report, external_id)
+      savings["id"] = "Relinked #{external_id}"
+      savings["transactions"].each { |transaction| transaction["id"] = "relinked-#{transaction["id"]}" }
+    end
+  end
+
   def demo_account(report, external_id)
     report["accounts"].find { |account| account["id"] == external_id }
   end

@@ -52,6 +52,10 @@ class Simplefin::Access < ApplicationRecord
     bank_accounts.refresh(simplefin_account)
   end
 
+  def note_report(simplefin_accounts)
+    bank_accounts.note_report(simplefin_accounts)
+  end
+
   def revoke
     update!(status: :revoked, access_url: nil)
   end
@@ -100,13 +104,22 @@ class Simplefin::Access < ApplicationRecord
     if revoked?
       bank_accounts.synced.order(:id)
     else
-      bank_accounts.synced.order(:id) + bank_accounts.pending.order(:id)
+      bank_accounts.synced.order(:id) + (bank_accounts.pending.order(:id) - replacements)
     end
+  end
+
+  def replacements
+    bank_accounts.missing.filter_map(&:replacement)
   end
 
   private
     def list_accounts
-      client.accounts(balances_only: true).each { |simplefin_account| update_account(simplefin_account) }
+      simplefin_accounts = client.accounts(balances_only: true)
+
+      transaction do
+        simplefin_accounts.each { |simplefin_account| update_account(simplefin_account) }
+        note_report(simplefin_accounts)
+      end
     rescue Simplefin::Unavailable, Simplefin::PaymentRequired => error
       Rails.logger.warn "SimpleFIN access #{id} could not list accounts: #{error.class}"
     end
