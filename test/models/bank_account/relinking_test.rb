@@ -158,6 +158,57 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     assert_equal "Relinked Demo Savings", @savings.reload.external_id
   end
 
+  test "two clicks that loaded the account before either finished keep its rows" do
+    sync_again(@access, report: relinked_report)
+    clicks = Array.new(2) { BankAccount.find(@savings.id) }
+    stub_simplefin_accounts(body: relinked_report.to_json)
+
+    assert_no_difference -> { BankTransaction.count } do
+      clicks.each(&:carry_on_with_replacement)
+    end
+    assert_equal "Relinked Demo Savings", @savings.reload.external_id
+  end
+
+  test "two missing accounts with one name leave no replacement" do
+    report = simplefin_report
+    report["accounts"] << demo_account(report, "Demo Savings").merge("id" => "Twin Savings")
+    sync_again(@access, report:)
+    twin = @access.bank_accounts.find_by!(external_id: "Twin Savings")
+    twin.start_syncing(from: Date.new(2026, 7, 9))
+    sync_again(@access, report:)
+
+    sync_again(@access, report: relinked_report)
+    assert_equal [ nil, nil ], [ @savings.reload.replacement, twin.reload.replacement ]
+
+    twin.skip
+    assert_equal "Relinked Demo Savings", @savings.reload.replacement.external_id
+  end
+
+  test "a namesake that was there before the account went missing is not its replacement" do
+    report = simplefin_report
+    report["accounts"] << demo_account(report, "Demo Savings").merge("id" => "Twin Savings")
+    sync_again(@access, report:)
+    @access.bank_accounts.find_by!(external_id: "Twin Savings").start_syncing(from: Date.new(2026, 7, 9))
+    travel 1.day
+    demo_account(report, "Demo Savings")["transactions"] << bought("later", "-9.00", Time.utc(2026, 10, 7, 18))
+    sync_again(@access, report:)
+    report["accounts"].delete(demo_account(report, "Demo Savings"))
+
+    sync_again(@access, report:)
+
+    assert @savings.reload.missing?
+    assert_nil @savings.replacement
+  end
+
+  test "a missing account with no rows has no replacement" do
+    BankTransaction.where(bank_account: @savings).destroy_all
+
+    @savings.update!(missing_since: Time.current)
+    @access.bank_accounts.create!(external_id: "New", name: @savings.name, institution: @savings.institution, currency: "USD")
+
+    assert_nil @savings.replacement
+  end
+
   test "an equal purchase on an account that was never relinked is added" do
     report = simplefin_report
     demo_account(report, "Demo Savings")["transactions"] << bought("first", "-4.00", Time.utc(2026, 10, 4, 18))
