@@ -120,6 +120,35 @@ class BankRowsTest < ActionDispatch::IntegrationTest
     assert_select "#bank_review", count: 0
   end
 
+  test "the overview links to possible duplicates, and after Done says nothing about new rows" do
+    activate(connect_simplefin)
+    Simplefin::Sync.added_transactions.update_all(category_id: categories(:food).id)
+    bait = users(:one).transactions.create!(name: "Bait", amount_in_cents: -1_000, occurred_on: "2026-10-05")
+
+    get root_url
+    assert_select "#bank_review a[href=?][data-turbo-frame=_top]", simplefin_review_path(show: "duplicates"), text: "1 possible duplicate"
+    assert_select "#bank_review p", "Everything new has a category."
+
+    users(:one).transactions.create!(name: "Groceries", amount_in_cents: -13_000, occurred_on: "2026-10-05")
+    post simplefin_review_completion_url
+    get root_url
+    assert_select "#bank_review a[href=?]", simplefin_review_path(show: "duplicates"), text: "2 possible duplicates"
+    assert_select "#bank_review p", text: "Everything new has a category.", count: 0
+
+    bait.discard
+    users(:one).transactions.find_by!(name: "Groceries").discard
+    get root_url
+    assert_select "#bank_review", count: 0
+  end
+
+  test "the overview shows no duplicates link when there are none" do
+    activate(connect_simplefin)
+
+    get root_url
+
+    assert_select "#bank_review a", text: /possible duplicate/, count: 0
+  end
+
   test "the overview says the banks are being checked while a sync runs" do
     access = connect_simplefin
     access.update!(status: :active)

@@ -22,7 +22,14 @@
         <%= render "transactions/transaction", transaction:, field: true, account: true %>
       <% end %>
     </ul>
-  <% elsif review.pending? %>
+  <% elsif review.completable? %>
     <p class="py-3 text-sm text-tertiary">Everything new has a category.</p>
+  <% end %>
+
+  <% if review.duplicates.present? %>
+    <%= link_to simplefin_review_path(show: Simplefin::Review::DUPLICATES), class: "flex items-center gap-1.5 self-start py-3 text-sm font-medium text-secondary hover:text-primary", data: { turbo_frame: "_top" } do %>
+      <%= pluralize review.duplicates.size, "possible duplicate" %>
+      <%= icon_tag "arrow-right", class: "size-3.5" %>
+    <% end %>
   <% end %>
 </section>

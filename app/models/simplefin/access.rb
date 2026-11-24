@@ -93,7 +93,7 @@ class Simplefin::Access < ApplicationRecord
   end
 
   def review
-    Simplefin::Review.new(syncs)
+    Simplefin::Review.new(syncs, duplicates: user.possible_duplicates)
   end
 
   def last_synced_at

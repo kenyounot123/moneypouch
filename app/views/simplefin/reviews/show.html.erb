@@ -28,14 +28,18 @@
               <%= link_to simplefin_review_path(show: list), aria: { current: list == @list ? "true" : nil },
                 class: [ "flex shrink-0 items-baseline gap-2 rounded-sm px-3 py-1.5 text-sm whitespace-nowrap", list == @list ? "bg-level-2 text-primary shadow-control" : "text-secondary hover:text-primary" ] do %>
                 <%= review_list_title list %>
-                <span class="font-amount text-xs font-normal text-tertiary"><%= @review.transactions_in(list).count %></span>
+                <span class="font-amount text-xs font-normal text-tertiary"><%= @review.size_of(list) %></span>
               <% end %>
             <% end %>
           </nav>
 
-          <ul class="flex flex-col border-t border-secondary" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>">
-            <%= render "simplefin/reviews/page", page: @page, list: @list %>
-          </ul>
+          <% if @duplicates %>
+            <%= render "simplefin/reviews/duplicates", duplicates: @duplicates %>
+          <% else %>
+            <ul class="flex flex-col border-t border-secondary" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>">
+              <%= render "simplefin/reviews/page", page: @page, list: @list %>
+            </ul>
+          <% end %>
         </section>
 
         <%= render "simplefin/reviews/rules", rules: @rules %>

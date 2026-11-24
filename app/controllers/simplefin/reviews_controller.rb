@@ -3,13 +3,19 @@ class Simplefin::ReviewsController < ApplicationController
 
   include SimplefinAccessScoped
 
+  ROWS = 50
+
   before_action :set_review
 
   def show
     @list = @review.list_named(params[:show])
-    categorized_id = flash[:categorized_id]
-    set_page_and_extract_portion_from @review.transactions_in(@list, including: categorized_id), per_page: 50
-    keep_categorized_for_later_page(categorized_id)
+
+    if @list == Simplefin::Review::DUPLICATES
+      @duplicates = @review.duplicates.first(ROWS)
+    else
+      set_page_of_transactions
+    end
+
     @rules = Current.user.rules.latest.with_row_counts
     @categories = Current.user.categories.alphabetically
   end
@@ -17,6 +23,12 @@ class Simplefin::ReviewsController < ApplicationController
   private
     def set_review
       @review = @access.review
+    end
+
+    def set_page_of_transactions
+      categorized_id = flash[:categorized_id]
+      set_page_and_extract_portion_from @review.transactions_in(@list, including: categorized_id), per_page: ROWS
+      keep_categorized_for_later_page(categorized_id)
     end
 
     def keep_categorized_for_later_page(id)
