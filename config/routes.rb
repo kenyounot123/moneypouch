@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   end
   resources :bank_accounts, only: :update do
     resource :history, only: :create, module: :bank_accounts
+    resource :replacement, only: :create, module: :bank_accounts
   end
   resources :rules, only: :destroy
   resources :categories, only: %i[ index show update destroy ] do

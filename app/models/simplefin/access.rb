@@ -52,6 +52,10 @@ class Simplefin::Access < ApplicationRecord
     bank_accounts.refresh(simplefin_account)
   end
 
+  def note_missing_accounts(simplefin_accounts)
+    bank_accounts.note_missing(simplefin_accounts)
+  end
+
   def revoke
     update!(status: :revoked, access_url: nil)
   end
@@ -100,8 +104,12 @@ class Simplefin::Access < ApplicationRecord
     if revoked?
       bank_accounts.synced.order(:id)
     else
-      bank_accounts.synced.order(:id) + bank_accounts.pending.order(:id)
+      bank_accounts.synced.order(:id) + (bank_accounts.pending.order(:id) - replacements)
     end
+  end
+
+  def replacements
+    bank_accounts.missing.filter_map(&:replacement)
   end
 
   private

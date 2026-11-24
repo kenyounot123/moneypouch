@@ -145,7 +145,7 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     assert_no_difference -> { Transaction.count } do
       carry_on(report)
     end
-    assert_includes @savings.bank_transactions.pluck(:external_id), "new-purchase"
+    assert @savings.bank_transactions.find_by!(external_id: "new-purchase").unmatched?
   end
 
   test "carrying on twice changes nothing more" do
@@ -156,6 +156,17 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
       carry_on(relinked_report)
     end
     assert_equal "Relinked Demo Savings", @savings.reload.external_id
+  end
+
+  test "an equal purchase on an account that was never relinked is added" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings")["transactions"] << bought("first", "-4.00", Time.utc(2026, 10, 4, 18))
+    sync_again(@access, report:)
+    demo_account(report, "Demo Savings")["transactions"].last["id"] = "second"
+
+    assert_difference -> { @savings.bank_transactions.where(amount_in_cents: -400).count } => 1 do
+      sync_again(@access, report:)
+    end
   end
 
   private
