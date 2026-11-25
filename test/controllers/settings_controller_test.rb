@@ -128,12 +128,12 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
   test "a button opens every shortcut, grouped by where it works" do
     get settings_url
 
-    assert_select "button[aria-haspopup=dialog][data-dialog-opener-id-param=shortcuts][aria-keyshortcuts='?']", text: "Show shortcuts"
+    assert_select "main button[aria-haspopup=dialog][data-dialog-opener-id-param=shortcuts]", text: "Show shortcuts"
     assert_select "dialog#shortcuts h3", text: "Anywhere"
     assert_select "dialog#shortcuts h3", text: "Adding a transaction"
     assert_select "dialog#shortcuts h3", text: "Searching"
     assert_select "dialog#shortcuts section", text: /Search transactions\s+\//
-    assert_select "dialog#shortcuts section", text: /Show these shortcuts\s+\?/
+    assert_select "dialog#shortcuts section", text: /Open Help\s+\?/
     assert_select "dialog#shortcuts section", text: /Calendar year\s+Shift PgUp\s+Shift PgDn/
   end
 
@@ -142,7 +142,7 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
 
     get settings_url
 
-    assert_select "button[data-dialog-opener-id-param=shortcuts][aria-keyshortcuts]", 0
+    assert_select "dialog#shortcuts section", text: /Open Help/, count: 0
     assert_select "dialog#shortcuts section", text: /Add a transaction/
     assert_select "dialog#shortcuts kbd", text: "/", count: 0
     assert_select "dialog#shortcuts kbd", text: "?", count: 0

@@ -7,11 +7,11 @@ module SidebarHelper
     end
   end
 
-  def sidebar_link_to(label, path, icon:, active: current_page?(path))
+  def sidebar_link_to(label, path, icon:, active: current_page?(path), **options, &block)
     state_classes = active ? "bg-level-3 text-primary" : "text-secondary hover:bg-level-3 hover:text-primary"
 
-    link_to path, aria: { current: active ? "page" : nil }, class: [ "group sidebar-link", state_classes ] do
-      safe_join [ icon_tag(icon), tag.span(label, class: "sidebar-label") ]
+    link_to path, data: options[:data], aria: { current: active ? "page" : nil, **options[:aria].to_h }, class: [ "group sidebar-link", state_classes, options[:class] ] do
+      safe_join [ icon_tag(icon), tag.span(label, class: "sidebar-label"), (capture(&block) if block) ].compact
     end
   end
 end

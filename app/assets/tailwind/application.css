@@ -149,6 +149,7 @@
   --radius-lg: 12px;
 
   --container-sidebar: 240px;
+  --container-help: 400px;
 
   --shadow-control: 0 1px 2px #00000014;
 
@@ -331,6 +332,7 @@
   .icon--edit { --svg: url("icons/edit.svg"); }
   .icon--exclude { --svg: url("icons/exclude.svg"); }
   .icon--external { --svg: url("icons/external.svg"); }
+  .icon--help { --svg: url("icons/help.svg"); }
   .icon--import { --svg: url("icons/import.svg"); }
   .icon--include { --svg: url("icons/include.svg"); }
   .icon--more { --svg: url("icons/more.svg"); }

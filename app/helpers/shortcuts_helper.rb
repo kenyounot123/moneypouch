@@ -42,7 +42,7 @@ module ShortcutsHelper
 
     def single_key_shortcuts
       if Current.user.single_key_shortcuts?
-        [ [ "Search transactions", [ "/" ] ], [ "Show these shortcuts", [ "?" ] ] ]
+        [ [ "Search transactions", [ "/" ] ], [ "Open Help", [ "?" ] ] ]
       else
         []
       end

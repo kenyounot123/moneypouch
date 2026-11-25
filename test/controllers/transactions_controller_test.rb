@@ -58,7 +58,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "p", text: "Spent in October"
     assert_select "[data-field=spent]", text: "$5.50"
-    assert_equal [ "$2,000.00", "+$1,994.50", "2" ], css_select("dl dd").map(&:text)
+    assert_equal [ "$2,000.00", "+$1,994.50", "2" ], css_select("main dl dd").map(&:text)
     assert_select "p", text: "Income $2,000.00 · Net +$1,994.50 · 2 transactions"
     assert_select "main section [data-field=day-total]", text: "+$1,994.50", count: 1
   end
@@ -244,7 +244,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_select "nav[aria-label='Months searched']"
-    assert_select "a[aria-keyshortcuts]", 0
+    assert_select "main a[aria-keyshortcuts]", 0
   end
 
   test "the search field advertises the slash key while single-key shortcuts are on" do
@@ -288,7 +288,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
       get transactions_url(month: "2026-09")
       assert_select "main section li", 90
       assert_select "turbo-frame#days_2026-09-29[loading=lazy][refresh=morph][src=?]", transactions_path(month: "2026-09", before: "2026-09-29")
-      assert_equal [ "95" ], css_select("dl dd").map(&:text).last(1)
+      assert_equal [ "95" ], css_select("main dl dd").map(&:text).last(1)
 
       get transactions_url(month: "2026-09", before: "2026-09-29")
       assert_select "turbo-frame#days_2026-09-29 section li", 5
@@ -445,7 +445,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
       get transactions_url(month: "2026-09", sort: "name")
       assert_equal (0..49).map { |index| format("Row %02d", index) }, row_names
       assert_select "turbo-frame#rows_2[loading=lazy][refresh=morph][src=?]", transactions_path(month: "2026-09", sort: "name", page: 2)
-      assert_equal [ "60" ], css_select("dl dd").map(&:text).last(1)
+      assert_equal [ "60" ], css_select("main dl dd").map(&:text).last(1)
 
       get transactions_url(month: "2026-09", sort: "name", page: 2)
       assert_select "turbo-frame#rows_2 li", 10
