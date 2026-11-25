@@ -247,6 +247,25 @@
   @apply grid grid-cols-[minmax(0,1fr)_6.5rem_2rem] items-center gap-x-4 @2xl:grid-cols-[minmax(8rem,1fr)_minmax(7.5rem,1.6fr)_minmax(8.5rem,1fr)_6.5rem_2rem];
 }
 
+@utility popup-list {
+  --option-padding: --spacing(1.5);
+  --list-padding: --spacing(1);
+  --list-border: 1px;
+  border-width: var(--list-border);
+  padding: var(--list-padding);
+}
+
+@utility popup-option {
+  @apply flex cursor-pointer items-center rounded-sm px-2.5;
+  padding-block: var(--option-padding);
+}
+
+@utility popup-visible-options {
+  --visible-options: 8;
+  max-height: calc(var(--visible-options) * (var(--text-base--line-height) + 2 * var(--option-padding)) + 2 * var(--list-padding) + 2 * var(--list-border));
+  overflow-y: auto;
+}
+
 @utility anchored-menu {
   @apply m-0 mt-1 w-64 flex-col gap-3 rounded-md border border-primary bg-level-2 p-3 text-primary shadow-control open:flex;
   inset: auto;
