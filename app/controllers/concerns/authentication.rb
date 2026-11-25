@@ -3,12 +3,14 @@ module Authentication
 
   included do
     before_action :require_authentication
+    before_action :remember_origin
     helper_method :authenticated?
   end
 
   class_methods do
     def allow_unauthenticated_access(**options)
       skip_before_action :require_authentication, **options
+      skip_before_action :remember_origin, **options
     end
   end
 
@@ -18,11 +20,11 @@ module Authentication
     end
 
     def require_authentication
-      if resume_session
-        Current.user.visit_from(request.base_url)
-      else
-        request_authentication
-      end
+      request_authentication unless resume_session
+    end
+
+    def remember_origin
+      Current.user.visit_from(request.base_url)
     end
 
     def resume_session
