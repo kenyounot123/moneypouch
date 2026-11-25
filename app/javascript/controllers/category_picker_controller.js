@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { Pointer } from "helpers/pointer"
+import { NEEDS_CATEGORY, remember, takeFirst } from "helpers/next_uncategorized"
 
 const OPTION = "flex cursor-pointer items-center rounded-sm px-2.5 py-1.5"
 const SIZES = {
@@ -15,10 +16,7 @@ const SIZES = {
   },
 }
 const TRANSFER_ICON = `<span class="icon icon--transfer size-3.5 text-tertiary" aria-hidden="true"></span>`
-const NEEDS_CATEGORY = '[aria-label="Needs a category"]'
 const OPENER = 'button[data-action="category-picker#open"]'
-
-let chain = []
 
 export default class extends Controller {
   static targets = ["category"]
@@ -39,11 +37,9 @@ export default class extends Controller {
   }
 
   resume() {
-    if (!chain.length || document.documentElement.hasAttribute("data-turbo-preview")) return
+    if (document.documentElement.hasAttribute("data-turbo-preview")) return
 
-    const rows = chain.map((id) => document.getElementById(id))
-    chain = []
-    const row = rows.find((row) => row?.querySelector(NEEDS_CATEGORY))
+    const row = takeFirst()
     const opener = row && [...row.querySelectorAll(OPENER)].find((button) => button.checkVisibility())
     opener?.click()
   }
@@ -225,7 +221,7 @@ export default class extends Controller {
     if (item) this.field.value = item.name
     this.transfer.value = item?.transfer ? "1" : "0"
     this.label.textContent = this.field.value.trim() || "Uncategorized"
-    chain = this.following()
+    remember(this.following())
     this.form.requestSubmit()
   }
 
