@@ -27,12 +27,23 @@ class BankTransaction < ApplicationRecord
 
   def self.pair_up(bank_transactions, others)
     unpaired = bank_transactions.sort_by(&:id)
+    waiting = others.to_a
 
-    others.filter_map do |other|
-      same = unpaired.find { |bank_transaction| bank_transaction.same_posting?(other) }
+    pairs = %i[ same_posting? same_day? ].flat_map do |same|
+      waiting.dup.filter_map do |other|
+        copy = unpaired.find { |bank_transaction| bank_transaction.public_send(same, other) }
 
-      if same
-        [ unpaired.delete(same), other ]
+        if copy
+          [ unpaired.delete(copy), waiting.delete(other) ]
+        end
+      end
+    end
+
+    pairs + waiting.filter_map do |other|
+      near = unpaired.select { |bank_transaction| bank_transaction.day_apart?(other) }
+
+      if near.one? && waiting.one? { |rest| near.first.day_apart?(rest) }
+        [ near.first, other ]
       end
     end
   end
@@ -42,17 +53,27 @@ class BankTransaction < ApplicationRecord
   end
 
   def same_posting?(other)
-    if posted_at && other.posted_at
-      [ amount_in_cents, posted_at.utc.to_date ] == [ other.amount_in_cents, other.posted_at.utc.to_date ]
-    else
-      [ amount_in_cents, occurred_on ] == [ other.amount_in_cents, other.occurred_on ]
-    end
+    posted_on_both?(other) && posted_at == other.posted_at && same_amount_and_name?(other)
+  end
+
+  def same_day?(other)
+    alike_without_posted_time?(other) && occurred_on == other.occurred_on
+  end
+
+  def day_apart?(other)
+    alike_without_posted_time?(other) && (occurred_on - other.occurred_on).abs == 1
   end
 
   def absorb(copy)
+    if copy.paired? && paired?
+      copy.unpair
+    end
+
+    partner = copy.transfer_partner
     copy.destroy!
     linked_transaction.absorb(copy.linked_transaction) if copy.unmatched?
     update!(external_id: copy.external_id, posted_at: copy.posted_at || posted_at)
+    pair_with(partner) if partner
   end
 
   def unmatched?
@@ -79,4 +100,17 @@ class BankTransaction < ApplicationRecord
   def linked_transaction
     Transaction.find(transaction_id)
   end
+
+  private
+    def posted_on_both?(other)
+      posted_at.present? && other.posted_at.present?
+    end
+
+    def alike_without_posted_time?(other)
+      !posted_on_both?(other) && same_amount_and_name?(other)
+    end
+
+    def same_amount_and_name?(other)
+      [ amount_in_cents, name_key ] == [ other.amount_in_cents, other.name_key ]
+    end
 end

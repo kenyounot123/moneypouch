@@ -19,10 +19,14 @@ module Transaction::Mergeable
   end
 
   def absorb(copy)
-    fill_in_from(copy)
-
-    if discarded_at && copy.discarded_at.nil?
-      update!(discarded_at: nil)
+    if copy.kept?
+      if kept?
+        fill_in_from(copy)
+        update!(excluded: excluded? && copy.excluded?)
+      else
+        categorize(copy.categorization)
+        update!(note: copy.note, excluded: copy.excluded?, discarded_at: nil)
+      end
     end
 
     copy.destroy!
