@@ -71,7 +71,7 @@ class BankAccount < ApplicationRecord
     end
 
     def partner_for(simplefin_transaction)
-      unless owner.rule_for(simplefin_transaction.name)&.category
+      unless owner.categorized_by_rule?(simplefin_transaction.name)
         owner.bank_transactions.partner_for(simplefin_transaction.amount_in_cents, currency, simplefin_transaction.occurred_on, other_than: self)
       end
     end
