@@ -11,6 +11,9 @@
       <%= link_to "‹ Categories", categories_path(span_params(span)), class: "self-start text-sm text-tertiary hover:text-primary" %>
       <div class="flex items-center gap-2">
         <h1 class="text-title"><%= @category.name %></h1>
+        <% if @category.excluded? %>
+          <%= excluded_tag %>
+        <% end %>
         <% unless @category.default_income? %>
           <%= render "categories/manage", category: @category, categories: @categories, usage: @usage, anchor: "--manage" %>
         <% end %>
@@ -26,7 +29,7 @@
     <div class="flex flex-wrap gap-x-12 gap-y-6">
       <div class="flex flex-col gap-1.5">
         <p class="text-secondary"><%= kind %> <%= span_phrase span %></p>
-        <p class="text-display" data-field="total"><%= @usage.active?(@category) ? money(@usage.total(@category)) : "—" %></p>
+        <p class="text-display <%= "text-tertiary" if @category.excluded? %>" data-field="total"><%= @usage.active?(@category) ? money(@usage.total(@category)) : "—" %></p>
         <% if @usage.refunded(@category).positive? %>
           <p class="text-sm text-tertiary" data-field="refunded">After <%= money @usage.refunded(@category) %> in refunds</p>
         <% end %>
@@ -44,7 +47,7 @@
 
     <% months = @usage.months(@category) %>
     <% peak = months.values.max %>
-    <nav class="flex gap-1.5" aria-label="<%= kind %> by month">
+    <nav class="<%= class_names "flex gap-1.5", "opacity-50": @category.excluded? %>" aria-label="<%= kind %> by month">
       <% months.each do |month, cents| %>
         <% chosen = span.cover?(month) %>
         <%= link_to category_path(@category, month: month_param(month)), aria: { label: "#{month_title month}: #{money cents}", current: (chosen && span.one_month?) ? "true" : nil },

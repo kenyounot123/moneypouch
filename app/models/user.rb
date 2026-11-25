@@ -38,6 +38,10 @@ class User < ApplicationRecord
     end
   end
 
+  def excludes_category_named?(name)
+    categories.any? { |category| category.excluded? && category.named?(name) }
+  end
+
   def owner?
     self == User.owner
   end

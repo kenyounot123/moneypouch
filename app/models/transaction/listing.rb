@@ -54,7 +54,7 @@ class Transaction::Listing
     end
 
     def totals
-      counted = "NOT transactions.transfer AND NOT transactions.excluded"
+      counted = Transaction.counted_sql
       spending = "transactions.category_id IN (#{Category.spending.select(:id).to_sql}) OR (transactions.category_id IS NULL AND transactions.amount_in_cents < 0)"
       income = "transactions.category_id IN (#{Category.income.select(:id).to_sql}) OR (transactions.category_id IS NULL AND transactions.amount_in_cents >= 0)"
 

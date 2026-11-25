@@ -13,6 +13,7 @@ class Category < ApplicationRecord
   scope :unused, -> { where.missing(:transactions, :rules) }
   scope :income, -> { where(income: true) }
   scope :spending, -> { where(income: false) }
+  scope :excluded, -> { where(excluded: true) }
   scope :default_income, -> { income.named(INCOME) }
   scope :changeable, -> { where.not(id: default_income) }
 
@@ -35,6 +36,14 @@ class Category < ApplicationRecord
   rescue ActiveRecord::RecordNotUnique
     errors.add(:base, "#{name} is already a category. Merge into it instead.")
     false
+  end
+
+  def exclude
+    Transaction.broadcasting_once_for(user) { update!(excluded: true) }
+  end
+
+  def include_in_totals
+    Transaction.broadcasting_once_for(user) { update!(excluded: false) }
   end
 
   def merge_into(other)

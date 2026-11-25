@@ -8,7 +8,7 @@
         <h2 class="truncate text-lg font-semibold"><%= @transaction.name %></h2>
         <p class="shrink-0 font-amount text-md <%= amount_color @transaction %>"><%= money_flow @transaction.amount_in_cents %></p>
       </div>
-      <p class="text-sm text-tertiary"><%= [ day_heading(@transaction.occurred_on), @transaction.bank_account_name, ("Excluded" if @transaction.excluded?) ].compact.join(" · ") %></p>
+      <p class="text-sm text-tertiary"><%= [ day_heading(@transaction.occurred_on), @transaction.bank_account_name, ("Excluded" if @transaction.left_out_of_totals?) ].compact.join(" · ") %></p>
     </div>
 
     <%= form_with url: transaction_path(@transaction), method: :patch, scope: :transaction, id: "sheet_edit", autocomplete: "off",

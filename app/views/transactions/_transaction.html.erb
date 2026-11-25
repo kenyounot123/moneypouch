@@ -11,7 +11,7 @@
   <div class="flex min-w-0 flex-1 flex-col <%= field ? "gap-1" : "gap-0.5" %> <%= "@container" if local_assigns[:account] %>" data-controller="note" data-note-url-value="<%= transaction_note_path(transaction) %>">
     <div class="flex min-w-0 items-center gap-2.5" data-note-target="name">
       <p class="truncate font-medium <%= "text-tertiary" unless transaction.counted? %>"><%= transaction.name %></p>
-      <% if transaction.excluded? %>
+      <% if transaction.left_out_of_totals? %>
         <%= excluded_tag %>
       <% end %>
       <% if transaction.note.nil? %>

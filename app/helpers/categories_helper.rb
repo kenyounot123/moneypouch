@@ -60,8 +60,14 @@ module CategoriesHelper
     end
   end
 
-  def merge_category_question(category, usage)
-    "Merge #{category.name} into the category you picked? Its #{holdings(category, usage).to_sentence} move there, and #{category.name} goes away."
+  def merge_category_question(category, usage, others)
+    [ "Merge #{category.name} into the category you picked? Its #{holdings(category, usage).to_sentence} move there, and #{category.name} goes away.",
+      ("They count in your totals again unless that category is excluded too." if category.excluded?),
+      ("They leave your totals if that category is excluded." if !category.excluded? && others.any?(&:excluded?)) ].compact.join(" ")
+  end
+
+  def merge_target_options(others)
+    options_for_select(others.map { |other| [ other.excluded? ? "#{other.name} (excluded)" : other.name, other.id ] })
   end
 
   def delete_category_question(category, usage)
@@ -69,7 +75,7 @@ module CategoriesHelper
     rules = usage.rules_count(category)
 
     [ "Delete #{category.name}?",
-      ("Its #{pluralize(number_with_delimiter(transactions), "transaction")} become uncategorized." if transactions.positive?),
+      ("Its #{pluralize(number_with_delimiter(transactions), "transaction")} become uncategorized#{" and count in your totals again" if category.excluded?}." if transactions.positive?),
       ("Its #{pluralize(rules, "rule")} will be forgotten." if rules.positive?) ].compact.join(" ")
   end
 

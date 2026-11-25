@@ -35,6 +35,7 @@ Rails.application.routes.draw do
   resources :rules, only: :destroy
   resources :categories, only: %i[ index show update destroy ] do
     resource :merge, only: :create, module: :categories
+    resource :exclusion, only: %i[ create destroy ], module: :categories
   end
   resource :trends, only: :show
   resources :imports, only: %i[ new create destroy ] do

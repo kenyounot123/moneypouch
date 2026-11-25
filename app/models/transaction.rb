@@ -11,7 +11,8 @@ class Transaction < ApplicationRecord
 
   scope :latest, -> { order(occurred_on: :desc, id: :desc) }
   scope :occurred_in, ->(dates) { where(occurred_on: dates) }
-  scope :counted, -> { where(transfer: false, excluded: false) }
+  scope :individually_counted, -> { where(transfer: false, excluded: false) }
+  scope :counted, -> { where(counted_sql) }
   scope :money_in, -> { where(amount_in_cents: 0..) }
   scope :money_out, -> { where(amount_in_cents: ...0) }
   scope :spending, -> { counted.and(where(category: Category.spending).or(uncategorized.money_out)) }
@@ -21,6 +22,10 @@ class Transaction < ApplicationRecord
   scope :categorized, -> { where.not(category_id: nil) }
   scope :transfers, -> { where(transfer: true) }
   scope :in_category, ->(category) { where(category:) }
+
+  def self.counted_sql
+    "NOT transactions.transfer AND NOT transactions.excluded AND (transactions.category_id IS NULL OR transactions.category_id NOT IN (#{Category.excluded.select(:id).to_sql}))"
+  end
 
   def self.spent
     -spending.sum(:amount_in_cents)
@@ -35,7 +40,15 @@ class Transaction < ApplicationRecord
   end
 
   def counted?
-    !transfer? && !excluded?
+    !transfer? && !excluded? && !excluded_by_category?
+  end
+
+  def left_out_of_totals?
+    excluded? || excluded_by_category?
+  end
+
+  def excluded_by_category?
+    category&.excluded? || false
   end
 
   def exclude
