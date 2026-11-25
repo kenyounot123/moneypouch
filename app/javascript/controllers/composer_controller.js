@@ -192,14 +192,12 @@ export default class extends Controller {
   }
 
   pickOptionOrAdd() {
-    const typedInFull = this.optionTypedInFull()
-    this.pickOption()
-    return !typedInFull
+    return this.optionTypedInFull() ? this.addAsTyped() : this.pickOption()
   }
 
   optionTypedInFull() {
     const { items, index, word } = this.popup
-    return items[index].name.toLowerCase() === word.text.slice(1).toLowerCase()
+    return this.caretEnds(word) && items[index].name.toLowerCase() === word.text.slice(1).toLowerCase()
   }
 
   completeOrPickTyped() {
@@ -213,15 +211,19 @@ export default class extends Controller {
   }
 
   pickTypedOrAdd() {
-    const typedInFull = this.dayTypedInFull()
-    this.pickTyped()
-    return !typedInFull
+    return this.dayTypedInFull() ? this.addAsTyped() : this.pickTyped()
   }
 
   dayTypedInFull() {
-    const { fragment, answeredFor, answer, cursor } = this.popup
+    const { word, fragment, answeredFor, answer, cursor } = this.popup
+    if (!this.caretEnds(word)) return false
     if (answeredFor !== fragment) return DATE_WORDS.includes(fragment.toLowerCase())
     return answer.kind === "exact" && isoDay(answer.on) === isoDay(cursor)
+  }
+
+  addAsTyped() {
+    this.replaceWord(this.popup.word, this.popup.word.text)
+    return false
   }
 
   dismiss() {
@@ -396,6 +398,10 @@ export default class extends Controller {
     const before = field.value.slice(0, field.selectionStart)
     const text = before.match(/\S*$/)[0]
     return { text, start: before.length - text.length, end: field.selectionStart }
+  }
+
+  caretEnds(word) {
+    return !/^\S/.test(this.fieldTarget.value.slice(word.end))
   }
 
   replaceWord(word, text) {
