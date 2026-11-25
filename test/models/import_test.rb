@@ -88,6 +88,22 @@ class ImportTest < ActiveSupport::TestCase
     assert_equal [], import.created_categories.pluck(:name)
   end
 
+  test "a name-only choice keeps the word's money-in choice, a blank one clears it, a name sets it" do
+    import = @user.imports.create!(file: upload("work.csv", "Date,Name,Category,Amount\n2024-10-01,Laptop stand,work,-50\n2024-10-02,Upwork,work,2000\n"))
+
+    import.choose_categories([ { word: "work", name: "work", money_in: "Income" } ])
+    assert_equal "Income", import.category_words.first.money_in_name
+
+    import.choose_categories([ { word: "work", name: "work" } ])
+    assert_equal "Income", import.category_words.first.money_in_name
+
+    import.choose_categories([ { word: "work", name: "work", money_in: "" } ])
+    assert_nil import.category_words.first.money_in_name
+
+    import.choose_categories([ { word: "work", name: "work", money_in: " Income " } ])
+    assert_equal "Income", import.category_words.first.money_in_name
+  end
+
   test "a word on No category or on an income category has no money-in choice" do
     import = @user.imports.create!(file: upload("mixed.csv", <<~CSV))
       Date,Name,Category,Amount
