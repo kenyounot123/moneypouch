@@ -40,7 +40,7 @@ const KEYMAP = {
 }
 
 const HINT = { kind: "hint" }
-const OPTION = "flex cursor-pointer items-center rounded-sm px-2.5 py-1.5"
+const OPTION = "popup-option"
 const DATE_WORDS = ["today", "yesterday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 const TAB_HINT = "ml-2 inline-block rounded-sm border border-primary bg-level-2 px-1.5 align-middle font-mono text-xs leading-4 text-secondary"
 const MARKS = {
@@ -50,7 +50,7 @@ const MARKS = {
   category: "text-category",
 }
 const POPUP_SIZES = {
-  category: ["w-56", "max-h-[calc(8*(var(--text-base--line-height)+--spacing(3))+--spacing(2)+2px)]", "overflow-y-auto"],
+  category: ["w-56", "popup-visible-options"],
   calendar: ["w-[264px]"],
 }
 
