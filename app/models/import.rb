@@ -58,11 +58,14 @@ class Import < ApplicationRecord
     update(columns: Import::Columns.from(choice, sheet:))
   end
 
-  def choose_categories(choices)
-    names = choices.to_h { |choice| [ choice[:word], choice[:name].to_s.squish ] }
-    money_in = choices.reject { |choice| choice[:money_in].nil? }.to_h { |choice| [ choice[:word], choice[:money_in].to_s.squish ] }
+  def choose_categories(params)
+    choices = params.map { |choice| Import::CategoryChoice.from(choice) }
+    changing_money_in = choices.reject(&:keeps_money_in?)
 
-    update!(category_names: category_names.merge(names), money_in_names: money_in_names.merge(money_in))
+    update!(
+      category_names: category_names.merge(choices.to_h { |choice| [ choice.word, choice.name ] }),
+      money_in_names: money_in_names.merge(changing_money_in.to_h { |choice| [ choice.word, choice.money_in ] })
+    )
   end
 
   def latest_occurred_on
