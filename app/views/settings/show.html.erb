@@ -3,11 +3,11 @@
 <div class="flex min-h-dvh max-md:flex-col">
   <%= render "shared/sidebar" %>
 
-  <main class="flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
+  <main class="@container flex min-w-0 flex-1 flex-col gap-10 px-5 py-9 md:px-14">
     <h1 class="text-title">Settings</h1>
 
-    <div class="grid max-w-[560px] gap-10 xl:max-w-none xl:grid-cols-2 xl:grid-rows-[repeat(5,auto)_1fr] xl:items-start xl:gap-x-16">
-      <section class="flex flex-col gap-4 xl:col-start-1">
+    <div class="grid max-w-[560px] gap-10 @4xl:max-w-none @4xl:grid-cols-2 @4xl:grid-rows-[repeat(5,auto)_1fr] @4xl:items-start @4xl:gap-x-16">
+      <section class="flex flex-col gap-4 @4xl:col-start-1">
         <div class="flex items-baseline justify-between border-b border-secondary pb-3">
           <h2 class="text-heading">Appearance</h2>
         </div>
@@ -36,7 +36,7 @@
         </div>
       </section>
 
-      <section class="flex flex-col gap-4 xl:col-start-1">
+      <section class="flex flex-col gap-4 @4xl:col-start-1">
         <div class="flex items-baseline justify-between border-b border-secondary pb-3">
           <h2 class="text-heading">Keyboard</h2>
         </div>
@@ -62,7 +62,7 @@
         </div>
       </section>
 
-      <%= turbo_frame_tag "bank_sync", class: "block xl:col-start-2 xl:row-span-6 xl:row-start-1" do %>
+      <%= turbo_frame_tag "bank_sync", class: "block @4xl:col-start-2 @4xl:row-span-6 @4xl:row-start-1" do %>
         <% if content_for?(:bank_sync) %>
           <%= yield :bank_sync %>
         <% else %>
@@ -70,7 +70,7 @@
         <% end %>
       <% end %>
 
-      <section class="flex flex-col gap-4 xl:col-start-1">
+      <section class="flex flex-col gap-4 @4xl:col-start-1">
         <div class="flex items-baseline justify-between border-b border-secondary pb-3">
           <h2 class="text-heading">Your data</h2>
         </div>
@@ -84,7 +84,7 @@
         </div>
       </section>
 
-      <section class="flex flex-col gap-4 xl:col-start-1">
+      <section class="flex flex-col gap-4 @4xl:col-start-1">
         <div class="flex items-baseline justify-between border-b border-secondary pb-3">
           <h2 class="text-heading">Account</h2>
         </div>
@@ -132,7 +132,7 @@
         <% end %>
       </section>
 
-      <section class="flex flex-col gap-4 xl:col-start-1">
+      <section class="flex flex-col gap-4 @4xl:col-start-1">
         <div class="flex items-baseline justify-between border-b border-secondary pb-3">
           <h2 class="text-heading">About</h2>
         </div>

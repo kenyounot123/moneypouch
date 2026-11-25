@@ -243,7 +243,7 @@
 }
 
 @utility category-columns {
-  @apply grid grid-cols-[minmax(0,1fr)_6.5rem_2rem] items-center gap-x-4 lg:grid-cols-[minmax(8rem,1fr)_minmax(7.5rem,1.6fr)_minmax(8.5rem,1fr)_6.5rem_2rem];
+  @apply grid grid-cols-[minmax(0,1fr)_6.5rem_2rem] items-center gap-x-4 @2xl:grid-cols-[minmax(8rem,1fr)_minmax(7.5rem,1.6fr)_minmax(8.5rem,1fr)_6.5rem_2rem];
 }
 
 @utility anchored-menu {
