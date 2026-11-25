@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   resource :seen_release, only: :create
   resource :account, only: %i[ new create ]
   resource :first_transaction, controller: "first_transaction", only: :show
+  resource :help, controller: "help", only: :show
 
   namespace :simplefin do
     resource :access, only: %i[ new create edit update destroy ]

@@ -1,0 +1,49 @@
+<% content_for :title, "Help" %>
+
+<div class="flex min-h-dvh max-md:flex-col">
+  <%= render "shared/sidebar" %>
+
+  <main class="@container flex min-w-0 flex-1 flex-col gap-8 px-5 py-9 md:px-14" data-controller="filter">
+    <div class="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
+      <h1 class="text-title">Help</h1>
+      <div class="group relative w-full @2xl:w-85">
+        <%= icon_tag "search", class: "pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-secondary" %>
+        <%= tag.input type: "search", placeholder: "Search help", autocomplete: "off", spellcheck: false, aria: { label: "Search help" },
+          class: "h-10 w-full rounded-lg border border-primary bg-level-2 pr-10 pl-9 text-md shadow-control outline-none placeholder:text-tertiary hover:border-(--ring-color-focus) focus:border-(--ring-color-focus) [&::-webkit-search-cancel-button]:appearance-none",
+          data: { filter_target: "input", action: "input->filter#apply keydown.esc->filter#reset" } %>
+        <button type="button" hidden aria-label="Clear search" data-filter-target="clear" data-action="filter#reset"
+          class="absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary">
+          <%= icon_tag "close" %>
+        </button>
+      </div>
+    </div>
+
+    <p aria-live="polite" data-filter-target="status" class="-mt-4 text-sm text-tertiary empty:sr-only"></p>
+
+    <div class="flex gap-18">
+      <nav aria-label="Sections" data-filter-target="links" class="hidden w-42 shrink-0 @4xl:block">
+        <ul class="sticky top-9 flex flex-col gap-0.5">
+          <% @sections.each_key do |section| %>
+            <li><%= link_to section, "##{help_section_id(section)}", class: "block rounded-md px-3 py-2 text-sm text-secondary hover:bg-level-3 hover:text-primary" %></li>
+          <% end %>
+        </ul>
+      </nav>
+
+      <div class="flex min-w-0 max-w-3xl flex-1 flex-col gap-10">
+        <% @sections.each do |section, topics| %>
+          <section id="<%= help_section_id(section) %>" data-filter-target="section" class="flex scroll-mt-9 flex-col">
+            <h2 class="border-b border-secondary pb-3 text-heading"><%= section %></h2>
+            <ul>
+              <% topics.each do |topic| %>
+                <li id="<%= topic.id %>" data-filter-target="item" class="grid scroll-mt-9 gap-2 border-b border-secondary py-4 last:border-b-0 pointer-coarse:has-[[data-fine-pointer]]:hidden @2xl:grid-cols-[10rem_minmax(0,1fr)] @2xl:gap-x-6">
+                  <h3 class="font-medium"><%= topic.title %></h3>
+                  <div class="min-w-0"><%= render topic.partial %></div>
+                </li>
+              <% end %>
+            </ul>
+          </section>
+        <% end %>
+      </div>
+    </div>
+  </main>
+</div>
