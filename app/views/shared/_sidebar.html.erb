@@ -1,5 +1,5 @@
 <div data-controller="sidebar help" class="contents"
-  data-action="keydown@window->sidebar#shortcut resize@window->sidebar#closeOnDesktop turbo:before-cache@document->sidebar#close resize@window->help#closeOnWide turbo:before-cache@document->help#closeSheet shortcuts:show@window->help#closeSheet">
+  data-action="keydown@window->sidebar#shortcut resize@window->sidebar#closeOnDesktop turbo:before-cache@document->sidebar#close resize@window->help#closeOnWide turbo:before-cache@document->help#closeSheet shortcuts:show@window->help#closeSheet turbo:before-morph-attribute->help#keepThroughMorph">
   <header class="@container flex items-center gap-2 px-5 pt-7 md:hidden">
     <button type="button" data-sidebar-target="opener" data-action="sidebar#open" aria-label="Show sidebar" aria-haspopup="dialog" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary">
       <%= icon_tag "sidebar" %>
@@ -44,7 +44,7 @@
       <%= render "shared/help_panel" %>
     </aside>
 
-    <dialog aria-label="Help" tabindex="-1" data-help-target="sheet" data-action="click->help#dismiss turbo:before-morph-attribute->help#closeOnMorph"
+    <dialog aria-label="Help" tabindex="-1" data-help-target="sheet" data-action="click->help#dismiss"
       class="m-0 mt-auto max-h-[85dvh] w-full max-w-none flex-col overflow-y-auto rounded-t-[16px] border-0 bg-level-2 p-0 text-primary outline-none backdrop:bg-scrim open:flex md:mt-0 md:mr-0 md:ml-auto md:h-dvh md:max-h-none md:w-100 md:rounded-none md:border-l md:border-secondary md:bg-level-1">
       <%= render "shared/help_panel" %>
     </dialog>
