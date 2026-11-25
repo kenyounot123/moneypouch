@@ -101,6 +101,26 @@ class User < ApplicationRecord
     update!(single_key_shortcuts: on)
   end
 
+  def get_started
+    GetStarted.new(self)
+  end
+
+  def hide_get_started
+    update!(get_started_hidden: true)
+  end
+
+  def added_a_transaction?
+    transactions.exists?
+  end
+
+  def categorized_a_transaction?
+    transactions.categorized.exists?
+  end
+
+  def brought_in_history?
+    imports.completed.exists? || bank_accounts.synced.exists?
+  end
+
   def unseen_releases
     Release.newer_than(seen_version)
   end

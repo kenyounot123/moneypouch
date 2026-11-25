@@ -1,0 +1,26 @@
+<section id="get_started" class="flex flex-col gap-1">
+  <div class="flex items-center justify-between gap-4 border-b border-secondary pb-3">
+    <div class="flex min-w-0 items-baseline gap-2.5">
+      <h2 class="text-heading whitespace-nowrap">Get started</h2>
+      <p class="text-sm whitespace-nowrap text-tertiary"><%= get_started.done_count %> of <%= get_started.steps.size %></p>
+    </div>
+    <%= button_to "Hide", get_started_path, method: :delete, form: { class: "shrink-0", data: { turbo_frame: "_top" } }, class: "header-button" %>
+  </div>
+
+  <ol class="flex flex-col">
+    <% get_started.steps.each.with_index(1) do |step, number| %>
+      <li class="flex items-start gap-3 border-b border-secondary py-4">
+        <% if step.done? %>
+          <span class="mt-px flex size-5.5 shrink-0 items-center justify-center rounded-[4px] bg-(--text-color-primary) text-(--background-color-level-0)"><%= icon_tag "check", class: "size-3.5" %></span>
+        <% else %>
+          <span class="mt-px flex size-5.5 shrink-0 items-center justify-center rounded-[4px] bg-level-3 text-xs font-medium text-secondary"><%= number %></span>
+        <% end %>
+        <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+          <%= render get_started_partial(step), step: %>
+        </div>
+      </li>
+    <% end %>
+  </ol>
+
+  <p class="pt-3 text-sm text-tertiary">Stuck? <%= link_to "Help", help_path, data: { action: "shortcuts#showHelp" }, class: "font-medium text-secondary hover:text-primary" %> explains the page you're on.</p>
+</section>

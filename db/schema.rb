@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_24_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_200000) do
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -168,6 +168,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_180000) do
     t.string "origin"
     t.boolean "single_key_shortcuts", default: true, null: false
     t.datetime "expires_at"
+    t.boolean "get_started_hidden", default: false, null: false
     t.index ["expires_at"], name: "index_users_on_expires_at", where: "expires_at IS NOT NULL"
     t.index ["username"], name: "index_users_on_username", unique: true
     t.check_constraint "mode IN ('light', 'dark')", name: "mode_is_light_or_dark"

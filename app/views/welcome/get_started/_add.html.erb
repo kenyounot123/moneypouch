@@ -1,0 +1,14 @@
+<% if step.done? %>
+  <p class="text-md text-tertiary">Add a transaction</p>
+  <p class="text-sm text-tertiary pointer-coarse:hidden">Press <%= shortcut("K") %> on any page to add the next one.</p>
+<% else %>
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <div class="flex min-w-0 grow basis-[160px] flex-col gap-0.5">
+      <p class="text-md font-medium">Add a transaction</p>
+      <p class="text-sm text-secondary">Name and amount, like coffee 4.50.</p>
+    </div>
+    <button type="button" aria-haspopup="dialog" data-controller="dialog-opener" data-action="dialog-opener#open" data-dialog-opener-id-param="palette" class="outline-button">
+      Add <span class="rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs font-normal text-secondary pointer-coarse:hidden"><%= shortcut("K") %></span>
+    </button>
+  </div>
+<% end %>

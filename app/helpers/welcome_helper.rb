@@ -5,6 +5,10 @@ module WelcomeHelper
   LABEL_SPAN = 7
   MAX_LABELLED_COLUMNS = 12
 
+  def get_started_partial(step)
+    "welcome/get_started/#{step.name}"
+  end
+
   def spent_heading(period)
     case period.kind
     when "week" then "Spent this week"

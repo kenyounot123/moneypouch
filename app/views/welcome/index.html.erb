@@ -55,6 +55,9 @@
         </section>
 
         <div class="flex min-w-0 flex-1 flex-col gap-10">
+          <% if @get_started.pending? %>
+            <%= render "welcome/get_started", get_started: @get_started %>
+          <% end %>
           <% if @review&.pending? || @syncing %>
             <%= render "simplefin/reviews/block", review: @review, rows: @review_rows, categories: @categories, syncing: @syncing %>
           <% end %>
@@ -67,7 +70,10 @@
             <ul class="flex flex-col gap-1" data-controller="category-picker" data-category-picker-categories-value="<%= picker_categories @categories %>">
               <%= render @recent, added: @added, review_rows: @review_rows %>
               <% if @recent.empty? %>
-                <%= render "welcome/empty_recent" %>
+                <li class="pt-3.5 pb-1 text-sm text-tertiary">No transactions yet.</li>
+                <% unless @get_started.pending? %>
+                  <%= render "welcome/empty_recent" %>
+                <% end %>
               <% end %>
             </ul>
           </section>
