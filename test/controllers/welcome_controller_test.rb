@@ -468,6 +468,16 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#voucher [data-shorthand=?]", "Blue Bottle 5.50", text: /ok · \$5.50/
   end
 
+  test "an edited row does not put its old shorthand back in the field" do
+    row = transactions(:coffee)
+    patch transaction_url(row), params: { transaction: { name: "Philz", amount: "6.25", occurred_on: "2026-10-02", note: "" } }
+    delete transaction_url(row), headers: { "HTTP_REFERER" => root_url }
+    follow_redirect!
+
+    assert_select "input[name=shorthand][value='']"
+    assert_select "input[name=shorthand][value=?]", "Blue Bottle 5.50", count: 0
+  end
+
   test "gives the bar the user's category names in name order" do
     users(:one).categories.create!(name: "groceries")
     users(:one).categories.create!(name: "Bills")

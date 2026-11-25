@@ -7,7 +7,7 @@ class Transaction < ApplicationRecord
 
   validates :name, presence: { message: Shorthand::MISSING_NAME }
 
-  before_update :forget_shorthand, if: -> { name_changed? || amount_in_cents_changed? || occurred_on_changed? }
+  before_update :drop_stale_shorthand, if: -> { name_changed? || amount_in_cents_changed? || occurred_on_changed? }
 
   scope :latest, -> { order(occurred_on: :desc, id: :desc) }
   scope :occurred_in, ->(dates) { where(occurred_on: dates) }
@@ -65,7 +65,7 @@ class Transaction < ApplicationRecord
   end
 
   private
-    def forget_shorthand
+    def drop_stale_shorthand
       self.shorthand = nil
     end
 end
