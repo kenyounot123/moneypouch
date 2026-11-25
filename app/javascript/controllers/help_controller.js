@@ -1,7 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
-import { closeOnMorph } from "helpers/dialog"
 
 const WIDE = "(min-width: 80rem)"
+const KEPT = "[data-help-target=sheet], [data-help-target] details, [data-help-target=opener]"
+const KEPT_ATTRIBUTES = new Set(["open", "aria-expanded", "aria-controls"])
 const SAVED = /(?:^|; )help=(\w+)/
 
 export default class extends Controller {
@@ -52,8 +53,8 @@ export default class extends Controller {
     this.reflect()
   }
 
-  closeOnMorph(event) {
-    closeOnMorph(this.sheetTarget, event)
+  keepThroughMorph(event) {
+    if (KEPT_ATTRIBUTES.has(event.detail.attributeName) && event.target.matches(KEPT)) event.preventDefault()
   }
 
   openAside() {
