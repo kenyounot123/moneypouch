@@ -50,6 +50,7 @@ class BankAccount < ApplicationRecord
 
   def add_transactions(simplefin_transactions, sync:)
     if synced?
+      note_posted_times(simplefin_transactions)
       adopt_new_ids(simplefin_transactions)
 
       simplefin_transactions.each do |simplefin_transaction|
@@ -99,6 +100,7 @@ class BankAccount < ApplicationRecord
             external_id: simplefin_transaction.id,
             amount_in_cents: simplefin_transaction.amount_in_cents,
             occurred_on: simplefin_transaction.occurred_on,
+            posted_at: simplefin_transaction.posted_at,
             description: simplefin_transaction.description,
             payee: simplefin_transaction.payee,
             name_key: simplefin_transaction.name.key

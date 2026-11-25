@@ -45,6 +45,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_150000) do
     t.datetime "updated_at", null: false
     t.string "name_key", null: false
     t.integer "transfer_partner_id"
+    t.datetime "posted_at"
     t.index ["bank_account_id", "external_id"], name: "index_bank_transactions_on_bank_account_id_and_external_id", unique: true
     t.index ["bank_account_id", "name_key"], name: "index_bank_transactions_on_bank_account_id_and_name_key"
     t.index ["simplefin_sync_id"], name: "index_bank_transactions_on_simplefin_sync_id"

@@ -32,8 +32,9 @@ class Simplefin::Access < ApplicationRecord
 
     transaction do
       update!(status: :active)
-      bank_accounts.where(id: Array(account_ids)).each { |bank_account| bank_account.start_syncing(from: starts_on) }
-      bank_accounts.where.not(id: Array(account_ids)).each(&:skip)
+      pickable = pickable_accounts
+      pickable.where(id: Array(account_ids)).each { |bank_account| bank_account.start_syncing(from: starts_on) }
+      pickable.where.not(id: Array(account_ids)).each(&:skip)
     end
 
     sync_later
@@ -110,6 +111,10 @@ class Simplefin::Access < ApplicationRecord
 
   def replacements
     bank_accounts.missing.filter_map(&:replacement)
+  end
+
+  def pickable_accounts
+    bank_accounts.where.not(id: replacements).order(:id)
   end
 
   private

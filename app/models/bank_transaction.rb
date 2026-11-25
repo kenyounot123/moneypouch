@@ -25,8 +25,34 @@ class BankTransaction < ApplicationRecord
     end
   end
 
+  def self.pair_up(bank_transactions, others)
+    unpaired = bank_transactions.sort_by(&:id)
+
+    others.filter_map do |other|
+      same = unpaired.find { |bank_transaction| bank_transaction.same_posting?(other) }
+
+      if same
+        [ unpaired.delete(same), other ]
+      end
+    end
+  end
+
   def name
     BankTransaction::Name.new(payee:, description:)
+  end
+
+  def same_posting?(other)
+    if posted_at && other.posted_at
+      [ amount_in_cents, posted_at.utc.to_date ] == [ other.amount_in_cents, other.posted_at.utc.to_date ]
+    else
+      [ amount_in_cents, occurred_on ] == [ other.amount_in_cents, other.occurred_on ]
+    end
+  end
+
+  def absorb(copy)
+    copy.destroy!
+    linked_transaction.absorb(copy.linked_transaction) if copy.unmatched?
+    update!(external_id: copy.external_id, posted_at: copy.posted_at || posted_at)
   end
 
   def unmatched?

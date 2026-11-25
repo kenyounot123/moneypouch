@@ -18,6 +18,16 @@ module Transaction::Mergeable
     answer_duplicate(bank_rows, same: false)
   end
 
+  def absorb(copy)
+    fill_in_from(copy)
+
+    if discarded_at && copy.discarded_at.nil?
+      update!(discarded_at: nil)
+    end
+
+    copy.destroy!
+  end
+
   def fill_in_from(typed)
     if needs_category?
       categorize(typed.categorization)
