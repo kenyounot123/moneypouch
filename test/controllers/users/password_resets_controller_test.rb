@@ -28,6 +28,14 @@ class Users::PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     assert_match %r{\Ahttp://pouch\.tail1234\.ts\.net:8080/passwords/[^/]+/edit\z}, css_select("input#reset_link").first["value"]
   end
 
+  test "signing in pages that need no sign-in leaves the address alone" do
+    host! "pouch.tail1234.ts.net:8080"
+    sign_in_as(users(:two))
+    get new_session_path
+
+    assert_nil users(:two).reload.origin
+  end
+
   test "the link falls back to the owner's address for an account not seen since" do
     host! "localhost:8080"
     sign_in_as(users(:one))
