@@ -321,7 +321,154 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     end
   end
 
+  test "Same account after Sync it keeps a purchase at another shop with the same amount and posted time" do
+    relinked = with_coffee_only_the_new_account_sent(Time.utc(2026, 10, 5, 16), description: "Starbucks")
+    sync_it(@savings.reload.replacement, relinked)
+
+    carry_on(relinked)
+    sync_again(@access, report: relinked)
+
+    assert_equal [ "Blue Bottle", "Starbucks" ], @savings.transactions.kept.where(amount_in_cents: -400).pluck(:name).sort
+  end
+
+  test "another purchase at the same shop with the same amount on the same day arrives after Same account" do
+    relinked = with_coffee_only_the_new_account_sent(Time.utc(2026, 10, 5, 22), description: "Blue Bottle")
+
+    carry_on(relinked)
+    sync_again(@access, report: relinked)
+
+    assert_equal %w[ coffee-a coffee-b ], @savings.bank_transactions.where(amount_in_cents: -400).pluck(:external_id).sort
+    assert_equal 2, @savings.transactions.kept.where(amount_in_cents: -400).count
+  end
+
+  test "the copy you kept wins over the one you deleted" do
+    old_copy = @savings.transactions.find_by!(amount_in_cents: -13550)
+    old_copy.categorize(Transaction::Categorization.new(category: users(:one).categories.create!(name: "Groceries")))
+    old_copy.update!(note: "old note")
+    old_copy.discard
+    new_copy = synced_replacement.transactions.find_by!(amount_in_cents: -13550)
+    new_copy.categorize(Transaction::Categorization.new(category: users(:one).categories.create!(name: "Bikes")))
+    new_copy.update!(note: "new bike")
+    new_copy.exclude
+
+    carry_on(relinked_report)
+
+    kept = @savings.transactions.kept.find_by!(amount_in_cents: -13550)
+    assert_equal [ "Bikes", "new bike", false ], [ kept.category.name, kept.note, kept.counted? ]
+  end
+
+  test "a row you left out of totals counts when its other copy still counted" do
+    @savings.transactions.find_by!(amount_in_cents: -13550).exclude
+    synced_replacement
+
+    carry_on(relinked_report)
+
+    assert @savings.transactions.kept.find_by!(amount_in_cents: -13550).counted?
+  end
+
+  test "a transfer on the new copy moves to the row you keep" do
+    @savings.transactions.find_by!(amount_in_cents: -13550).categorize(Transaction::Categorization.new(category: users(:one).categories.create!(name: "Groceries")))
+    copy, partner = paired_copy
+
+    carry_on(relinked_report)
+
+    kept = @savings.bank_transactions.find_by!(amount_in_cents: -13550)
+    assert_equal [ partner, kept ], [ kept.transfer_partner, partner.reload.transfer_partner ]
+    assert kept.linked_transaction.transfer?
+    assert_not BankTransaction.exists?(copy.id)
+  end
+
+  test "a transfer on the new copy, when the row you keep is paired elsewhere, leaves its partner a plain row" do
+    groceries = @savings.bank_transactions.find_by!(amount_in_cents: -13550)
+    other = @access.bank_accounts.find_by!(external_id: "Demo Checking").bank_transactions.find_by!(amount_in_cents: -17667)
+    groceries.linked_transaction.update!(categorization: Transaction::Categorization.none)
+    other.linked_transaction.update!(categorization: Transaction::Categorization.none)
+    groceries.pair_with(other)
+    _copy, partner = paired_copy
+
+    carry_on(relinked_report)
+
+    assert_equal other, groceries.reload.transfer_partner
+    assert_not partner.reload.paired?
+    assert_not partner.linked_transaction.transfer?
+  end
+
+  test "rows stored before posted times, on an account already missing, carry on after a time zone change" do
+    relinked = missing_with_rows_before_posted_times(zone: "Pacific/Auckland")
+    sync_it(@savings.reload.replacement, relinked)
+
+    carry_on(relinked)
+    2.times { sync_again(@access, report: relinked) }
+
+    assert_equal 6, @savings.bank_transactions.count
+    assert_equal 6, @savings.transactions.kept.count
+  end
+
+  test "rows stored before posted times, on an account already missing, are not added again by the sync after Same account" do
+    relinked = missing_with_rows_before_posted_times(zone: "America/New_York")
+
+    assert_no_difference -> { Transaction.count } do
+      carry_on(relinked)
+      sync_again(@access, report: relinked)
+    end
+  end
+
+  test "a row stored before posted times with a possible copy on each side of its day keeps all three" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings")["transactions"] << bought("lunch", "-9.00", Time.utc(2026, 10, 4, 20))
+    sync_again(@access, report:)
+    travel 1.hour
+    relinked = relinked_report(report)
+    demo_account(relinked, "Relinked Demo Savings")["transactions"].reject! { |transaction| transaction["id"] == "relinked-lunch" }
+    demo_account(relinked, "Relinked Demo Savings")["transactions"].push(
+      bought("lunch-before", "-9.00", Time.utc(2026, 10, 3, 20)), bought("lunch-after", "-9.00", Time.utc(2026, 10, 5, 20)))
+    sync_again(@access, report: relinked)
+    BankTransaction.update_all(posted_at: nil)
+    sync_it(@savings.reload.replacement, relinked)
+
+    carry_on(relinked)
+
+    assert_equal 3, @savings.transactions.kept.where(amount_in_cents: -900).count
+  end
+
   private
+    def with_coffee_only_the_new_account_sent(time, description:)
+      report = simplefin_report
+      demo_account(report, "Demo Savings")["transactions"] << bought("coffee-a", "-4.00", Time.utc(2026, 10, 5, 16), description: "Blue Bottle")
+      sync_again(@access, report:)
+      travel 1.hour
+      relinked_report.tap do |relinked|
+        demo_account(relinked, "Relinked Demo Savings")["transactions"] << bought("coffee-b", "-4.00", time, description:)
+        sync_again(@access, report: relinked)
+      end
+    end
+
+    def synced_replacement
+      sync_again(@access, report: relinked_report)
+      @savings.reload.replacement.tap { |replacement| sync_it(replacement, relinked_report) }
+    end
+
+    def paired_copy
+      copy = synced_replacement.bank_transactions.find_by!(amount_in_cents: -13550)
+      partner = @access.bank_accounts.find_by!(external_id: "Demo Checking").bank_transactions.where(transfer_partner_id: nil).where.not(amount_in_cents: -17667).first
+      copy.linked_transaction.update!(categorization: Transaction::Categorization.none)
+      partner.linked_transaction.update!(categorization: Transaction::Categorization.none)
+      copy.pair_with(partner)
+      [ copy, partner ]
+    end
+
+    def missing_with_rows_before_posted_times(zone:)
+      report = simplefin_report
+      demo_account(report, "Demo Savings")["transactions"] << bought("late", "-12.00", Time.utc(2026, 10, 5, 6, 30))
+      sync_again(@access, report:)
+      travel 1.hour
+      relinked_report(report).tap do |relinked|
+        sync_again(@access, report: relinked)
+        BankTransaction.update_all(posted_at: nil)
+        users(:one).update!(time_zone: zone)
+      end
+    end
+
     def sync_it(bank_account, report)
       stub_simplefin_accounts(body: report.to_json)
       perform_enqueued_jobs { bank_account.sync_recent_history }
@@ -336,7 +483,7 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
       perform_enqueued_jobs { BankAccount.find(@savings.id).carry_on_with_replacement }
     end
 
-    def bought(id, amount, time)
-      { "id" => id, "posted" => time.to_i, "transacted_at" => time.to_i, "amount" => amount, "description" => "Bike shop" }
+    def bought(id, amount, time, description: "Bike shop")
+      { "id" => id, "posted" => time.to_i, "transacted_at" => time.to_i, "amount" => amount, "description" => description }
     end
 end
