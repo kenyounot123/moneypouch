@@ -150,6 +150,7 @@ volumes:
 1. Create your account.
 2. Press ⌘K (Ctrl+K), type `Coffee 4.50`, and press Enter. That's your first expense.
 3. Optional: connect your bank in Settings. See [Bank sync with SimpleFIN](#bank-sync-with-simplefin).
+4. Stuck? Press `?` or choose Help in the sidebar. It explains the page you're on.
 
 ## Type it like you'd say it
 

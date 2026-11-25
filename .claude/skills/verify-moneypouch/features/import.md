@@ -26,11 +26,11 @@
 - Import (`Imports::TransactionsController#create`, `Import#complete`) lands on `/transactions?month=YYYY-MM`, the newest month the file added to (`Import#latest_occurred_on`), with a toast `Imported 11 transactions from personal.csv` and `Undo`. The text wraps instead of truncating. The toast sits 24px from the bottom, centered on `main`. A second press, or Back into any step of a finished import, lands on the Import page (`ImportScoped`). An import that adds nothing is deleted and lands on the Import page.
 - Undo (`DELETE /imports/:id`, `Import#undo`) asks `Remove the 11 transactions from personal.csv?`, removes the rows and the categories only the import created, and lands on the Import page. A second Undo, or another user's id, finds nothing and lands there too. Another user's import id on a step is a 404.
 - Imported rows have `transactions.import_id` and no `BankTransaction`, so they count as `Typed in` in the Transactions page's account filter.
-- Empty Overview: with no kept transactions, Recent reads `No transactions yet.` and lists `By hand` (`Add` with the ⌘K chip, which opens `dialog#palette`), `From a file` (`Import`, to `/imports/new`), and `From your bank` (`Connect`, to `/simplefin/access/new`).
+- Empty Overview: with no kept transactions, Recent reads `No transactions yet.` and, once the Get started list is hidden or done (it shows the same ways in while it is up, see [overview.md](overview.md)), lists `By hand` (`Add` with the ⌘K chip, which opens `dialog#palette`), `From a file` (`Import`, to `/imports/new`), and `From your bank` (`Connect`, to `/simplefin/access/new`).
 
 ## How to get to it (user POV)
 
-Sidebar, Import. Or, as a new user with no transactions, Overview, Recent, From a file, Import.
+Sidebar, Import. Or, as a new user, `Import a file` in Get started on the Overview, or under the composer on the first transaction page.
 
 ## Driving it with mp.mjs
 
@@ -52,4 +52,4 @@ Sidebar, Import. Or, as a new user with no transactions, Overview, Recent, From 
 - The upload POSTs a real multipart form, so the server log shows the 422 for a bad file. A draft left behind by a drive stays in the dev database until the next upload replaces it.
 - `Import#undo` deletes rows rather than discarding them, so a drive that imports into `demo` and Undoes leaves the user as it was. A drive that stops after Import leaves the rows; Undo them from the Import page.
 - `Import::Sheet` reads the file once on upload and stores it as JSON on the draft, so a step never re-reads the file. Editing the fixture does not change a draft; upload again.
-- The empty Overview needs a user with no kept transactions. Create one through `/account/new` and Skip for now, and delete it with `bin/rails runner` when done.
+- The empty Overview needs a user with no kept transactions, and for By hand, From a file, and From your bank to show in Recent, the Get started list hidden (`mp.mjs click '#get_started button'`). Create one through `/account/new` and Skip for now, and delete it with `bin/rails runner` when done.

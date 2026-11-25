@@ -1,0 +1,27 @@
+<p>
+  <span class="pointer-coarse:hidden">Press <%= shortcut("K") %> on any page and type one line.</span>
+  <span class="hidden pointer-coarse:inline">Tap Add and type one line.</span>
+  Parts can go in any order.
+</p>
+
+<div class="@container mt-3 text-sm">
+  <div aria-hidden="true" class="hidden grid-cols-[5rem_minmax(0,1fr)_minmax(0,1fr)] gap-x-4 pb-2 text-tertiary @md:grid">
+    <span>Part</span>
+    <span>You type</span>
+    <span>If you leave it out</span>
+  </div>
+  <dl class="flex flex-col">
+    <%= render layout: "help/topics/part", locals: { part: "Name", left_out: nil } do %>
+      <%= example_tag "Chipotle" %>
+    <% end %>
+    <%= render layout: "help/topics/part", locals: { part: "Amount", left_out: nil } do %>
+      <%= example_tag "11.25", :amount %>, or <%= example_tag "+2400", :money_in %> for money in
+    <% end %>
+    <%= render layout: "help/topics/part", locals: { part: "Date", left_out: "Today" } do %>
+      <%= example_tag "yesterday", :date %>, <%= example_tag "friday", :date %>, or <%= example_tag "sep 26", :date %>
+    <% end %>
+    <%= render layout: "help/topics/part", locals: { part: "Category", left_out: "The last one used for that name" } do %>
+      <%= example_tag "#food", :category %>
+    <% end %>
+  </dl>
+</div>

@@ -1,0 +1,6 @@
+<% if step.done? %>
+  <p class="text-md text-tertiary">Give it a category</p>
+<% else %>
+  <p class="text-md font-medium">Give it a category</p>
+  <p class="text-sm text-secondary">Choose Uncategorized on a transaction and type one. Next time, end the line with <%= example_tag "#food", :category %>.</p>
+<% end %>

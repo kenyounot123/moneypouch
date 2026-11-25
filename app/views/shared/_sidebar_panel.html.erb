@@ -25,5 +25,12 @@
 
 <div class="flex flex-col gap-4">
   <%= render "shared/demo_banner", classes: "max-md:hidden md:in-data-[sidebar=collapsed]:hidden" %>
-  <%= sidebar_link_to "Settings", settings_path, icon: :settings %>
+  <div class="flex flex-col gap-0.5 md:in-data-[sidebar=collapsed]:items-center">
+    <%= sidebar_link_to "Help", help_path, icon: :help, data: help_opener_data, aria: { keyshortcuts: ("?" if help_drawer? && Current.user.single_key_shortcuts?) }, class: "xl:in-data-[help=open]:bg-level-3 xl:in-data-[help=open]:text-primary" do %>
+      <% if Current.user.single_key_shortcuts? %>
+        <span class="ml-auto rounded-sm border border-primary bg-level-2 px-1.5 py-0.5 font-mono text-xs text-secondary max-md:hidden pointer-coarse:hidden md:in-data-[sidebar=collapsed]:hidden">?</span>
+      <% end %>
+    <% end %>
+    <%= sidebar_link_to "Settings", settings_path, icon: :settings %>
+  </div>
 </div>

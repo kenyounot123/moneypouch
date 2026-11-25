@@ -1,12 +1,17 @@
-<div data-controller="sidebar" data-action="keydown@window->sidebar#shortcut resize@window->sidebar#closeOnDesktop turbo:before-cache@document->sidebar#close" class="contents">
-  <header class="flex items-center gap-2 px-5 pt-7 md:hidden">
+<div data-controller="sidebar help" class="contents"
+  data-action="keydown@window->sidebar#shortcut resize@window->sidebar#closeOnDesktop turbo:before-cache@document->sidebar#close resize@window->help#closeOnWide turbo:before-cache@document->help#closeSheet shortcuts:show@window->help#closeSheet">
+  <header class="@container flex items-center gap-2 px-5 pt-7 md:hidden">
     <button type="button" data-sidebar-target="opener" data-action="sidebar#open" aria-label="Show sidebar" aria-haspopup="dialog" class="flex size-7 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary">
       <%= icon_tag "sidebar" %>
     </button>
     <%= render "shared/pouch", blinking: true, classes: "-m-[3px] size-10" %>
-    <span class="text-heading font-bold whitespace-nowrap">MoneyPouch</span>
+    <span class="text-heading font-bold whitespace-nowrap @max-[20rem]:hidden">MoneyPouch</span>
+    <%= link_to help_path, data: help_opener_data, aria: { label: "Help", current: ("page" if current_page?(help_path)) },
+      class: "ml-auto flex size-9 shrink-0 items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary pointer-coarse:size-10 aria-[current=page]:bg-level-3 aria-[current=page]:text-primary" do %>
+      <%= icon_tag "help" %>
+    <% end %>
     <button type="button" aria-haspopup="dialog" data-controller="dialog-opener" data-action="dialog-opener#open" data-dialog-opener-id-param="palette"
-      class="ml-auto flex cursor-pointer items-center gap-1.5 rounded-md bg-action py-2 pr-3.5 pl-3 text-sm font-medium text-on-action hover:brightness-95">
+      class="flex cursor-pointer items-center gap-1.5 rounded-md bg-action py-2 pr-3.5 pl-3 text-sm font-medium text-on-action hover:brightness-95">
       <%= icon_tag "plus" %>
       Add
     </button>
@@ -32,6 +37,18 @@
       </button>
     <% end %>
   </aside>
+
+  <% if help_drawer? %>
+    <aside id="help-aside" aria-label="Help" tabindex="-1" data-help-target="aside" data-action="keydown->help#escape"
+      class="sticky top-0 order-last hidden h-dvh w-help shrink-0 flex-col overflow-y-auto border-l border-secondary bg-level-1 outline-none xl:in-data-[help=open]:flex">
+      <%= render "shared/help_panel" %>
+    </aside>
+
+    <dialog aria-label="Help" tabindex="-1" data-help-target="sheet" data-action="click->help#dismiss turbo:before-morph-attribute->help#closeOnMorph"
+      class="m-0 mt-auto max-h-[85dvh] w-full max-w-none flex-col overflow-y-auto rounded-t-[16px] border-0 bg-level-2 p-0 text-primary outline-none backdrop:bg-scrim open:flex md:mt-0 md:mr-0 md:ml-auto md:h-dvh md:max-h-none md:w-100 md:rounded-none md:border-l md:border-secondary md:bg-level-1">
+      <%= render "shared/help_panel" %>
+    </dialog>
+  <% end %>
 
   <%= render "shared/palette" %>
   <%= render "shared/shortcuts" %>

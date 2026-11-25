@@ -1,0 +1,8 @@
+<dl class="flex flex-col text-sm">
+  <%= render layout: "help/topics/token", locals: { token: example_tag("#food", :category) } do %>a category<% end %>
+  <%= render layout: "help/topics/token", locals: { token: example_tag(">30", :amount) } do %>over $30<% end %>
+  <%= render layout: "help/topics/token", locals: { token: example_tag("@sep", :date) } do %>a month or day<% end %>
+  <%= render layout: "help/topics/token", locals: { token: example_tag("in:amex") } do %>a bank account<% end %>
+  <%= render layout: "help/topics/token", locals: { token: example_tag("coffee") } do %>any word in the name or note<% end %>
+</dl>
+<p class="mt-3">Use several at once to narrow it down.</p>

@@ -13,7 +13,7 @@ module User::Sandbox
   class_methods do
     def create_sandbox
       transaction do
-        create!(username: "visitor-#{SecureRandom.hex(6)}", password: SecureRandom.base58(32), expires_at: LIFETIME.from_now).tap do |user|
+        create!(username: "visitor-#{SecureRandom.hex(6)}", password: SecureRandom.base58(32), expires_at: LIFETIME.from_now, get_started_hidden: true).tap do |user|
           user.add_sample_transactions(SAMPLE_PURCHASES)
         end
       end

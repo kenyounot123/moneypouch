@@ -16,8 +16,9 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "Blue Bottle", "Old lunch" ], css_select("ul li p.font-medium").map(&:text)
   end
 
-  test "an empty Recent offers to type, import a file, or connect a bank, side by side" do
+  test "an empty Recent offers to type, import a file, or connect a bank, side by side once the list is hidden" do
     users(:one).transactions.each(&:discard)
+    users(:one).hide_get_started
 
     get root_url
 
@@ -25,6 +26,75 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "main ul li button[aria-haspopup=dialog][data-action='dialog-opener#open'][data-dialog-opener-id-param=palette]", text: /Add/
     assert_select "main ul li a[href=?][data-turbo-frame=_top]", new_import_path, text: "Import"
     assert_select "main ul li a[href=?][data-turbo-frame=_top]", new_simplefin_access_path, text: "Connect"
+  end
+
+  test "Get started lists what is left to do, ahead of Recent, with the steps already done checked" do
+    get root_url
+
+    assert_select "section#get_started h2", text: "Get started"
+    assert_select "section#get_started", text: /2 of 3/
+    assert_select "section#get_started form[action=?] button", get_started_path, text: "Hide"
+    assert_select "section#get_started li", 3
+    assert_select "section#get_started li:nth-child(1) .icon--check"
+    assert_select "section#get_started li:nth-child(2) .icon--check"
+    assert_select "section#get_started li:nth-child(3) .icon--check", count: 0
+    assert_select "section#get_started li:nth-child(3)", text: /Bring in your history\s+Optional. Trends needs two full months./
+    assert_select "section#get_started li a[href=?][data-turbo-frame=_top]", new_import_path, text: "Import a file"
+    assert_select "section#get_started li a[href=?][data-turbo-frame=_top]", new_simplefin_access_path, text: "Connect a bank"
+    assert_select "section#get_started a[href=?]", help_path, text: "Help"
+    assert_operator css_select("main h2").index { |heading| heading.text == "Get started" }, :<, css_select("main h2").index { |heading| heading.text == "Recent" }
+  end
+
+  test "Get started asks for a first transaction and a category, and points to the palette" do
+    users(:one).transactions.each(&:discard)
+
+    get root_url
+
+    assert_select "section#get_started", text: /0 of 3/
+    assert_select "section#get_started li:nth-child(1)", text: /Name and amount, like coffee 4.50./
+    assert_select "section#get_started li:nth-child(1) button[data-dialog-opener-id-param=palette]", text: /Add/
+    assert_select "section#get_started li:nth-child(2)", text: /Choose Uncategorized on a transaction and type one. Next time, end the line with #food./
+  end
+
+  test "a done first step only reminds you of the shortcut" do
+    get root_url
+
+    assert_select "section#get_started li:nth-child(1)", text: /Press .+K on any page to add the next one./
+    assert_select "section#get_started li:nth-child(1) button", count: 0
+  end
+
+  test "while Get started shows, an empty Recent is only a line and the ways in live in the list" do
+    users(:one).transactions.each(&:discard)
+
+    get root_url
+
+    assert_equal [ "No transactions yet." ], css_select("main ul li").map { |row| row.text.strip }
+    assert_select "main ul li button[data-dialog-opener-id-param=palette]", count: 0
+  end
+
+  test "a hidden list stays hidden" do
+    users(:one).hide_get_started
+
+    get root_url
+
+    assert_select "section#get_started", count: 0
+  end
+
+  test "the list goes away by itself once every step is done" do
+    users(:one).imports.create!(file: upload("history.csv", "Date,Item,Category,Amount\n2024-10-04,Trader Joe's,Groceries,42.10\n")).complete
+
+    get root_url
+
+    assert_select "section#get_started", count: 0
+  end
+
+  test "the demo's list cannot import or connect a bank" do
+    with_demo do
+      get root_url
+    end
+
+    assert_select "section#get_started li:nth-child(3)", text: /Not available in the demo/
+    assert_select "section#get_started a[href=?]", new_import_path, count: 0
   end
 
   test "Recent with rows offers no ways to start" do

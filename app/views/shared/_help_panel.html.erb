@@ -1,0 +1,37 @@
+<div class="flex flex-1 flex-col gap-8 bg-inherit px-7 pt-2.5 md:pt-7">
+  <div class="mx-auto h-1 w-9 shrink-0 rounded-full bg-(--border-color-primary) md:hidden"></div>
+
+  <div class="flex items-center justify-between gap-4">
+    <h2 class="text-heading">Help</h2>
+    <button type="button" data-action="help#close" aria-label="Close help" class="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-sm text-secondary hover:bg-level-3 hover:text-primary">
+      <%= icon_tag "close" %>
+    </button>
+  </div>
+
+  <section class="flex flex-col gap-2">
+    <h3 class="text-sm font-medium">On this page</h3>
+    <dl class="flex flex-col">
+      <%= render help_glossary %>
+    </dl>
+  </section>
+
+  <section class="flex flex-col gap-2">
+    <h3 class="text-sm font-medium">How to</h3>
+    <div class="flex flex-col">
+      <% Help::Topic.on(help_page).each do |topic| %>
+        <details class="group border-t border-secondary pointer-coarse:has-[[data-fine-pointer]]:hidden">
+          <summary class="flex cursor-pointer items-center justify-between gap-3 py-3.5 text-base">
+            <%= topic.title %>
+            <%= icon_tag "chevron-right", class: "text-secondary transition-transform group-open:rotate-90" %>
+          </summary>
+          <div class="pb-4 text-sm text-secondary"><%= render topic.partial %></div>
+        </details>
+      <% end %>
+    </div>
+  </section>
+
+  <div class="mt-auto flex gap-5 border-t border-secondary bg-inherit pt-4 pb-6 text-sm font-medium text-secondary md:sticky md:bottom-0">
+    <%= link_to "All topics", help_path, class: "hover:text-primary" %>
+    <button type="button" data-action="shortcuts#showShortcuts" class="cursor-pointer hover:text-primary pointer-coarse:hidden">Keyboard shortcuts</button>
+  </div>
+</div>

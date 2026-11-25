@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 const KEYMAP = {
   "/": "search",
-  "?": "showShortcuts",
+  "?": "showHelp",
   ArrowLeft: "previousMonth",
   ArrowRight: "nextMonth",
 }
@@ -59,8 +59,18 @@ export default class extends Controller {
     }
   }
 
+  showHelp(event) {
+    const opener = Array.from(document.querySelectorAll("[data-help-target=opener]")).find((candidate) => candidate.checkVisibility())
+
+    if (opener) {
+      event.preventDefault()
+      opener.click()
+    }
+  }
+
   showShortcuts(event) {
     event.preventDefault()
+    this.dispatch("show")
     document.getElementById("shortcuts")?.showModal()
   }
 

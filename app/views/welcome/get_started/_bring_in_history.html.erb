@@ -1,0 +1,14 @@
+<% if step.done? %>
+  <p class="text-md text-tertiary">Bring in your history</p>
+<% else %>
+  <p class="text-md font-medium">Bring in your history</p>
+  <p class="text-sm text-secondary">Optional. Trends needs two full months.</p>
+  <div class="flex flex-wrap items-center gap-2 pt-2">
+    <% if demo? %>
+      <%= not_in_demo_note %>
+    <% else %>
+      <%= link_to "Import a file", new_import_path, class: "outline-button ml-0", data: { turbo_frame: "_top" } %>
+      <%= link_to "Connect a bank", new_simplefin_access_path, class: "outline-button ml-0", data: { turbo_frame: "_top" } %>
+    <% end %>
+  </div>
+<% end %>

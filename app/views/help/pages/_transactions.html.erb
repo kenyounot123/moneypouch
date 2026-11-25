@@ -1,0 +1,4 @@
+<%= render layout: "help/term", locals: { term: square_tag(:gold) } do %>A bank transaction that needs a category.<% end %>
+<%= render layout: "help/term", locals: { term: category_link_tag("Food") } do %>Choose a category to change it.<% end %>
+<%= render layout: "help/term", locals: { term: "Net" } do %>Income minus spent.<% end %>
+<%= render layout: "help/term", locals: { term: safe_join([ example_tag("#food", :category), " ", example_tag(">30", :amount) ]) } do %>Searches for food over $30.<% end %>

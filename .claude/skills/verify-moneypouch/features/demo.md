@@ -8,6 +8,7 @@
 - A sandbox never counts as the owner (`User.owner` skips rows with `expires_at`), and registration is closed in the demo, so `/account/new` redirects to sign in, even on a server with no accounts.
 - A note in the sidebar's foot, or under the top bar below `md`, reads `This is a demo`, `Your sandbox is deleted in 24 hours.` (whole hours, then minutes), and links `Install MoneyPouch` and `Send feedback`. It is `section[aria-label=Demo]`, hidden while the sidebar is collapsed.
 - Bank sync, Import, password reset links and pages, and the registration switch answer 404 in the demo. Settings' Bank sync section and the empty Overview show `Not available in the demo` where Connect and Import were, and the sidebar has no Import link.
+- A sandbox starts with the Get started list hidden (`User.create_sandbox` sets `get_started_hidden`), so the Overview shows no list there. The Help page and drawer are there as everywhere, with the Import and Bank sync topics still listed.
 - `User.delete_expired_sandboxes` runs hourly from `config/recurring.yml` in production and deletes each expired sandbox with every row it owns, deleted transactions and bank rows included.
 
 ## How to get to it (user POV)
