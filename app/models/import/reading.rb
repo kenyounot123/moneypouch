@@ -68,11 +68,16 @@ class Import::Reading
     def kind_of(row)
       if row.transfer?
         :transfer
-      elsif row.excluded?
+      elsif row.excluded? || lands_in_excluded_category?(row)
         :excluded
       else
         category_word_for(row).counts_as(row)
       end
+    end
+
+    def lands_in_excluded_category?(row)
+      name = category_word_for(row).category_name_for(row)
+      user.excludes_category_named?(name)
     end
 
     def user_categories

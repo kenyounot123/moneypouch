@@ -96,6 +96,10 @@ module TransactionsHelper
   end
 
   def exclusion_button(transaction, icon: false, **options)
+    if transaction.excluded_by_category?
+      return
+    end
+
     label = transaction.excluded? ? "Include" : "Exclude"
     path = transaction_exclusion_path(transaction)
     method = transaction.excluded? ? :delete : :post

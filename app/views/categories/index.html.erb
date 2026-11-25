@@ -29,13 +29,13 @@
         <% @categories.partition { |category| !category.income? }.each do |categories| %>
           <% next if categories.empty? %>
           <% kind = category_kind categories.first %>
-          <% section_total = categories.sum { |category| @usage.total(category) } %>
+          <% section_total = @usage.section_total(categories) %>
           <section aria-label="<%= kind %>">
             <div class="category-columns border-b border-primary px-2 pb-2">
               <h2 class="text-heading"><%= kind %></h2>
               <span class="@max-2xl:hidden"></span>
               <span class="@max-2xl:hidden"></span>
-              <p class="text-right font-amount text-secondary" data-field="section-total"><%= categories.any? { |category| @usage.active?(category) } ? money(section_total) : "—" %></p>
+              <p class="text-right font-amount text-secondary" data-field="section-total"><%= @usage.counts_in_section?(categories) ? money(section_total) : "—" %></p>
               <span></span>
             </div>
 

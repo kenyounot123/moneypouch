@@ -18,6 +18,14 @@ class Category::Usage
     signed(category, totals.fetch(category.id, 0))
   end
 
+  def section_total(categories)
+    categories.reject(&:excluded?).sum { |category| total(category) }
+  end
+
+  def counts_in_section?(categories)
+    categories.any? { |category| active?(category) && !category.excluded? }
+  end
+
   def active?(category)
     active_ids.include?(category.id)
   end
@@ -60,7 +68,7 @@ class Category::Usage
     end
 
     def counted_in_span
-      @user.transactions.counted.categorized.occurred_in(span.range)
+      @user.transactions.individually_counted.categorized.occurred_in(span.range)
     end
 
     def totals
@@ -80,7 +88,7 @@ class Category::Usage
     end
 
     def monthly_totals
-      @monthly_totals ||= @user.transactions.counted.categorized.occurred_in(span.year.range)
+      @monthly_totals ||= @user.transactions.individually_counted.categorized.occurred_in(span.year.range)
         .pluck(:category_id, :occurred_on, :amount_in_cents)
         .each_with_object(Hash.new(0)) { |(category_id, on, cents), totals| totals[[ category_id, on.beginning_of_month ]] += cents }
     end

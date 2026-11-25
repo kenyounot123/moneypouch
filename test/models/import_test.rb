@@ -155,6 +155,21 @@ class ImportTest < ActiveSupport::TestCase
     assert_equal [ 2, 1, 2 ], [ counted.spending.money_out.count, counted.spending.money_in.count, counted.incoming.count ]
   end
 
+  test "the tally counts a row landing in an excluded category as excluded" do
+    @user.categories.create!(name: "Work", excluded: true)
+    import = @user.imports.create!(file: upload("work.csv", <<~CSV))
+      Date,Name,Category,Amount
+      2024-10-01,Lunch,Food,-12
+      2024-10-04,Laptop stand,work,-50
+    CSV
+
+    assert_equal [ 1, 1 ], counts(import.tally, :spent, :excluded)
+
+    import.complete
+
+    assert_equal [ "Lunch" ], import.transactions.counted.pluck(:name)
+  end
+
   test "category words list each word on the rows being added, matching the user's own categories" do
     import = @user.imports.create!(file: import_file("personal.csv"))
 
