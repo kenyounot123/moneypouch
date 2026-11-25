@@ -10,7 +10,7 @@ const KEYMAP = {
     ArrowDown: "nextOption",
     ArrowUp: "previousOption",
     Tab: "pickOption",
-    Enter: "pickOption",
+    Enter: "pickOptionOrAdd",
     Escape: "dismiss",
   },
   calendar: {
@@ -34,7 +34,7 @@ const KEYMAP = {
     "Shift+PageUp": "previousYear",
     "Shift+PageDown": "nextYear",
     Tab: "completeOrPickTyped",
-    Enter: "pickTyped",
+    Enter: "pickTypedOrAdd",
     Escape: "dismiss",
   },
 }
@@ -191,6 +191,15 @@ export default class extends Controller {
     this.replaceWord(this.popup.word, `#${item.name}`)
   }
 
+  pickOptionOrAdd() {
+    return this.optionTypedInFull() ? this.addAsTyped() : this.pickOption()
+  }
+
+  optionTypedInFull() {
+    const { items, index, word } = this.popup
+    return this.caretEnds(word) && items[index].name.toLowerCase() === word.text.slice(1).toLowerCase()
+  }
+
   completeOrPickTyped() {
     return this.dayCompletion() ? this.complete() : this.pickTyped()
   }
@@ -199,6 +208,22 @@ export default class extends Controller {
     const { fragment, answeredFor, answer } = this.popup
     if (answeredFor === fragment && answer.on && answer.on <= this.max) return this.pickCursor()
     this.dismiss()
+  }
+
+  pickTypedOrAdd() {
+    return this.dayTypedInFull() ? this.addAsTyped() : this.pickTyped()
+  }
+
+  dayTypedInFull() {
+    const { word, fragment, answeredFor, answer, cursor } = this.popup
+    if (!this.caretEnds(word)) return false
+    if (answeredFor !== fragment) return DATE_WORDS.includes(fragment.toLowerCase())
+    return answer.kind === "exact" && isoDay(answer.on) === isoDay(cursor)
+  }
+
+  addAsTyped() {
+    this.replaceWord(this.popup.word, this.popup.word.text)
+    return false
   }
 
   dismiss() {
@@ -373,6 +398,10 @@ export default class extends Controller {
     const before = field.value.slice(0, field.selectionStart)
     const text = before.match(/\S*$/)[0]
     return { text, start: before.length - text.length, end: field.selectionStart }
+  }
+
+  caretEnds(word) {
+    return !/^\S/.test(this.fieldTarget.value.slice(word.end))
   }
 
   replaceWord(word, text) {
