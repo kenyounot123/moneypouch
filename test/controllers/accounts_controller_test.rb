@@ -13,6 +13,7 @@ class AccountsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h1", text: "Welcome to MoneyPouch"
+    assert_select "p", text: "Your data stays on this server"
   end
 
   test "the first signup signs in, then registration closes" do
