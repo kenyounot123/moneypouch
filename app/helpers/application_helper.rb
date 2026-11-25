@@ -5,6 +5,10 @@ module ApplicationHelper
     tag.span class: class_names("icon icon--#{name}", options.delete(:class)), aria: { hidden: true }, **options
   end
 
+  def style_declarations(**declarations)
+    declarations.transform_keys { |property| property.to_s.dasherize }.to_json
+  end
+
   def example_tag(text, kind = nil)
     tag.code text, class: class_names("font-mono text-xs", EXAMPLE_COLORS[kind])
   end

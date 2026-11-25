@@ -3,7 +3,7 @@
 <% axis = chart_axis(columns.values.compact.max.to_i) %>
 <%= render "welcome/chart_header", period:, chart:, readout: column_readout(period, today_column, columns[today_column]) %>
 <div class="flex flex-col gap-2">
-  <div class="relative shrink-0" style="height: <%= WelcomeHelper::PLOT_HEIGHT %>px">
+  <div class="relative shrink-0" data-controller="style" data-style-declarations-value="<%= style_declarations height: "#{WelcomeHelper::PLOT_HEIGHT}px" %>">
     <%= render "welcome/axis", axis: %>
     <div class="relative flex h-full items-end gap-1 pr-11">
       <% columns.each do |column, cents| %>
@@ -11,7 +11,7 @@
           <div class="group flex h-full flex-1 items-end" data-chart-target="column" <% if column == today_column %>data-active<% end %>
             data-action="mouseenter->chart#show mouseleave->chart#clear" <%= tag.attributes(data: column_readout(period, column, cents).params) %>>
             <% if cents.positive? %>
-              <div class="w-full rounded-t-bar bg-data-soft group-data-active:bg-data-strong" style="height: <%= column_height cents, axis.top %>px"></div>
+              <div class="w-full rounded-t-bar bg-data-soft group-data-active:bg-data-strong" data-controller="style" data-style-declarations-value="<%= style_declarations height: "#{column_height cents, axis.top}px" %>"></div>
             <% end %>
           </div>
         <% else %>
@@ -22,7 +22,7 @@
   </div>
   <div class="flex gap-1 pr-11">
     <% column_labels(period, columns).each do |caption, span| %>
-      <p data-field="caption" class="<%= class_names "basis-0 text-xs whitespace-nowrap text-tertiary", "text-center": span == 1 %>" style="flex-grow: <%= span %>"><%= caption %></p>
+      <p data-field="caption" class="<%= class_names "basis-0 text-xs whitespace-nowrap text-tertiary", "text-center": span == 1 %>" data-controller="style" data-style-declarations-value="<%= style_declarations flex_grow: span %>"><%= caption %></p>
     <% end %>
   </div>
 </div>

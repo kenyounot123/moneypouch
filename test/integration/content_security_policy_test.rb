@@ -10,6 +10,8 @@ class ContentSecurityPolicyTest < ActionDispatch::IntegrationTest
     nonce = policy[/'nonce-([^']+)'/, 1]
     assert_match "script-src 'self' 'nonce-", policy
     assert_select "script[type=importmap][nonce=?]", nonce
+    assert_match "style-src 'self';", policy
+    assert_select "[style]", count: 0
     assert_select "[onclick], [onchange], [onsubmit], [oninput]", count: 0
   end
 end

@@ -309,8 +309,8 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "span", text: "$12.88"
     assert_select "span", text: "Uncategorized"
     assert_select "span", text: "Food"
-    assert_select "[data-field=flow-bar][style='width: 100.0%']", count: 1
-    assert_select "[data-field=flow-bar][style='width: 18.6%']", count: 1
+    assert_select "[data-field=flow-bar][data-style-declarations-value*='\"width\":\"100.0%']", count: 1
+    assert_select "[data-field=flow-bar][data-style-declarations-value*='\"width\":\"18.6%']", count: 1
     assert_select "p", text: "Nothing came in.", count: 0
     assert_select "p", text: "Nothing spent.", count: 0
   end

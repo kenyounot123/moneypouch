@@ -5,7 +5,7 @@ Rails.application.configure do
     policy.img_src     :self, :data
     policy.object_src  :none
     policy.script_src  :self
-    policy.style_src   :self, :unsafe_inline
+    policy.style_src   :self
     policy.connect_src :self
     policy.frame_ancestors :none
     policy.base_uri    :self
