@@ -660,6 +660,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_select "turbo-stream[action=replace][target=voucher] .animate-shake", text: /Type an amount, like 5.50/
+    assert_select "turbo-stream[action=replace][target=voucher] [data-reading] ~ p.animate-shake", text: "Type an amount, like 5.50"
   end
 
   test "undo discards the row, keeps the count, and returns its shorthand" do

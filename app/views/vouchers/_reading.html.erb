@@ -1,0 +1,6 @@
+<div data-reading="<%= label.downcase %>" class="grid h-11 grid-cols-[4.5rem_minmax(0,1fr)_1rem] items-center border-t border-secondary text-sm sm:grid-cols-[5.25rem_7.25rem_minmax(0,1fr)_1rem]">
+  <p class="text-secondary"><%= label %></p>
+  <p class="flex min-w-0 pr-3 text-base"><%= value %></p>
+  <p class="text-secondary max-sm:hidden"><%= hint %></p>
+  <span class="flex justify-end text-success"><%= icon_tag "check" if read %></span>
+</div>

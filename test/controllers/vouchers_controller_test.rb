@@ -18,6 +18,31 @@ class VouchersControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#voucher [data-inferred-category=Food]", text: /\A\s*ok · \+\$2,400.00 · Food · Yesterday\s+format:/
   end
 
+  test "reads the line part by part, checking the name and the amount once each is read" do
+    get voucher_url(shorthand: "Chipotle")
+
+    assert_select "[data-reading=name] .icon--check"
+    assert_select "[data-reading=name] span.font-medium", text: "Chipotle"
+    assert_select "[data-reading=amount] .icon--check", count: 0
+    assert_select "[data-reading=amount] p", text: "Required"
+
+    get voucher_url(shorthand: "Chipotle 11.25")
+
+    assert_select "[data-reading=amount] .icon--check"
+    assert_select "[data-reading=amount] .text-amount", text: "$11.25"
+    assert_select "[data-reading=date] span.truncate.text-date", count: 0
+    assert_select "[data-reading=date] p", text: /Today/
+    assert_select "[data-reading=category] p", text: /None yet/
+  end
+
+  test "reads money in in the success color, a typed day in the date color, and a category in the category color" do
+    get voucher_url(shorthand: "paycheck +2400 yesterday #salary")
+
+    assert_select "[data-reading=amount] .text-success", text: "+$2,400.00"
+    assert_select "[data-reading=date] span.truncate.text-date", text: "Yesterday"
+    assert_select "[data-reading=category] span.truncate.text-category", text: "salary"
+  end
+
   test "marks where the amount, date, and category sit, counting as the field does" do
     get voucher_url(shorthand: "🍩 Blue Bottle 5.50 @yesterday #food")
     assert_select "[data-marks=?]", [ [ "amount", 15, 19 ], [ "date", 20, 30 ], [ "category", 31, 36 ] ].to_json
@@ -61,10 +86,10 @@ class VouchersControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "shows only the format for empty shorthand" do
+  test "shows the format and the parts still to type for empty shorthand" do
     get voucher_url(shorthand: "")
 
-    assert_select "turbo-frame#voucher", text: /\A\s*format: coffee 5.50 @yesterday #food\s+money in: paycheck \+2400\s*\z/
+    assert_select "turbo-frame#voucher", text: /\A\s*format: coffee 5.50 @yesterday #food\s+money in: paycheck \+2400\s+Name\s+Required/
   end
 
   test "offers a used name only when asked" do
