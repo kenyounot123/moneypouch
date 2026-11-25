@@ -12,7 +12,7 @@ module Transaction::Bankable
     scope :behind, ->(bank_transactions) { where(id: bank_transactions.select(:transaction_id)) }
     scope :typed_in, -> { where.not(id: BankTransaction.select(:transaction_id)) }
     scope :added_by_bank, -> { behind(BankTransaction.unmatched) }
-    scope :needing_category, -> { kept.added_by_bank.uncategorized }
+    scope :needing_category, -> { kept.uncategorized }
     scope :pairable, -> { kept.added_by_bank.where(category_id: nil) }
     scope :from_bank_account, ->(bank_account) { merge(bank_account.transactions) }
   end
@@ -56,7 +56,7 @@ module Transaction::Bankable
   end
 
   def needs_category?
-    added_by_bank? && category_id.nil? && !transfer?
+    category_id.nil? && !transfer?
   end
 
   def offers_rule?
