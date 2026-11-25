@@ -13,6 +13,10 @@
 - A bare `#` or `@` is taken out of the name, and a bare `#` leaves the category to inference: `Trader Joe's 64.12 #` reads name `Trader Joe's`. A `#` followed only by punctuation, like `#!`, stays in the name.
 - `#attributes`, `#tokens`, `#valid?`, `#money_in?`, `#dated?`, `#completion`, `#category_word`, `#category_name`, `#inferred?`, `#aim`, `#calendar`.
 
+## The preview's two shapes
+
+`vouchers/_voucher.html.erb` renders both and CSS picks one (`in-[dialog]:`), so `GET /voucher` and a 422 carry both. Inside `dialog#palette` it is the status line and the format line, as above. Outside a dialog, on `/first_transaction`, they are hidden and four `[data-reading=name|amount|date|category]` rows show instead, see [onboarding.md](onboarding.md). `VouchersHelper#voucher_name_value`, `#voucher_amount_value`, `#voucher_date_value`, and `#voucher_category_value` read the parts. The row target `[data-composer-target=row]` and its data attributes are the same in both.
+
 ## How to get to it (user POV)
 
 A user reaches it through the composer on `/`. Every keystroke renders `GET /voucher?shorthand=...`, see [composer.md](composer.md). The Ruby API is also driven directly through `query`.

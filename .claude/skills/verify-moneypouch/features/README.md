@@ -4,10 +4,11 @@
 - [password-reset.md](password-reset.md). The owner's Reset link in Settings, the one-use reset page, the sign-in hint, and the `password:reset` rake task.
 - [overview.md](overview.md). The signed-in Overview with the composer and sidebar.
 - [release-notes.md](release-notes.md). The `You're now on version …` dialog after an upgrade, and `Got it`.
-- [onboarding.md](onboarding.md). Closed registration and the owner's Open registration switch, Create account, the first transaction page, Skip for now, landing on the Overview.
+- [onboarding.md](onboarding.md). Closed registration and the owner's Open registration switch, Create account, the first transaction page and its four rows, Skip for now, the Get started list, landing on the Overview.
+- [help.md](help.md). The Help page and its search, the Help drawer and sheet, their entry points and the `?` key, topics, page glossaries, and pages that lay out by the width of `main`.
 - [sidebar.md](sidebar.md). The collapsible sidebar, its cookie, tooltips, and the Add button.
 - [theme.md](theme.md). Light and dark mode and the seven color themes on the Settings page.
-- [shortcuts.md](shortcuts.md). Keyboard shortcuts: `/` to search, `?` and Settings for the cheat sheet of every shortcut, the arrow keys to step months, the categorize chain, and the Settings switch that turns `/` off.
+- [shortcuts.md](shortcuts.md). Keyboard shortcuts: `/` to search, `?` for Help, Settings and the footer of Help for the cheat sheet of every shortcut, the arrow keys to step months, the categorize chain, and the Settings switch that turns `/` off.
 - [add-transaction.md](add-transaction.md). The composer and demo data.
 - [transactions.md](transactions.md). The month ledger at `/transactions`: totals, month switcher, token search, column sort, day-grouped rows, and the edit sheet.
 - [categories.md](categories.md). The Categories list and a category's page: the span of months, sections, aligned columns, the Manage menu, month bars, and the empty span.

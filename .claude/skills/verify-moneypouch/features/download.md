@@ -8,7 +8,7 @@
 
 ## How to get to it (user POV)
 
-Sidebar, Settings. Your data sits under Keyboard and above Account. Bank sync is in the right-hand column from `xl`.
+Sidebar, Settings. Your data sits under Keyboard and above Account. Bank sync is in the right-hand column from `@4xl` of `main`'s width (896px, so 1280px wide with the sidebar open and no Help drawer).
 
 ## Driving it with mp.mjs
 
