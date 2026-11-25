@@ -10,7 +10,7 @@ const KEYMAP = {
     ArrowDown: "nextOption",
     ArrowUp: "previousOption",
     Tab: "pickOption",
-    Enter: "pickOption",
+    Enter: "pickOptionOrAdd",
     Escape: "dismiss",
   },
   calendar: {
@@ -34,7 +34,7 @@ const KEYMAP = {
     "Shift+PageUp": "previousYear",
     "Shift+PageDown": "nextYear",
     Tab: "completeOrPickTyped",
-    Enter: "pickTyped",
+    Enter: "pickTypedOrAdd",
     Escape: "dismiss",
   },
 }
@@ -191,6 +191,17 @@ export default class extends Controller {
     this.replaceWord(this.popup.word, `#${item.name}`)
   }
 
+  pickOptionOrAdd() {
+    const typedInFull = this.optionTypedInFull()
+    this.pickOption()
+    return !typedInFull
+  }
+
+  optionTypedInFull() {
+    const { items, index, word } = this.popup
+    return items[index].name.toLowerCase() === word.text.slice(1).toLowerCase()
+  }
+
   completeOrPickTyped() {
     return this.dayCompletion() ? this.complete() : this.pickTyped()
   }
@@ -199,6 +210,18 @@ export default class extends Controller {
     const { fragment, answeredFor, answer } = this.popup
     if (answeredFor === fragment && answer.on && answer.on <= this.max) return this.pickCursor()
     this.dismiss()
+  }
+
+  pickTypedOrAdd() {
+    const typedInFull = this.dayTypedInFull()
+    this.pickTyped()
+    return !typedInFull
+  }
+
+  dayTypedInFull() {
+    const { fragment, answeredFor, answer, cursor } = this.popup
+    if (answeredFor !== fragment) return DATE_WORDS.includes(fragment.toLowerCase())
+    return answer.kind === "exact" && isoDay(answer.on) === isoDay(cursor)
   }
 
   dismiss() {
