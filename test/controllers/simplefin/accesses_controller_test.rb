@@ -126,6 +126,30 @@ class Simplefin::AccessesControllerTest < ActionDispatch::IntegrationTest
     assert_select "a", text: "Connect your bank"
   end
 
+  test "reconnecting lists a relinked account once and Start syncing adds no duplicates" do
+    access = activate(connect_simplefin)
+    savings = access.bank_accounts.find_by!(external_id: "Demo Savings")
+    travel 1.hour
+    delete simplefin_access_url
+    stub_simplefin_claim
+    stub_simplefin_accounts(body: relinked_report.to_json)
+
+    post simplefin_access_url, params: { simplefin_access: { setup_token: SETUP_TOKEN } }
+    follow_redirect!
+
+    assert_select "label", text: /SimpleFIN Savings/, count: 1
+    checked = css_select("input[type=checkbox][checked]").map { |checkbox| checkbox["value"] }
+    assert_no_difference -> { Transaction.count } do
+      perform_enqueued_jobs do
+        patch simplefin_access_url, params: { simplefin_access: { account_ids: checked, history: "90_days" } }
+      end
+    end
+
+    follow_redirect!
+    assert_select "##{dom_id(savings)} button", text: "Same account"
+    assert_select "button", text: "Sync it", count: 0
+  end
+
   test "someone without a access cannot start, sync, or disconnect" do
     patch simplefin_access_url, params: { simplefin_access: { history: "today" } }
     assert_response :not_found

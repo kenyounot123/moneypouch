@@ -241,7 +241,96 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     end
   end
 
+  test "Same account after Sync it on the new account keeps one row per transaction" do
+    sync_again(@access, report: relinked_report)
+    sync_it(@savings.reload.replacement, relinked_report)
+
+    assert_difference -> { Transaction.count } => -5 do
+      carry_on(relinked_report)
+    end
+    assert_equal relinked_ids, @savings.bank_transactions.pluck(:external_id).sort
+  end
+
+  test "Same account when the bank changed only the account id keeps one row per transaction" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings")["id"] = "Relinked Demo Savings"
+    sync_again(@access, report:)
+    sync_it(@savings.reload.replacement, report)
+
+    assert_difference -> { Transaction.count } => -5 do
+      carry_on(report)
+    end
+    assert_equal "Relinked Demo Savings", @savings.reload.external_id
+    assert_equal 5, @savings.bank_transactions.count
+  end
+
+  test "the copy you kept stays, with its category, when you deleted the other by hand" do
+    sync_again(@access, report: relinked_report)
+    replacement = @savings.reload.replacement
+    sync_it(replacement, relinked_report)
+    old_copy = @savings.transactions.find_by!(amount_in_cents: -13550)
+    new_copy = replacement.transactions.find_by!(amount_in_cents: -13550)
+    old_copy.discard
+    new_copy.categorize(Transaction::Categorization.new(category: users(:one).categories.create!(name: "Bikes")))
+
+    carry_on(relinked_report)
+
+    assert_equal 5, @savings.transactions.kept.count
+    assert_equal "Bikes", @savings.transactions.kept.find_by!(amount_in_cents: -13550).category.name
+  end
+
+  test "Same account after Sync it, run twice, changes nothing more" do
+    sync_again(@access, report: relinked_report)
+    sync_it(@savings.reload.replacement, relinked_report)
+    carry_on(relinked_report)
+
+    assert_no_difference [ -> { Transaction.count }, -> { BankTransaction.count }, -> { BankAccount.count } ] do
+      carry_on(relinked_report)
+      sync_again(@access, report: relinked_report)
+    end
+  end
+
+  test "a time zone change before Same account keeps a late-night purchase once" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings")["transactions"] << bought("late", "-12.00", Time.utc(2026, 10, 5, 6, 30))
+    sync_again(@access, report:)
+    users(:one).update!(time_zone: "America/New_York")
+    travel 1.hour
+    report = relinked_report(report)
+    sync_again(@access, report:)
+
+    assert_no_difference -> { Transaction.count } do
+      carry_on(report)
+    end
+    assert_equal 6, @savings.bank_transactions.count
+  end
+
+  test "rows stored before posted times were kept carry on after a time zone change" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings")["transactions"] << bought("late", "-12.00", Time.utc(2026, 10, 5, 6, 30))
+    sync_again(@access, report:)
+    BankTransaction.update_all(posted_at: nil)
+    sync_again(@access, report:)
+    users(:one).update!(time_zone: "America/New_York")
+    travel 1.hour
+    report = relinked_report(report)
+    sync_again(@access, report:)
+
+    assert_no_difference -> { Transaction.count } do
+      carry_on(report)
+    end
+  end
+
   private
+    def sync_it(bank_account, report)
+      stub_simplefin_accounts(body: report.to_json)
+      perform_enqueued_jobs { bank_account.sync_recent_history }
+    end
+
+    def relinked_ids
+      demo_account(relinked_report, "Relinked Demo Savings")["transactions"].pluck("id").sort
+    end
+
     def carry_on(report)
       stub_simplefin_accounts(body: report.to_json)
       perform_enqueued_jobs { BankAccount.find(@savings.id).carry_on_with_replacement }
