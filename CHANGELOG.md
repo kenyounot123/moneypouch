@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.27.0](https://github.com/kenyounot123/moneypouch/compare/v0.26.0...v0.27.0) (2026-11-25)
+
+
+### Features
+
+* **onboarding:** teach the first transaction, add Get started and Help ([#251](https://github.com/kenyounot123/moneypouch/issues/251)) ([6fd6440](https://github.com/kenyounot123/moneypouch/commit/6fd6440010e4853fccb8d4fb46ad1996503c0b63))
+
+
+### Bug Fixes
+
+* **composer:** add on Enter when the word in the open list is complete ([#252](https://github.com/kenyounot123/moneypouch/issues/252)) ([8b37fe4](https://github.com/kenyounot123/moneypouch/commit/8b37fe4b1e5710233886c228960c148d6fbdb3fa))
+* **help:** keep Help as the user left it when the page refreshes ([#254](https://github.com/kenyounot123/moneypouch/issues/254)) ([425e9ce](https://github.com/kenyounot123/moneypouch/commit/425e9ce45984309327aa6f0320e7d1cd9beff846))
+
 ## [0.26.0](https://github.com/kenyounot123/moneypouch/compare/v0.25.3...v0.26.0) (2026-11-24)
 
 
