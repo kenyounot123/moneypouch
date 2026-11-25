@@ -54,7 +54,7 @@
           <%= render "welcome/chart", period: @period, chart: @chart, spending: @spending, summary: @summary, focus: @focus %>
         </section>
 
-        <div class="flex min-w-0 flex-1 flex-col gap-10">
+        <div class="min-w-0 flex-1 flex-col gap-10 <%= @get_started.pending? ? "contents @2xl:flex" : "flex" %>">
           <% if @get_started.pending? %>
             <%= render "welcome/get_started", get_started: @get_started %>
           <% end %>

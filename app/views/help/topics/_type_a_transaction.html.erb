@@ -11,10 +11,10 @@
     <span>If you leave it out</span>
   </div>
   <dl class="flex flex-col">
-    <%= render layout: "help/topics/part", locals: { part: "Name", left_out: "Required" } do %>
+    <%= render layout: "help/topics/part", locals: { part: "Name", left_out: nil } do %>
       <%= example_tag "Chipotle" %>
     <% end %>
-    <%= render layout: "help/topics/part", locals: { part: "Amount", left_out: "Required" } do %>
+    <%= render layout: "help/topics/part", locals: { part: "Amount", left_out: nil } do %>
       <%= example_tag "11.25", :amount %>, or <%= example_tag "+2400", :money_in %> for money in
     <% end %>
     <%= render layout: "help/topics/part", locals: { part: "Date", left_out: "Today" } do %>

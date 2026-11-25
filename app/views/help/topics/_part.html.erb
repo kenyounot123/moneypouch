@@ -1,5 +1,11 @@
 <div class="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-4 gap-y-0.5 border-t border-secondary py-3 @md:grid-cols-[5rem_minmax(0,1fr)_minmax(0,1fr)]">
   <dt class="font-medium text-primary @max-md:row-span-2"><%= part %></dt>
   <dd><%= yield %></dd>
-  <dd class="text-tertiary @md:text-primary"><span class="@md:sr-only">Left out: </span><%= left_out %></dd>
+  <dd class="text-tertiary @md:text-primary">
+    <% if left_out %>
+      <span class="@md:sr-only">If left out:</span> <%= left_out %>
+    <% else %>
+      Required
+    <% end %>
+  </dd>
 </div>

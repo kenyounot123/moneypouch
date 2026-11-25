@@ -10,9 +10,9 @@ class Help::Topic < Data.define(:slug, :title, :section, :pages)
       [ "spent", "Spent", [] ],
       [ "income", "Income", [] ],
       [ "net", "Net", [] ],
-      [ "refund", "Refund", %w[ transactions ] ],
-      [ "transfer", "Transfer", %w[ transactions ] ],
-      [ "excluded", "Excluded", %w[ transactions ] ]
+      [ "refund", "Record a refund", %w[ transactions ] ],
+      [ "transfer", "Mark a transfer", %w[ transactions ] ],
+      [ "excluded", "Leave one out of the totals", %w[ transactions ] ]
     ],
     "Categories" => [
       [ "make-a-category", "Make a category", %w[ categories overview ] ],

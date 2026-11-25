@@ -11,7 +11,7 @@ class HelpDrawerTest < ActionDispatch::IntegrationTest
     assert_select "aside#help-aside[aria-label=Help]" do
       assert_select "h3", text: "On this page"
       assert_select "dl dd", text: "Searches for food over $30."
-      assert_select "details summary", text: "Refund"
+      assert_select "details summary", text: "Record a refund"
       assert_select "details summary", text: "Why a transfer was marked for me"
       assert_select "details summary", text: "Why Trends is empty", count: 0
       assert_select "a[href=?]", help_path, text: "All topics"
@@ -42,7 +42,7 @@ class HelpDrawerTest < ActionDispatch::IntegrationTest
     get transactions_url
 
     assert_select "dialog[aria-label=Help][data-help-target=sheet]" do
-      assert_select "details summary", text: "Refund"
+      assert_select "details summary", text: "Record a refund"
       assert_select "button[data-action='help#close'][aria-label='Close help']"
     end
   end
