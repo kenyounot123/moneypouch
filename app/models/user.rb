@@ -163,22 +163,6 @@ class User < ApplicationRecord
     rules.find { |rule| rule.matches?(name) }
   end
 
-  def categorized_by_rule?(name)
-    rule_for(name)&.category.present?
-  end
-
-  def categorization_for(name, paired: false)
-    rule = rule_for(name)
-
-    if rule
-      rule.categorization
-    elsif paired
-      Transaction::Categorization.transfer
-    else
-      Transaction::Categorization.new(category: transactions.last_category_for(name.to_s))
-    end
-  end
-
   def possible_duplicates
     Transaction::Duplicates.new(self)
   end

@@ -32,6 +32,10 @@ class Simplefin::Sync < ApplicationRecord
     end
   end
 
+  def rule_book
+    @rule_book ||= Rule::Book.new(access.user)
+  end
+
   def abandon
     finish("abandoned")
   end

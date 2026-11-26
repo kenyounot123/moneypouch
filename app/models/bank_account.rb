@@ -70,14 +70,14 @@ class BankAccount < ApplicationRecord
       simplefin_access.user
     end
 
-    def partner_for(simplefin_transaction)
-      unless owner.categorized_by_rule?(simplefin_transaction.name)
+    def partner_for(simplefin_transaction, sync:)
+      unless sync.rule_book.categorized?(simplefin_transaction.name)
         owner.bank_transactions.partner_for(simplefin_transaction.amount_in_cents, currency, simplefin_transaction.occurred_on, other_than: self)
       end
     end
 
-    def add_new(simplefin_transaction, partner:)
-      owner.transactions.add_from_bank(simplefin_transaction, currency:, categorization: owner.categorization_for(simplefin_transaction.name, paired: partner.present?))
+    def add_new(simplefin_transaction, partner:, sync:)
+      owner.transactions.add_from_bank(simplefin_transaction, currency:, categorization: sync.rule_book.categorization_for(simplefin_transaction.name, paired: partner.present?))
     end
 
     def add_transaction(simplefin_transaction, sync:)
@@ -90,11 +90,11 @@ class BankAccount < ApplicationRecord
       unless bank_transactions.exists?(external_id: simplefin_transaction.id)
         transaction do
           match = owner.transactions.match_for(simplefin_transaction.amount_in_cents, currency, simplefin_transaction.occurred_on)
-          partner = partner_for(simplefin_transaction) unless match
+          partner = partner_for(simplefin_transaction, sync:) unless match
 
           bank_transaction = bank_transactions.create!(
             simplefin_sync: sync,
-            transaction_id: (match || add_new(simplefin_transaction, partner:)).id,
+            transaction_id: (match || add_new(simplefin_transaction, partner:, sync:)).id,
             matched: match.present?,
             external_id: simplefin_transaction.id,
             amount_in_cents: simplefin_transaction.amount_in_cents,
