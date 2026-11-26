@@ -1,6 +1,8 @@
 require "test_helper"
 
 class BankAccount::RelinkingTest < ActiveSupport::TestCase
+  ONE_POSTING_A_DAY = Time.utc(2026, 10, 5, 12)
+
   setup do
     travel_to Time.utc(2026, 10, 6, 18)
     @access = connect_simplefin
@@ -322,7 +324,7 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
   end
 
   test "Same account after Sync it keeps a purchase at another shop with the same amount and posted time" do
-    relinked = with_coffee_only_the_new_account_sent(Time.utc(2026, 10, 5, 16), description: "Starbucks")
+    relinked = with_purchases(old: coffee("coffee-a", Time.utc(2026, 10, 5, 16)), new: coffee("coffee-b", Time.utc(2026, 10, 5, 16), description: "Starbucks"))
     sync_it(@savings.reload.replacement, relinked)
 
     carry_on(relinked)
@@ -332,7 +334,7 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
   end
 
   test "another purchase at the same shop with the same amount on the same day arrives after Same account" do
-    relinked = with_coffee_only_the_new_account_sent(Time.utc(2026, 10, 5, 22), description: "Blue Bottle")
+    relinked = with_purchases(old: coffee("coffee-a", Time.utc(2026, 10, 5, 16)), new: coffee("coffee-b", Time.utc(2026, 10, 5, 22)))
 
     carry_on(relinked)
     sync_again(@access, report: relinked)
@@ -431,16 +433,209 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     assert_equal 3, @savings.transactions.kept.where(amount_in_cents: -900).count
   end
 
-  private
-    def with_coffee_only_the_new_account_sent(time, description:)
+  test "Same account after Sync it keeps a second coffee at the same shop when the bank posts a whole day at one time" do
+    relinked = with_purchases(old: coffee("coffee-a", Time.utc(2026, 10, 5, 16), posted: ONE_POSTING_A_DAY), new: coffee("coffee-b", Time.utc(2026, 10, 5, 22), posted: ONE_POSTING_A_DAY))
+    sync_it(@savings.reload.replacement, relinked)
+
+    carry_on(relinked)
+    sync_again(@access, report: relinked)
+
+    assert_equal %w[ coffee-a coffee-b ], @savings.bank_transactions.where(amount_in_cents: -400).pluck(:external_id).sort
+    assert_equal 2, @savings.transactions.kept.where(amount_in_cents: -400).count
+  end
+
+  test "a second coffee at the same shop arrives after Same account when the bank posts a whole day at one time" do
+    relinked = with_purchases(old: coffee("coffee-a", Time.utc(2026, 10, 5, 16), posted: ONE_POSTING_A_DAY), new: coffee("coffee-b", Time.utc(2026, 10, 5, 22), posted: ONE_POSTING_A_DAY))
+
+    carry_on(relinked)
+    sync_again(@access, report: relinked)
+
+    assert_equal %w[ coffee-a coffee-b ], @savings.bank_transactions.where(amount_in_cents: -400).pluck(:external_id).sort
+    assert_equal 2, @savings.transactions.kept.where(amount_in_cents: -400).count
+  end
+
+  [ true, false ].each do |sync_first|
+    test "a bank that kept its transaction ids keeps a second coffee with the same posted time and no purchase time apart (Sync it first: #{sync_first})" do
+      same_ids = simplefin_report.tap { |report| demo_account(report, "Demo Savings")["id"] = "Relinked Demo Savings" }
+      relinked = with_purchases(old: coffee("coffee-a", nil, posted: ONE_POSTING_A_DAY), new: coffee("coffee-b", nil, posted: ONE_POSTING_A_DAY), relinked: same_ids)
+      sync_it(@savings.reload.replacement, relinked) if sync_first
+
+      carry_on(relinked)
+      sync_again(@access, report: relinked)
+
+      assert_equal %w[ coffee-a coffee-b ], @savings.bank_transactions.where(amount_in_cents: -400).pluck(:external_id).sort
+      assert_equal 7, @savings.transactions.kept.count
+    end
+
+    test "two coffees at one shop and posting time keep two rows when both copies arrive (Sync it first: #{sync_first})" do
+      relinked_with_two_coffees(sync_first:)
+
+      assert_equal 2, @savings.bank_transactions.where(amount_in_cents: -400).count
+      assert_equal 2, @savings.transactions.kept.where(amount_in_cents: -400).count
+    end
+
+    test "a purchase the bank renamed at the relink leaves a duplicate and deletes nothing (Sync it first: #{sync_first})" do
       report = simplefin_report
-      demo_account(report, "Demo Savings")["transactions"] << bought("coffee-a", "-4.00", Time.utc(2026, 10, 5, 16), description: "Blue Bottle")
+      demo_account(report, "Demo Savings")["transactions"] << coffee("coffee-a", Time.utc(2026, 10, 5, 16), description: "SQ *BLUE BOTTLE 1234", posted: ONE_POSTING_A_DAY)
       sync_again(@access, report:)
       travel 1.hour
-      relinked_report.tap do |relinked|
-        demo_account(relinked, "Relinked Demo Savings")["transactions"] << bought("coffee-b", "-4.00", time, description:)
+      relinked = relinked_report(report)
+      demo_account(relinked, "Relinked Demo Savings")["transactions"].find { |transaction| transaction["id"] == "relinked-coffee-a" }["description"] = "Blue Bottle"
+      sync_again(@access, report: relinked)
+      sync_it(@savings.reload.replacement, relinked) if sync_first
+
+      carry_on(relinked)
+      sync_again(@access, report: relinked)
+
+      assert_equal [ "Blue Bottle", "SQ *BLUE BOTTLE" ], @savings.transactions.kept.where(amount_in_cents: -400).pluck(:name).sort
+      assert_equal 7, @savings.transactions.kept.count
+    end
+
+    test "Same account and the sync after it, run again, change nothing (Sync it first: #{sync_first})" do
+      relinked = relinked_with_two_coffees(sync_first:)
+      before = savings_rows
+
+      sync_again(@access, report: relinked)
+      carry_on(relinked)
+
+      assert_equal before, savings_rows
+    end
+  end
+
+  test "two coffees at one shop and posting time keep two rows when only one copy arrives" do
+    relinked_with_two_coffees(sync_first: true, only_second: true)
+
+    assert_equal 2, @savings.transactions.kept.where(amount_in_cents: -400).count
+  end
+
+  test "rows a day apart in a chain pair only where one copy fits" do
+    old = ->(id, day) { BankTransaction.new(id:, amount_in_cents: -500, name_key: "coffee", occurred_on: Date.new(2026, 10, day)) }
+    copy = ->(id, day) { BankTransaction.new(id:, amount_in_cents: -500, name_key: "coffee", occurred_on: Date.new(2026, 10, day), posted_at: Time.utc(2026, 10, day, 12)) }
+    pairs = ->(olds, copies) { BankTransaction.pair_up(olds, copies).map { |pair| pair.map(&:id) } }
+
+    assert_equal [], pairs.([ old[1, 1], old[3, 3] ], [ copy[10, 2] ])
+    assert_equal [], pairs.([ old[2, 2] ], [ copy[10, 1], copy[11, 3] ])
+    assert_equal [], pairs.([ old[1, 1], old[3, 3] ], [ copy[10, 2], copy[11, 4] ])
+    assert_equal [ [ 2, 10 ] ], pairs.([ old[1, 1], old[2, 2] ], [ copy[10, 2], copy[11, 3] ])
+    assert_equal [ [ 1, 10 ], [ 5, 11 ] ], pairs.([ old[1, 1], old[5, 5] ], [ copy[10, 2], copy[11, 6] ])
+    assert_equal [ [ 2, 10 ], [ 3, 11 ] ], pairs.([ old[1, 1], old[2, 2], old[3, 3] ], [ copy[10, 2], copy[11, 3], copy[12, 4] ])
+  end
+
+  test "deleting the old copy of a transfer keeps the transfer on the copy you kept" do
+    groceries = @savings.bank_transactions.find_by!(amount_in_cents: -13550)
+    partner = checking.bank_transactions.find_by!(amount_in_cents: -17667)
+    [ groceries, partner ].each { |bank_transaction| bank_transaction.linked_transaction.update!(categorization: Transaction::Categorization.none) }
+    groceries.pair_with(partner)
+    synced_replacement
+    groceries.linked_transaction.discard
+
+    carry_on(relinked_report)
+
+    kept = @savings.bank_transactions.find_by!(amount_in_cents: -13550)
+    assert_equal [ partner, kept ], [ kept.transfer_partner, partner.reload.transfer_partner ]
+    assert kept.linked_transaction.kept?
+    assert [ kept, partner ].all? { |bank_transaction| bank_transaction.linked_transaction.transfer? }
+  end
+
+  [ [ "Savings", "Checking" ], [ "Checking", "Savings" ] ].each do |order|
+    test "a transfer between two relinked accounts stays one pair, confirming #{order.join(" then ")}" do
+      relinked = relinked_report(relinked_report, external_id: "Demo Checking")
+      groceries = @savings.bank_transactions.find_by!(amount_in_cents: -13550)
+      other = checking.bank_transactions.find_by!(amount_in_cents: -17667)
+      pair_by_hand(groceries, other)
+      new_savings, new_checking = relinked_and_synced([ @savings, checking ], relinked)
+      pair_by_hand(new_savings.bank_transactions.find_by!(amount_in_cents: -13550), new_checking.bank_transactions.find_by!(amount_in_cents: -17667))
+
+      order.each do |name|
+        carry_on(relinked, name == "Savings" ? @savings : checking)
+        assert_transfers_point_at_each_other
+      end
+
+      assert_equal other, groceries.reload.transfer_partner
+    end
+  end
+
+  test "copies paired across two relinked accounts leave every transfer with a partner" do
+    relinked = relinked_report(relinked_report, external_id: "Demo Checking")
+    groceries = @savings.bank_transactions.find_by!(amount_in_cents: -13550)
+    other = checking.bank_transactions.find_by!(amount_in_cents: -17667)
+    new_savings, new_checking = relinked_and_synced([ @savings, checking ], relinked)
+    pair_by_hand(groceries, new_checking.bank_transactions.find_by!(amount_in_cents: -17667))
+    pair_by_hand(new_savings.bank_transactions.find_by!(amount_in_cents: -13550), other)
+
+    [ @savings, checking ].each do |account|
+      carry_on(relinked, account)
+      assert_transfers_point_at_each_other
+    end
+
+    assert_equal 10, @savings.bank_transactions.count + checking.bank_transactions.count
+  end
+
+  test "a purchase deleted on both copies stays deleted, and one left out of totals stays out when its copy was deleted" do
+    groceries = @savings.transactions.find_by!(amount_in_cents: -13550)
+    bait = @savings.transactions.find_by!(amount_in_cents: -550)
+    replacement = synced_replacement
+    groceries.discard
+    replacement.transactions.find_by!(amount_in_cents: -13550).discard
+    bait.exclude
+    replacement.transactions.find_by!(amount_in_cents: -550).discard
+
+    carry_on(relinked_report)
+
+    assert_equal [ 0, 1 ], [ @savings.transactions.kept.where(amount_in_cents: -13550).count, @savings.transactions.where(amount_in_cents: -13550).count ]
+    assert_not @savings.transactions.kept.find_by!(amount_in_cents: -550).counted?
+  end
+
+  private
+    def with_purchases(old:, new:, relinked: relinked_report)
+      report = simplefin_report
+      demo_account(report, "Demo Savings")["transactions"] << old
+      sync_again(@access, report:)
+      travel 1.hour
+      relinked.tap do
+        demo_account(relinked, "Relinked Demo Savings")["transactions"] << new
         sync_again(@access, report: relinked)
       end
+    end
+
+    def relinked_with_two_coffees(sync_first:, only_second: false)
+      report = simplefin_report
+      demo_account(report, "Demo Savings")["transactions"].push(
+        coffee("coffee-1", Time.utc(2026, 10, 5, 16), posted: ONE_POSTING_A_DAY), coffee("coffee-2", Time.utc(2026, 10, 5, 20), posted: ONE_POSTING_A_DAY))
+      sync_again(@access, report:)
+      travel 1.hour
+      relinked_report(report).tap do |relinked|
+        demo_account(relinked, "Relinked Demo Savings")["transactions"].reject! { |transaction| transaction["id"] == "relinked-coffee-1" } if only_second
+        sync_again(@access, report: relinked)
+        sync_it(@savings.reload.replacement, relinked) if sync_first
+        carry_on(relinked)
+        sync_again(@access, report: relinked)
+      end
+    end
+
+    def relinked_and_synced(accounts, report)
+      sync_again(@access, report:)
+      accounts.map { |account| account.reload.replacement.tap { |replacement| sync_it(replacement, report) } }
+    end
+
+    def pair_by_hand(bank_transaction, partner)
+      [ bank_transaction, partner ].each { |row| row.linked_transaction.update!(categorization: Transaction::Categorization.none) }
+      bank_transaction.pair_with(partner)
+    end
+
+    def assert_transfers_point_at_each_other
+      BankTransaction.find_each do |bank_transaction|
+        assert_equal bank_transaction.paired?, bank_transaction.linked_transaction.transfer?, "#{bank_transaction.amount_in_cents} is a Transfer exactly when it has a partner"
+        assert_equal bank_transaction, bank_transaction.transfer_partner.transfer_partner if bank_transaction.paired?
+      end
+    end
+
+    def savings_rows
+      @savings.reload.bank_transactions.map { |row| [ row.external_id, row.amount_in_cents, row.posted_at, row.linked_transaction.kept? ] }.sort_by(&:to_s)
+    end
+
+    def checking
+      @checking ||= @access.bank_accounts.find_by!(external_id: "Demo Checking")
     end
 
     def synced_replacement
@@ -478,12 +673,16 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
       demo_account(relinked_report, "Relinked Demo Savings")["transactions"].pluck("id").sort
     end
 
-    def carry_on(report)
+    def carry_on(report, account = @savings)
       stub_simplefin_accounts(body: report.to_json)
-      perform_enqueued_jobs { BankAccount.find(@savings.id).carry_on_with_replacement }
+      perform_enqueued_jobs { BankAccount.find(account.id).carry_on_with_replacement }
     end
 
-    def bought(id, amount, time, description: "Bike shop")
-      { "id" => id, "posted" => time.to_i, "transacted_at" => time.to_i, "amount" => amount, "description" => description }
+    def bought(id, amount, time, description: "Bike shop", posted: time)
+      { "id" => id, "posted" => posted.to_i, "transacted_at" => time&.to_i, "amount" => amount, "description" => description }
+    end
+
+    def coffee(id, time, description: "Blue Bottle", posted: time)
+      bought(id, "-4.00", time, description:, posted:)
     end
 end
