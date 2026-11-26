@@ -53,10 +53,9 @@ class Simplefin::Sync < ApplicationRecord
       simplefin_accounts = access.client.accounts(since: access.history_start)
 
       finish do
-        simplefin_accounts.each do |simplefin_account|
-          access.update_account(simplefin_account).add_transactions(simplefin_account.transactions, sync: self)
+        access.update_accounts(simplefin_accounts) do |bank_account, simplefin_account|
+          bank_account.add_transactions(simplefin_account.transactions, sync: self)
         end
-        access.note_report(simplefin_accounts)
       end
     rescue Simplefin::PaymentRequired
       finish("lapsed")

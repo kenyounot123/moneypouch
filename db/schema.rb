@@ -11,6 +11,16 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2026_11_25_150000) do
+  create_table "bank_account_former_ids", force: :cascade do |t|
+    t.integer "bank_account_id", null: false
+    t.integer "simplefin_access_id", null: false
+    t.string "external_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bank_account_id"], name: "index_bank_account_former_ids_on_bank_account_id"
+    t.index ["simplefin_access_id", "external_id"], name: "idx_on_simplefin_access_id_external_id_bf09253704", unique: true
+  end
+
   create_table "bank_accounts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "simplefin_access_id", null: false
@@ -26,6 +36,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_150000) do
     t.datetime "updated_at", null: false
     t.datetime "reported_at"
     t.datetime "missing_since"
+    t.datetime "balance_date"
     t.index ["simplefin_access_id", "external_id"], name: "index_bank_accounts_on_simplefin_access_id_and_external_id", unique: true
     t.index ["user_id"], name: "index_bank_accounts_on_user_id"
   end
@@ -178,6 +189,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_150000) do
     t.check_constraint "theme IN ('pouch', 'graphite', 'moss', 'tide', 'ember', 'rose', 'plum')", name: "theme_is_known"
   end
 
+  add_foreign_key "bank_account_former_ids", "bank_accounts"
+  add_foreign_key "bank_account_former_ids", "simplefin_accesses"
   add_foreign_key "bank_accounts", "simplefin_accesses"
   add_foreign_key "bank_accounts", "users"
   add_foreign_key "bank_transactions", "bank_accounts"

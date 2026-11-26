@@ -8,12 +8,13 @@ class BankAccount < ApplicationRecord
   enum :status, %w[ pending synced skipped ].index_by(&:itself)
 
   def self.refresh(simplefin_account)
-    find_or_initialize_by(external_id: simplefin_account.id).tap do |bank_account|
+    sent_as(simplefin_account.id).tap do |bank_account|
       bank_account.update!(
         name: simplefin_account.name,
         institution: simplefin_account.institution,
         currency: simplefin_account.currency,
         balance_in_cents: simplefin_account.balance_in_cents,
+        balance_date: simplefin_account.balance_date,
         error_message: simplefin_account.error_message
       )
     end
