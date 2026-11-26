@@ -82,6 +82,7 @@ module BankAccount::Relinkable
         unknown = simplefin_transactions.uniq(&:id).reject { |simplefin_transaction| simplefin_transaction.id.in?(known) }
 
         BankTransaction.pair_up(in_doubt, unknown).each { |bank_transaction, simplefin_transaction| bank_transaction.adopt(simplefin_transaction) }
+        in_doubt.where(occurred_on: ...simplefin_access.history_start.to_date - BankTransaction::PAIR_WINDOW).trust_ids
       end
     end
 

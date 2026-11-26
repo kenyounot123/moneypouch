@@ -24,7 +24,7 @@ module Transaction::Mergeable
         fill_in_from(copy)
         update!(excluded: excluded? && copy.excluded?)
       else
-        categorize(copy.categorization) unless paired?
+        categorize(copy.categorization) unless paired? && bank_transaction.transfer_partner.linked_transaction.kept?
         update!(note: copy.note, excluded: copy.excluded?, discarded_at: nil)
       end
     end

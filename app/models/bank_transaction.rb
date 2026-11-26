@@ -130,7 +130,11 @@ class BankTransaction < ApplicationRecord
     end
 
     def alike_without_posted_time?(other)
-      !posted_on_both?(other) && same_amount_and_name?(other)
+      !posted_on_both?(other) && same_amount_and_name?(other) && [ self, other ].none? { |row| posted_long_after_purchase?(row) }
+    end
+
+    def posted_long_after_purchase?(row)
+      row.posted_at.present? && row.posted_at.to_date - row.occurred_on > PAIR_WINDOW
     end
 
     def same_amount_and_name?(other)
