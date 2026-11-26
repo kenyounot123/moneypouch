@@ -45,6 +45,10 @@ module SimplefinHelper
     [ answer, duplicate.typed.name, short_date(duplicate.typed.occurred_on), money_flow(duplicate.typed.amount_in_cents) ].join(", ")
   end
 
+  def replacement_choice_label(bank_account)
+    [ bank_account.name, (money(bank_account.balance_in_cents) if bank_account.balance_in_cents) ].compact.join(" · ")
+  end
+
   def rule_just_made?(rule)
     rule.updated_at > 1.minute.ago
   end

@@ -5,14 +5,33 @@ module BankAccount::Relinkable
     scope :reported, -> { where(missing_since: nil) }
     scope :missing, -> { synced.where.not(missing_since: nil) }
     scope :undecided, -> { pending.or(missing) }
+
+    has_many :former_ids, class_name: "BankAccount::FormerId", dependent: :delete_all
   end
 
   class_methods do
     def note_report(simplefin_accounts)
       ids = simplefin_accounts.map(&:id)
 
-      where(external_id: ids).update_all(reported_at: Time.current, missing_since: nil)
-      reported.where.not(external_id: ids).update_all(missing_since: Time.current)
+      if ids.any?
+        where(external_id: ids).update_all(reported_at: Time.current, missing_since: nil)
+        reported.where.not(external_id: ids).update_all(missing_since: Time.current)
+      end
+    end
+
+    def without_outdated(simplefin_accounts)
+      outdated = joins(:former_ids).where(external_id: simplefin_accounts.map(&:id)).pluck("bank_account_former_ids.external_id")
+      simplefin_accounts.reject { |simplefin_account| simplefin_account.id.in?(outdated) }
+    end
+
+    def sent_as(external_id)
+      former = joins(:former_ids).find_by(bank_account_former_ids: { external_id: })
+
+      if former
+        former.tap { |bank_account| bank_account.relink_back(external_id) }
+      else
+        find_or_initialize_by(external_id:)
+      end
     end
   end
 
@@ -30,13 +49,29 @@ module BankAccount::Relinkable
     end
   end
 
+  def replacement_choices
+    if missing?
+      simplefin_access.bank_accounts.pending.reported.where(institution:).order(:id)
+    else
+      BankAccount.none
+    end
+  end
+
+  def replacement_for(id)
+    if id.present?
+      replacement_choices.find_by(id:)
+    else
+      replacement
+    end
+  end
+
   def replacing?
     simplefin_access.replacements.include?(self)
   end
 
-  def carry_on_with_replacement
+  def carry_on_with_replacement(replacement_id = nil)
     with_lock do
-      replacement&.hand_over_to(self)
+      replacement_for(replacement_id)&.hand_over_to(self)
     end
 
     simplefin_access.sync_later
@@ -45,7 +80,17 @@ module BankAccount::Relinkable
   def hand_over_to(bank_account)
     bank_account.take_over(bank_transactions)
     reload.destroy!
-    bank_account.update!(external_id:, balance_in_cents:, error_message:, reported_at:, missing_since: nil)
+    bank_account.relink(external_id, balance_in_cents:, error_message:, reported_at:, missing_since: nil)
+  end
+
+  def relink(external_id, **attributes)
+    former_ids.find_or_initialize_by(external_id:).update!(external_id: self.external_id)
+    update!(external_id:, **attributes)
+  end
+
+  def relink_back(external_id)
+    bank_transactions.flip_doubt
+    relink(external_id)
   end
 
   def take_over(others)

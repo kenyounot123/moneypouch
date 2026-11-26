@@ -34,6 +34,10 @@ class BankTransaction < ApplicationRecord
     update_all(id_in_doubt: false)
   end
 
+  def self.flip_doubt
+    update_all("id_in_doubt = NOT id_in_doubt")
+  end
+
   def self.pair_up(bank_transactions, others)
     unpaired = bank_transactions.sort_by(&:id)
     waiting = others.to_a

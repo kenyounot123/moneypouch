@@ -49,11 +49,12 @@ class Simplefin::Access < ApplicationRecord
     syncs.running.take
   end
 
-  def update_account(simplefin_account)
-    bank_accounts.refresh(simplefin_account)
-  end
+  def update_accounts(simplefin_accounts)
+    bank_accounts.without_outdated(simplefin_accounts).each do |simplefin_account|
+      bank_account = bank_accounts.refresh(simplefin_account)
+      yield bank_account, simplefin_account if block_given?
+    end
 
-  def note_report(simplefin_accounts)
     bank_accounts.note_report(simplefin_accounts)
   end
 
@@ -121,10 +122,7 @@ class Simplefin::Access < ApplicationRecord
     def list_accounts
       simplefin_accounts = client.accounts(balances_only: true)
 
-      transaction do
-        simplefin_accounts.each { |simplefin_account| update_account(simplefin_account) }
-        note_report(simplefin_accounts)
-      end
+      transaction { update_accounts(simplefin_accounts) }
     rescue Simplefin::Unavailable, Simplefin::PaymentRequired => error
       Rails.logger.warn "SimpleFIN access #{id} could not list accounts: #{error.class}"
     end

@@ -1,6 +1,7 @@
 <% show_error = bank_account.error_message && !dimmed %>
 <% show_missing = bank_account.missing? && !dimmed %>
 <% replacement = bank_account.replacement if show_missing %>
+<% choices = bank_account.replacement_choices.to_a if show_missing && !replacement %>
 <li id="<%= dom_id bank_account %>" class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-secondary py-3">
   <div class="flex min-w-0 grow basis-[200px] flex-col gap-0.5">
     <% if bank_account.pending? %>
@@ -16,6 +17,8 @@
         <p class="text-sm text-danger">SimpleFIN stopped sending this account.</p>
         <% if replacement %>
           <p class="text-sm text-tertiary">It now sends another account with this name. Is it the same one?</p>
+        <% elsif choices.any? %>
+          <p class="text-sm text-tertiary">It may now be one of the new accounts from this bank. Pick the same one.</p>
         <% end %>
       <% elsif show_error %>
         <p class="text-sm text-danger"><%= bank_account.error_message %></p>
@@ -30,11 +33,16 @@
       <%= button_to "Sync it", bank_account_path(bank_account), method: :patch, params: { bank_account: { status: "synced" } }, class: "outline-button" %>
     </div>
   <% elsif show_missing %>
-    <div class="ml-auto flex shrink-0 items-center gap-1">
+    <div class="ml-auto flex max-w-full flex-wrap items-center justify-end gap-1">
       <%= button_to "Stop syncing", bank_account_path(bank_account), method: :patch, params: { bank_account: { status: "skipped" } },
         class: "cursor-pointer rounded-sm px-2.5 py-1.5 text-sm font-medium text-secondary hover:bg-level-3 hover:text-primary" %>
       <% if replacement %>
         <%= button_to "Same account", bank_account_replacement_path(bank_account), class: "outline-button" %>
+      <% elsif choices.any? %>
+        <%= form_with url: bank_account_replacement_path(bank_account), class: "flex max-w-full items-center gap-1" do |form| %>
+          <%= form.select :replacement_id, choices.map { |choice| [ replacement_choice_label(choice), choice.id ] }, {}, class: "min-w-0 truncate rounded-sm border border-secondary bg-transparent px-2 py-1.5 text-sm text-primary" %>
+          <%= form.submit "Same account", class: "outline-button" %>
+        <% end %>
       <% else %>
         <%= link_to_simplefin "Fix on SimpleFIN" %>
       <% end %>

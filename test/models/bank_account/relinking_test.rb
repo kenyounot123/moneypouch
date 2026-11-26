@@ -204,6 +204,159 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     assert_nil @savings.replacement
   end
 
+  test "an empty report marks nothing missing" do
+    sync_again(@access, report: simplefin_report.merge("accounts" => []))
+
+    assert_empty @access.bank_accounts.missing
+  end
+
+  test "a report with the old id that arrives after carrying on adds nothing" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    travel 1.hour
+
+    assert_no_difference -> { BankAccount.count } do
+      assert_no_difference -> { BankTransaction.count } do
+        sync_again(@access, report: simplefin_report)
+      end
+    end
+    assert_not @savings.reload.missing?
+  end
+
+  test "a report that also sends the old id keeps what the new id sends" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    travel 1.hour
+    report = relinked_report
+    report["accounts"] << demo_account(simplefin_report, "Demo Savings").merge("name" => "Old Savings", "balance" => "1.00")
+    demo_account(report, "Demo Savings")["transactions"] << bought("old-only", "-9.99", Time.utc(2026, 10, 6, 18))
+
+    assert_no_difference -> { BankTransaction.count } do
+      sync_again(@access, report:)
+    end
+    assert_equal [ "Relinked Demo Savings", "SimpleFIN Savings", 11468551 ], [ @savings.reload.external_id, @savings.name, @savings.balance_in_cents ]
+    assert_not @savings.missing?
+  end
+
+  test "a report that sends only the old id brings in its new purchases" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    travel 1.hour
+    report = simplefin_report
+    demo_account(report, "Demo Savings")["transactions"] << bought("after-revert", "-9.99", Time.utc(2026, 10, 6, 18))
+
+    assert_difference -> { Transaction.count } => 1, -> { @savings.bank_transactions.count } => 1 do
+      sync_again(@access, report:)
+    end
+    assert_not @savings.reload.missing?
+  end
+
+  test "a report with the old id after Same account keeps one row per transaction when the new account lacked an old purchase" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings")["transactions"] << bought("old-only", "-9.99", Time.utc(2026, 10, 5, 18))
+    sync_again(@access, report:)
+    travel 1.hour
+    sync_it(synced_replacement, relinked_report)
+    carry_on(relinked_report)
+    travel 1.hour
+
+    assert_no_difference -> { BankTransaction.count } do
+      sync_again(@access, report:)
+    end
+    assert_equal demo_account(report, "Demo Savings")["transactions"].pluck("id").sort, @savings.reload.bank_transactions.where(occurred_on: @access.history_start.to_date..).pluck(:external_id).sort
+  end
+
+  test "a purchase sent under the old id and then under the new one arrives once" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    travel 1.hour
+    purchase = bought("late", "-9.99", Time.utc(2026, 10, 6, 18))
+    stale = simplefin_report
+    demo_account(stale, "Demo Savings")["transactions"] << purchase
+    fresh = relinked_report
+    demo_account(fresh, "Relinked Demo Savings")["transactions"] << purchase.merge("id" => "relinked-late")
+
+    assert_difference -> { Transaction.count } => 1 do
+      sync_again(@access, report: stale)
+      travel 1.hour
+      sync_again(@access, report: fresh)
+      travel 1.hour
+      sync_again(@access, report: stale)
+    end
+    assert_equal 1, @savings.bank_transactions.where(amount_in_cents: -999).count
+    assert_not @savings.reload.missing?
+  end
+
+  test "two people with the same SimpleFIN ids can each carry on" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    other_access = activate(connect_simplefin(users(:two)))
+    other_savings = other_access.bank_accounts.find_by!(external_id: "Demo Savings")
+    travel 1.hour
+    sync_again(other_access, report: relinked_report)
+
+    stub_simplefin_accounts(body: relinked_report.to_json)
+    perform_enqueued_jobs { BankAccount.find(other_savings.id).carry_on_with_replacement }
+    assert_equal "Relinked Demo Savings", other_savings.reload.external_id
+
+    travel 1.hour
+    report = simplefin_report
+    demo_account(report, "Demo Savings")["transactions"] << bought("theirs", "-9.99", Time.utc(2026, 10, 6, 18))
+    sync_again(other_access, report:)
+    assert other_savings.bank_transactions.exists?(amount_in_cents: -999)
+    assert_not @savings.bank_transactions.exists?(amount_in_cents: -999)
+  end
+
+  test "an account with no known last report offers no replacement" do
+    sync_again(@access, report: relinked_report)
+    @savings.reload.update_columns(reported_at: nil)
+
+    assert_nil @savings.replacement
+  end
+
+  test "a renamed account can be matched with a new account from the same bank" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings").merge!("id" => "Renamed Savings", "name" => "Premier Savings")
+    sync_again(@access, report:)
+
+    renamed = @access.bank_accounts.find_by!(external_id: "Renamed Savings")
+    assert_nil @savings.reload.replacement
+    assert_equal [ renamed ], @savings.replacement_choices.to_a
+
+    perform_enqueued_jobs { BankAccount.find(@savings.id).carry_on_with_replacement(renamed.id) }
+
+    assert_equal "Renamed Savings", @savings.reload.external_id
+    assert_nil BankAccount.find_by(id: renamed.id)
+  end
+
+  test "carrying on with an account that is not a choice changes nothing" do
+    sync_again(@access, report: relinked_report)
+    other_bank = @access.bank_accounts.create!(external_id: "Elsewhere", name: "Elsewhere", institution: "Other Bank", currency: "USD")
+
+    assert_no_difference -> { BankAccount.count } do
+      @savings.reload.carry_on_with_replacement(other_bank.id)
+    end
+    assert @savings.reload.missing?
+  end
+
+  test "two missing accounts with one name each choose their own replacement" do
+    report = simplefin_report
+    report["accounts"] << demo_account(report, "Demo Savings").merge("id" => "Twin Savings")
+    sync_again(@access, report:)
+    twin = @access.bank_accounts.find_by!(external_id: "Twin Savings")
+    twin.start_syncing(from: Date.new(2026, 7, 9))
+    sync_again(@access, report:)
+    travel 1.hour
+    sync_again(@access, report: relinked_report)
+    replacement = @access.bank_accounts.find_by!(external_id: "Relinked Demo Savings")
+
+    assert_equal [ replacement ], twin.reload.replacement_choices.to_a
+    perform_enqueued_jobs { BankAccount.find(twin.id).carry_on_with_replacement(replacement.id) }
+
+    assert_equal "Relinked Demo Savings", twin.reload.external_id
+    assert_empty @savings.reload.replacement_choices
+  end
+
   test "a second relink before the first is confirmed offers the account SimpleFIN sends now" do
     sync_again(@access, report: relinked_report)
     travel 1.hour

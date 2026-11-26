@@ -34,6 +34,45 @@ class BankAccounts::ReplacementsControllerTest < ActionDispatch::IntegrationTest
     assert_select "##{dom_id(@savings)}", text: /5 transactions/
   end
 
+  test "a renamed account offers a choice among the new accounts from its bank" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings").merge!("id" => "Renamed Savings", "name" => "Premier Savings")
+    sync_again(@access, report:)
+    renamed = @access.bank_accounts.find_by!(external_id: "Renamed Savings")
+
+    get settings_url
+    assert_select "##{dom_id(@savings)} select option", text: "Premier Savings · $114,685.51"
+    assert_select "##{dom_id(@savings)} input[type=submit][value='Same account']"
+
+    assert_no_difference -> { Transaction.count } do
+      perform_enqueued_jobs { post bank_account_replacement_url(@savings), params: { replacement_id: renamed.id } }
+    end
+
+    assert_redirected_to settings_url
+    assert_equal "Renamed Savings", @savings.reload.external_id
+  end
+
+  test "choices with one name show their balances" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings").merge!("id" => "Renamed Savings", "name" => "Premier Savings", "balance" => "100.00")
+    report["accounts"] << demo_account(report, "Renamed Savings").merge("id" => "Second Premier", "balance" => "250.00")
+    sync_again(@access, report:)
+
+    get settings_url
+
+    assert_equal [ "Premier Savings · $100.00", "Premier Savings · $250.00" ], css_select("##{dom_id(@savings)} select option").map(&:text)
+  end
+
+  test "a choice from another bank is not found" do
+    sync_again(@access, report: relinked_report)
+    elsewhere = @access.bank_accounts.create!(external_id: "Elsewhere", name: "Elsewhere", institution: "Other Bank", currency: "USD")
+
+    post bank_account_replacement_url(@savings), params: { replacement_id: elsewhere.id }
+
+    assert_response :not_found
+    assert @savings.reload.missing?
+  end
+
   test "Stop syncing puts the missing account away and offers the other one as new" do
     sync_again(@access, report: relinked_report)
 
