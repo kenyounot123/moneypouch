@@ -101,9 +101,9 @@ module BankAccount::Relinkable
     current = simplefin_accounts.find { |simplefin_account| simplefin_account.id == external_id }
     ids = former_ids.pluck(:external_id)
     formers = simplefin_accounts.select { |simplefin_account| simplefin_account.id.in?(ids) }
-    newest = formers.max_by(&:balance_date)
+    newest = formers.max_by { |former| dated(former.balance_date) }
 
-    if newest.balance_date > (current&.balance_date || balance_date)
+    if dated(newest.balance_date) > dated(current ? current.balance_date : balance_date)
       formers - [ newest ] + [ current ].compact
     else
       formers
@@ -123,6 +123,10 @@ module BankAccount::Relinkable
   end
 
   private
+    def dated(balance_date)
+      balance_date || Time.at(0)
+    end
+
     def copies_by_id(others)
       mine = bank_transactions.where(external_id: others.select(:external_id)).index_by(&:external_id)
 

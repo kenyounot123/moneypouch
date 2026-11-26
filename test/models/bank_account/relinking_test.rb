@@ -849,6 +849,70 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     assert_transfers_point_at_each_other
   end
 
+  test "a report where one unrelated account lacks a balance date still brings in other accounts' purchases" do
+    report = simplefin_report
+    demo_account(report, "Demo Empty Account")["balance-date"] = nil
+    demo_account(report, "Demo Checking")["transactions"] << bought("checking-new", "-4.44", Time.current)
+
+    sync_again(@access, report:)
+
+    assert @access.bank_accounts.find_by!(external_id: "Demo Checking").bank_transactions.exists?(amount_in_cents: -444)
+  end
+
+  test "an old id without a balance date never takes the account back" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+
+    [ ->(entry) { entry["balance-date"] = nil }, ->(entry) { entry.delete("balance-date") } ].each do |undate|
+      report = relinked_report
+      old = demo_account(simplefin_report, "Demo Savings")
+      undate.call(old)
+      old["transactions"] << bought("old-late", "-9.99", Time.current)
+      report["accounts"] << old
+
+      sync_again(@access, report:)
+
+      assert_equal "Relinked Demo Savings", @savings.reload.external_id
+      assert_not @savings.bank_transactions.exists?(amount_in_cents: -999)
+    end
+  end
+
+  test "a report with only an undated old id leaves the stored balance date alone" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    stale = simplefin_report
+    demo_account(stale, "Demo Savings")["balance-date"] = nil
+
+    assert_no_changes -> { @savings.reload.balance_date } do
+      sync_again(@access, report: stale)
+    end
+    assert_equal "Relinked Demo Savings", @savings.external_id
+  end
+
+  test "a report without a balance date for the new id loses to a dated old id" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    undated = relinked_report
+    demo_account(undated, "Relinked Demo Savings")["balance-date"] = nil
+    old = demo_account(simplefin_report, "Demo Savings")
+    old["balance-date"] += 1.day.to_i
+    undated["accounts"] << old
+
+    sync_again(@access, report: undated)
+
+    assert_equal "Demo Savings", @savings.reload.external_id
+  end
+
+  test "a stored account without a balance date loses to the next dated old id report" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    @savings.reload.update!(balance_date: nil)
+
+    sync_again(@access, report: sent_later(simplefin_report))
+
+    assert_equal "Demo Savings", @savings.reload.external_id
+  end
+
   private
     def with_purchases(old:, new:, relinked: relinked_report)
       report = simplefin_report
