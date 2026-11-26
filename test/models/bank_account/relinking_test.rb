@@ -586,6 +586,41 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     assert_not @savings.transactions.kept.find_by!(amount_in_cents: -550).counted?
   end
 
+  test "a purchase posted months after the relink is added beside an old row from before the report's window" do
+    relinked = with_old_row_left_in_doubt(bought("bike-jul10", "-25.00", Time.utc(2026, 7, 10, 18)))
+    travel_to Time.utc(2026, 10, 28, 19)
+    demo_account(relinked, "Relinked Demo Savings")["transactions"] << bought("late-bike", "-25.00", Time.utc(2026, 7, 11, 18), posted: Time.utc(2026, 10, 28, 12))
+
+    sync_again(@access, report: relinked)
+
+    assert_equal %w[ bike-jul10 late-bike ], @savings.bank_transactions.where(amount_in_cents: -2500).pluck(:external_id).sort
+  end
+
+  test "a purchase posted weeks after it was made is added beside an old row from the day before" do
+    relinked = with_old_row_left_in_doubt(bought("bike-oct1", "-25.00", Time.utc(2026, 10, 1, 18)))
+    travel_to Time.utc(2026, 10, 28, 19)
+    demo_account(relinked, "Relinked Demo Savings")["transactions"] << bought("late-bike", "-25.00", Time.utc(2026, 10, 2, 18), posted: Time.utc(2026, 10, 28, 12))
+
+    sync_again(@access, report: relinked)
+
+    assert_equal %w[ bike-oct1 late-bike ], @savings.bank_transactions.where(amount_in_cents: -2500).pluck(:external_id).sort
+  end
+
+  test "the copy you kept keeps its category when the old copy's transfer partner was deleted too" do
+    groceries = users(:one).categories.create!(name: "Groceries")
+    old = @savings.bank_transactions.find_by!(amount_in_cents: -13550)
+    partner = checking.bank_transactions.find_by!(amount_in_cents: -17667)
+    pair_by_hand(old, partner)
+    synced_replacement.transactions.find_by!(amount_in_cents: -13550).categorize(Transaction::Categorization.new(category: groceries))
+    partner.linked_transaction.discard
+    old.linked_transaction.discard
+
+    carry_on(relinked_report)
+
+    assert_equal groceries, @savings.transactions.kept.find_by!(amount_in_cents: -13550).category
+    assert_transfers_point_at_each_other
+  end
+
   private
     def with_purchases(old:, new:, relinked: relinked_report)
       report = simplefin_report
@@ -595,6 +630,18 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
       relinked.tap do
         demo_account(relinked, "Relinked Demo Savings")["transactions"] << new
         sync_again(@access, report: relinked)
+      end
+    end
+
+    def with_old_row_left_in_doubt(row)
+      report = simplefin_report
+      demo_account(report, "Demo Savings")["transactions"] << row
+      sync_again(@access, report:)
+      BankTransaction.update_all(posted_at: nil, transacted_at: nil)
+      travel_to Time.utc(2026, 10, 16, 19)
+      relinked_report(simplefin_report).tap do |relinked|
+        sync_again(@access, report: relinked)
+        carry_on(relinked)
       end
     end
 
