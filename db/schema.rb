@@ -26,7 +26,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_150000) do
     t.datetime "updated_at", null: false
     t.datetime "reported_at"
     t.datetime "missing_since"
-    t.datetime "relinked_at"
     t.index ["simplefin_access_id", "external_id"], name: "index_bank_accounts_on_simplefin_access_id_and_external_id", unique: true
     t.index ["user_id"], name: "index_bank_accounts_on_user_id"
   end
@@ -46,6 +45,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_150000) do
     t.string "name_key", null: false
     t.integer "transfer_partner_id"
     t.datetime "posted_at"
+    t.datetime "transacted_at"
+    t.boolean "id_in_doubt", default: false, null: false
     t.index ["bank_account_id", "external_id"], name: "index_bank_transactions_on_bank_account_id_and_external_id", unique: true
     t.index ["bank_account_id", "name_key"], name: "index_bank_transactions_on_bank_account_id_and_name_key"
     t.index ["simplefin_sync_id"], name: "index_bank_transactions_on_simplefin_sync_id"
