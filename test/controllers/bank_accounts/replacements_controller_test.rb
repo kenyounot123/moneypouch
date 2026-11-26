@@ -17,7 +17,7 @@ class BankAccounts::ReplacementsControllerTest < ActionDispatch::IntegrationTest
     assert_select "##{dom_id(@savings)}", text: /stopped sending this account/
     assert_select "##{dom_id(@savings)} button", text: "Same account"
     assert_select "##{dom_id(@savings)} button", text: "Stop syncing"
-    assert_select "button", text: "Sync it", count: 0
+    assert_select "section > ul button", text: "Sync it", count: 0
   end
 
   test "Same account carries the old account on" do
@@ -99,7 +99,8 @@ class BankAccounts::ReplacementsControllerTest < ActionDispatch::IntegrationTest
     assert @savings.reload.skipped?
     follow_redirect!
     assert_select "##{dom_id(@savings)}", count: 0
-    assert_select "button", text: "Sync it", count: 1
+    assert_select "section > ul button", text: "Sync it", count: 1
+    assert_select "details#not_syncing li", text: /SimpleFIN Savings/
   end
 
   test "a missing account with no replacement offers SimpleFIN and Stop syncing" do

@@ -72,7 +72,7 @@ class Simplefin::AccessesControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "Sync now"
     assert_select "li", text: /SimpleFIN Savings\s+SimpleFIN Bridge\s+5 transactions/
     assert_select "li", text: /SimpleFIN Checking\s+SimpleFIN Bridge\s+5 transactions/
-    assert_select "li", text: /SimpleFIN Empty Account/, count: 0
+    assert_select "section > ul > li", text: /SimpleFIN Empty Account/, count: 0
     assert_select "p", text: "New banks you add on SimpleFIN show up here."
   end
 
@@ -147,7 +147,7 @@ class Simplefin::AccessesControllerTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_select "##{dom_id(savings)} button", text: "Same account"
-    assert_select "button", text: "Sync it", count: 0
+    assert_select "section > ul button", text: "Sync it", count: 0
   end
 
   test "after a reconnect the relinked account waits for Same account even when its id is sent" do
@@ -167,7 +167,7 @@ class Simplefin::AccessesControllerTest < ActionDispatch::IntegrationTest
 
     patch bank_account_url(savings), params: { bank_account: { status: "skipped" } }
     follow_redirect!
-    assert_select "button", text: "Sync it", count: 1
+    assert_select "section > ul button", text: "Sync it", count: 1
   end
 
   test "someone without a access cannot start, sync, or disconnect" do

@@ -1,0 +1,19 @@
+<% if bank_accounts.any? %>
+  <details id="not_syncing" class="group pt-3">
+    <summary class="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-secondary hover:text-primary">
+      <%= icon_tag "arrow-right", class: "size-3.5 group-open:rotate-90" %>
+      Not syncing (<%= bank_accounts.size %>)
+    </summary>
+    <ul class="flex flex-col">
+      <% bank_accounts.each do |bank_account| %>
+        <li id="<%= dom_id bank_account, :stopped %>" class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-secondary py-3">
+          <div class="flex min-w-0 grow basis-[200px] flex-col gap-0.5">
+            <p class="truncate text-md font-medium text-tertiary"><%= bank_account.name %></p>
+            <p class="truncate text-sm text-tertiary"><%= bank_account.institution %></p>
+          </div>
+          <%= button_to "Sync it", bank_account_path(bank_account), method: :patch, params: { bank_account: { status: "synced" } }, class: "outline-button ml-auto shrink-0" %>
+        </li>
+      <% end %>
+    </ul>
+  </details>
+<% end %>

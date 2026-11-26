@@ -43,6 +43,10 @@
     <% end %>
   </ul>
 
+  <% unless access.revoked? %>
+    <%= render "simplefin/accesses/stopped", bank_accounts: access.stopped_accounts %>
+  <% end %>
+
   <div class="flex items-center justify-between gap-6 pt-3">
     <p class="text-sm text-tertiary"><%= access.revoked? ? "Synced transactions stay if you disconnect." : "New banks you add on SimpleFIN show up here." %></p>
     <%= button_to "Disconnect", simplefin_access_path, method: :delete, class: "header-button" %>

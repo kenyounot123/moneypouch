@@ -7,6 +7,8 @@ class BankAccount < ApplicationRecord
 
   enum :status, %w[ pending synced skipped ].index_by(&:itself)
 
+  scope :not_syncing, -> { pending.or(skipped) }
+
   def self.refresh(simplefin_account)
     sent_as(simplefin_account.id).tap do |bank_account|
       bank_account.update!(

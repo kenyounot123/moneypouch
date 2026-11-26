@@ -12,6 +12,7 @@ class WelcomeController < ApplicationController
     @get_started = Current.user.get_started
     @review = Current.user.simplefin_access&.review
     @review_rows = review_rows
+    @missing_accounts = Current.user.simplefin_access&.missing_accounts || []
     @syncing = Current.user.simplefin_access&.syncing?
   end
 
