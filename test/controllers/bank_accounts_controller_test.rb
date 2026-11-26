@@ -73,6 +73,23 @@ class BankAccountsControllerTest < ActionDispatch::IntegrationTest
     assert_equal known, savings.reload.bank_transactions.count
   end
 
+  test "starting a stopped account again keeps one row per purchase when the bank renumbered them meanwhile" do
+    savings = users(:one).bank_accounts.find_by!(external_id: "Demo Savings")
+    known = savings.bank_transactions.count
+    savings.skip
+    report = simplefin_report
+    demo_account(report, "Demo Savings")["transactions"].each { |transaction| transaction["id"] = "renumbered-#{transaction["id"]}" }
+    demo_account(report, "Demo Savings")["transactions"] << { "id" => "while-stopped", "posted" => 2.days.ago.to_i, "amount" => "-12.00", "description" => "Bike shop" }
+    stub_simplefin_accounts(body: report.to_json)
+
+    assert_difference -> { Transaction.count } => 1 do
+      perform_enqueued_jobs { patch bank_account_url(savings), params: { bank_account: { status: "synced" } } }
+    end
+
+    assert_equal known + 1, savings.reload.bank_transactions.count
+    assert savings.bank_transactions.pluck(:external_id).all? { |id| id.start_with?("renumbered-") || id == "while-stopped" }
+  end
+
   test "an account already decided cannot be flipped from here" do
     savings = users(:one).bank_accounts.find_by!(external_id: "Demo Savings")
 

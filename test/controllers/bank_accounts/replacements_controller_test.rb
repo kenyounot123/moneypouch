@@ -103,6 +103,76 @@ class BankAccounts::ReplacementsControllerTest < ActionDispatch::IntegrationTest
     assert_select "details#not_syncing li", text: /SimpleFIN Savings/
   end
 
+  test "a skipped account that replaces the missing one waits for Same account instead of Sync it" do
+    report = simplefin_report
+    report["accounts"] << demo_account(report, "Demo Savings").merge("id" => "Twin Savings", "transactions" => [])
+    sync_again(@access, report:)
+    twin = @access.bank_accounts.find_by!(external_id: "Twin Savings")
+    twin.start_syncing(from: Date.current)
+    sync_again(@access, report:)
+    travel 1.hour
+    sync_again(@access, report: relinked_report)
+    replacement = @access.bank_accounts.find_by!(external_id: "Relinked Demo Savings")
+    patch bank_account_url(replacement), params: { bank_account: { status: "skipped" } }
+    patch bank_account_url(twin), params: { bank_account: { status: "skipped" } }
+
+    get settings_url
+    assert_select "##{dom_id(@savings)} button", text: "Same account"
+    assert_select "##{dom_id(replacement, :stopped)}", count: 0
+
+    assert_no_difference -> { @access.bank_accounts.synced.count } do
+      perform_enqueued_jobs { patch bank_account_url(replacement), params: { bank_account: { status: "synced" } } }
+    end
+    assert replacement.reload.skipped?
+
+    assert_no_difference -> { Transaction.count } do
+      perform_enqueued_jobs { post bank_account_replacement_url(@savings) }
+    end
+    assert_equal "Relinked Demo Savings", @savings.reload.external_id
+    assert_not BankAccount.exists?(replacement.id)
+  end
+
+  test "a skipped account from the missing one's bank is still offered as the same account" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings").merge!("id" => "Renamed Savings", "name" => "Premier Savings")
+    sync_again(@access, report:)
+    renamed = @access.bank_accounts.find_by!(external_id: "Renamed Savings")
+    patch bank_account_url(renamed), params: { bank_account: { status: "skipped" } }
+
+    get settings_url
+    assert_select "##{dom_id(@savings)} select option", text: "Premier Savings · $114,685.51"
+
+    assert_no_difference -> { Transaction.count } do
+      perform_enqueued_jobs { post bank_account_replacement_url(@savings), params: { replacement_id: renamed.id } }
+    end
+    assert_equal "Renamed Savings", @savings.reload.external_id
+  end
+
+  test "a stopped account that SimpleFIN sends again under its old id stays one account" do
+    sync_again(@access, report: relinked_report)
+    perform_enqueued_jobs { post bank_account_replacement_url(@savings) }
+    travel 2.days
+    without_savings = simplefin_report
+    without_savings["accounts"].delete(demo_account(without_savings, "Demo Savings"))
+    sync_again(@access, report: without_savings)
+    assert @savings.reload.missing?
+    patch bank_account_url(@savings), params: { bank_account: { status: "skipped" } }
+    travel 1.hour
+
+    assert_no_difference -> { @access.bank_accounts.count } do
+      sync_again(@access, report: simplefin_report)
+    end
+
+    old_id_again = simplefin_report
+    demo_account(old_id_again, "Demo Savings")["balance-date"] += 3.days.to_i
+    stub_simplefin_accounts(body: old_id_again.to_json)
+    assert_no_difference [ "@access.bank_accounts.count", "Transaction.count", "BankTransaction.count" ] do
+      perform_enqueued_jobs { patch bank_account_url(@savings), params: { bank_account: { status: "synced" } } }
+    end
+    assert_equal [ "synced", "Demo Savings" ], [ @savings.reload.status, @savings.external_id ]
+    assert_equal demo_account(simplefin_report, "Demo Savings")["transactions"].pluck("id").sort, @savings.bank_transactions.pluck(:external_id).sort
+  end
+
   test "a missing account with no replacement offers SimpleFIN and Stop syncing" do
     report = simplefin_report
     report["accounts"].delete(demo_account(report, "Demo Savings"))

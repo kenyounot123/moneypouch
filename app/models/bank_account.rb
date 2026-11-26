@@ -39,6 +39,13 @@ class BankAccount < ApplicationRecord
     simplefin_access.sync_later
   end
 
+  def resume
+    unless replacing?
+      bank_transactions.doubt_ids
+      sync_recent_history
+    end
+  end
+
   def short_history?
     starts_on > simplefin_access.longest_history_start
   end

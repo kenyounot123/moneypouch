@@ -111,7 +111,7 @@ class Simplefin::Access < ApplicationRecord
   end
 
   def stopped_accounts
-    bank_accounts.skipped.order(:id)
+    pickable_accounts.skipped
   end
 
   def missing_accounts

@@ -55,7 +55,8 @@ module BankAccount::Relinkable
 
   def replacement_choices
     if missing?
-      simplefin_access.bank_accounts.pending.reported.where(institution:).order(:id)
+      from_bank = simplefin_access.bank_accounts.reported.where(institution:)
+      from_bank.pending.or(from_bank.skipped.where("bank_accounts.created_at > ?", reported_at)).order(:id)
     else
       BankAccount.none
     end
@@ -93,7 +94,7 @@ module BankAccount::Relinkable
   end
 
   def relink_back(external_id)
-    bank_transactions.flip_doubt
+    bank_transactions.flip_doubt if bank_transactions.where(id_in_doubt: false).exists?
     relink(external_id)
   end
 
