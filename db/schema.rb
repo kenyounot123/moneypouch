@@ -36,6 +36,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_150000) do
     t.datetime "updated_at", null: false
     t.datetime "reported_at"
     t.datetime "missing_since"
+    t.datetime "balance_date"
     t.index ["simplefin_access_id", "external_id"], name: "index_bank_accounts_on_simplefin_access_id_and_external_id", unique: true
     t.index ["user_id"], name: "index_bank_accounts_on_user_id"
   end

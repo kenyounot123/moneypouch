@@ -50,7 +50,7 @@ class Simplefin::Access < ApplicationRecord
   end
 
   def update_accounts(simplefin_accounts)
-    bank_accounts.without_outdated(simplefin_accounts).each do |simplefin_account|
+    bank_accounts.freshest(simplefin_accounts).each do |simplefin_account|
       bank_account = bank_accounts.refresh(simplefin_account)
       yield bank_account, simplefin_account if block_given?
     end

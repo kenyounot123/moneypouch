@@ -15,13 +15,17 @@ module BankAccount::Relinkable
 
       if ids.any?
         where(external_id: ids).update_all(reported_at: Time.current, missing_since: nil)
-        reported.where.not(external_id: ids).update_all(missing_since: Time.current)
+        reported.where.not(external_id: ids).where.not(id: sent_as_former(ids)).update_all(missing_since: Time.current)
       end
     end
 
-    def without_outdated(simplefin_accounts)
-      outdated = joins(:former_ids).where(external_id: simplefin_accounts.map(&:id)).pluck("bank_account_former_ids.external_id")
-      simplefin_accounts.reject { |simplefin_account| simplefin_account.id.in?(outdated) }
+    def freshest(simplefin_accounts)
+      outdated = sent_as_former(simplefin_accounts.map(&:id)).distinct.flat_map { |bank_account| bank_account.outdated_in(simplefin_accounts) }
+      simplefin_accounts - outdated
+    end
+
+    def sent_as_former(ids)
+      joins(:former_ids).where(bank_account_former_ids: { external_id: ids })
     end
 
     def sent_as(external_id)
@@ -80,7 +84,7 @@ module BankAccount::Relinkable
   def hand_over_to(bank_account)
     bank_account.take_over(bank_transactions)
     reload.destroy!
-    bank_account.relink(external_id, balance_in_cents:, error_message:, reported_at:, missing_since: nil)
+    bank_account.relink(external_id, balance_in_cents:, balance_date:, error_message:, reported_at:, missing_since: nil)
   end
 
   def relink(external_id, **attributes)
@@ -91,6 +95,19 @@ module BankAccount::Relinkable
   def relink_back(external_id)
     bank_transactions.flip_doubt
     relink(external_id)
+  end
+
+  def outdated_in(simplefin_accounts)
+    current = simplefin_accounts.find { |simplefin_account| simplefin_account.id == external_id }
+    ids = former_ids.pluck(:external_id)
+    formers = simplefin_accounts.select { |simplefin_account| simplefin_account.id.in?(ids) }
+    newest = formers.max_by(&:balance_date)
+
+    if newest.balance_date > (current&.balance_date || balance_date)
+      formers - [ newest ] + [ current ].compact
+    else
+      formers
+    end
   end
 
   def take_over(others)

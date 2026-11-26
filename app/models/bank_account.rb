@@ -14,6 +14,7 @@ class BankAccount < ApplicationRecord
         institution: simplefin_account.institution,
         currency: simplefin_account.currency,
         balance_in_cents: simplefin_account.balance_in_cents,
+        balance_date: simplefin_account.balance_date,
         error_message: simplefin_account.error_message
       )
     end

@@ -8,6 +8,11 @@ class CreateBankAccountFormerIds < ActiveRecord::Migration[8.1]
       t.index %i[ simplefin_access_id external_id ], unique: true
     end
 
-    up_only { execute "UPDATE bank_accounts SET reported_at = NULL WHERE missing_since IS NOT NULL AND reported_at = updated_at" }
+    add_column :bank_accounts, :balance_date, :datetime
+
+    up_only do
+      execute "UPDATE bank_accounts SET reported_at = NULL WHERE missing_since IS NOT NULL AND reported_at = updated_at"
+      execute "UPDATE bank_accounts SET balance_date = updated_at"
+    end
   end
 end

@@ -88,6 +88,7 @@ class Simplefin::Client
           institution: institutions[account["conn_id"]],
           currency: account.fetch("currency"),
           balance_in_cents: cents(account["balance"]),
+          balance_date: Time.zone.at(account.fetch("balance-date")),
           error_message: error_message_for(account, errors),
           transactions: account.fetch("transactions", []).map { |transaction| parse_transaction(transaction) }
         )

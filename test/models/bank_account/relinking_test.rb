@@ -238,11 +238,51 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     assert_not @savings.missing?
   end
 
+  test "a stale report with only the old id after Same account keeps the new id and its purchases" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    travel 1.hour
+
+    assert_no_difference -> { BankTransaction.count } do
+      sync_again(@access, report: simplefin_report)
+    end
+    assert_equal "Relinked Demo Savings", @savings.reload.external_id
+    assert_not @savings.missing?
+
+    travel 1.hour
+    report = relinked_report
+    demo_account(report, "Relinked Demo Savings")["transactions"] << bought("after-stale", "-8.08", Time.utc(2026, 10, 6, 20))
+    report["accounts"] << demo_account(simplefin_report, "Demo Savings")
+
+    assert_difference -> { @savings.bank_transactions.count } => 1 do
+      sync_again(@access, report:)
+      travel 1.hour
+      sync_again(@access, report:)
+    end
+    assert_equal "Relinked Demo Savings", @savings.reload.external_id
+    assert_not @savings.missing?
+  end
+
+  test "a report that sends both ids takes the one with the newer balance" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    travel 1.hour
+    report = relinked_report
+    report["accounts"] << demo_account(sent_later(simplefin_report), "Demo Savings").merge("name" => "Old Savings", "balance" => "1.00")
+    demo_account(report, "Demo Savings")["transactions"] << bought("old-only", "-9.99", Time.utc(2026, 10, 6, 18))
+
+    assert_difference -> { @savings.bank_transactions.count } => 1 do
+      sync_again(@access, report:)
+    end
+    assert_equal [ "Demo Savings", "Old Savings", 100 ], [ @savings.reload.external_id, @savings.name, @savings.balance_in_cents ]
+    assert_not @savings.missing?
+  end
+
   test "a report that sends only the old id brings in its new purchases" do
     sync_again(@access, report: relinked_report)
     carry_on(relinked_report)
     travel 1.hour
-    report = simplefin_report
+    report = sent_later(simplefin_report)
     demo_account(report, "Demo Savings")["transactions"] << bought("after-revert", "-9.99", Time.utc(2026, 10, 6, 18))
 
     assert_difference -> { Transaction.count } => 1, -> { @savings.bank_transactions.count } => 1 do
@@ -259,6 +299,7 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     sync_it(synced_replacement, relinked_report)
     carry_on(relinked_report)
     travel 1.hour
+    sent_later(report)
 
     assert_no_difference -> { BankTransaction.count } do
       sync_again(@access, report:)
@@ -271,17 +312,16 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     carry_on(relinked_report)
     travel 1.hour
     purchase = bought("late", "-9.99", Time.utc(2026, 10, 6, 18))
-    stale = simplefin_report
-    demo_account(stale, "Demo Savings")["transactions"] << purchase
-    fresh = relinked_report
-    demo_account(fresh, "Relinked Demo Savings")["transactions"] << purchase.merge("id" => "relinked-late")
+    under_old = ->(later) { sent_later(simplefin_report, by: later).tap { |report| demo_account(report, "Demo Savings")["transactions"] << purchase } }
+    under_new = sent_later(relinked_report, "Relinked Demo Savings", by: 2.days)
+    demo_account(under_new, "Relinked Demo Savings")["transactions"] << purchase.merge("id" => "relinked-late")
 
     assert_difference -> { Transaction.count } => 1 do
-      sync_again(@access, report: stale)
+      sync_again(@access, report: under_old.(1.day))
       travel 1.hour
-      sync_again(@access, report: fresh)
+      sync_again(@access, report: under_new)
       travel 1.hour
-      sync_again(@access, report: stale)
+      sync_again(@access, report: under_old.(3.days))
     end
     assert_equal 1, @savings.bank_transactions.where(amount_in_cents: -999).count
     assert_not @savings.reload.missing?
@@ -300,7 +340,7 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     assert_equal "Relinked Demo Savings", other_savings.reload.external_id
 
     travel 1.hour
-    report = simplefin_report
+    report = sent_later(simplefin_report)
     demo_account(report, "Demo Savings")["transactions"] << bought("theirs", "-9.99", Time.utc(2026, 10, 6, 18))
     sync_again(other_access, report:)
     assert other_savings.bank_transactions.exists?(amount_in_cents: -999)
@@ -884,5 +924,9 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
 
     def coffee(id, time, description: "Blue Bottle", posted: time)
       bought(id, "-4.00", time, description:, posted:)
+    end
+
+    def sent_later(report, external_id = "Demo Savings", by: 1.day)
+      report.tap { demo_account(report, external_id)["balance-date"] += by.to_i }
     end
 end
