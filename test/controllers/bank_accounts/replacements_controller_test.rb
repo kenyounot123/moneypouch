@@ -76,7 +76,56 @@ class BankAccounts::ReplacementsControllerTest < ActionDispatch::IntegrationTest
 
     get settings_url
 
-    assert_equal [ "Premier Savings · $100.00", "Premier Savings · $250.00" ], css_select("##{dom_id(@savings)} select option").map(&:text)
+    assert_equal [ "Pick the same account", "Premier Savings · $100.00", "Premier Savings · $250.00" ], css_select("##{dom_id(@savings)} select option").map(&:text)
+  end
+
+  test "a skipped account never becomes the default pick for Same account" do
+    report = simplefin_report
+    savings = demo_account(report, "Demo Savings")
+    report["accounts"].delete(savings)
+    report["accounts"] << savings.merge("id" => "New Card", "name" => "Rewards Card", "transactions" => [])
+    sync_again(@access, report:)
+    card = @access.bank_accounts.find_by!(external_id: "New Card")
+    patch bank_account_url(card), params: { bank_account: { status: "skipped" } }
+    travel 1.hour
+    report["accounts"] << savings.merge("id" => "Renamed Savings", "name" => "Premier Savings")
+    sync_again(@access, report:)
+
+    get settings_url
+
+    select = css_select("##{dom_id(@savings)} select").first
+    assert select.key?("required")
+    options = css_select("##{dom_id(@savings)} select option")
+    assert_equal "", options.first["value"]
+    assert_equal "Pick the same account", options.first.text
+    assert_equal [ "Premier Savings", "Rewards Card" ], options.drop(1).map { |option| option.text.split(" · ").first }
+  end
+
+  test "a single pending choice stays preselected without a prompt" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings").merge!("id" => "Renamed Savings", "name" => "Premier Savings")
+    sync_again(@access, report:)
+
+    get settings_url
+
+    assert_equal [ "Premier Savings · $114,685.51" ], css_select("##{dom_id(@savings)} select option").map(&:text)
+    assert_not css_select("##{dom_id(@savings)} select").first.key?("required")
+  end
+
+  test "Same account without a pick changes nothing" do
+    report = simplefin_report
+    demo_account(report, "Demo Savings").merge!("id" => "Renamed Savings", "name" => "Premier Savings")
+    report["accounts"] << demo_account(report, "Renamed Savings").merge("id" => "Second Premier")
+    sync_again(@access, report:)
+
+    assert_no_difference -> { BankAccount.count } do
+      perform_enqueued_jobs { post bank_account_replacement_url(@savings), params: { replacement_id: "" } }
+    end
+
+    assert_redirected_to settings_url
+    assert_equal "Demo Savings", @savings.reload.external_id
+    assert @savings.missing?
+    assert_enqueued_jobs 0
   end
 
   test "a choice from another bank is not found" do

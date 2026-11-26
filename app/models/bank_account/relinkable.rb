@@ -56,7 +56,7 @@ module BankAccount::Relinkable
   def replacement_choices
     if missing?
       from_bank = simplefin_access.bank_accounts.reported.where(institution:)
-      from_bank.pending.or(from_bank.skipped.where("bank_accounts.created_at > ?", reported_at)).order(:id)
+      from_bank.pending.or(from_bank.skipped.where("bank_accounts.created_at > ?", reported_at)).order(Arel.sql("bank_accounts.status = 'skipped'"), :id)
     else
       BankAccount.none
     end
