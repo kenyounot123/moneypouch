@@ -16,6 +16,66 @@ class WelcomeControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "Blue Bottle", "Old lunch" ], css_select("ul li p.font-medium").map(&:text)
   end
 
+  test "an account SimpleFIN stopped sending is named once, calmly, with a way to Settings" do
+    access = connect_simplefin
+    activate(access)
+    get root_url
+    assert_select "main", text: /stopped syncing/, count: 0
+
+    report = simplefin_report
+    report["accounts"].delete(demo_account(report, "Demo Savings"))
+    sync_again(access, report:)
+    get root_url
+
+    savings = access.bank_accounts.find_by!(external_id: "Demo Savings")
+    assert_select "main p", text: /#{Regexp.escape savings.full_name} stopped syncing\./, count: 1
+    assert_select "main p a[href=?]", settings_path, text: "See Settings"
+    assert_select "main .text-danger", count: 0
+  end
+
+  test "stopping a missing account clears the notice" do
+    access = connect_simplefin
+    activate(access)
+    report = simplefin_report
+    report["accounts"].delete(demo_account(report, "Demo Savings"))
+    sync_again(access, report:)
+    access.bank_accounts.find_by!(external_id: "Demo Savings").skip
+
+    get root_url
+
+    assert_select "main", text: /stopped syncing/, count: 0
+  end
+
+  test "one stale report under an old id shows no notice, a day of them does" do
+    travel_to Time.utc(2026, 10, 6, 18)
+    access = activate(connect_simplefin)
+    savings = access.bank_accounts.find_by!(external_id: "Demo Savings")
+    travel 1.hour
+    sync_again(access, report: relinked_report)
+    perform_enqueued_jobs { savings.carry_on_with_replacement }
+    travel 1.hour
+
+    sync_again(access, report: simplefin_report)
+    get root_url
+    assert_select "main", text: /stopped syncing/, count: 0
+
+    travel 1.day
+    sync_again(access, report: simplefin_report)
+    get root_url
+    assert_select "main p", text: /#{Regexp.escape savings.full_name} stopped syncing\./, count: 1
+  end
+
+  test "a report with no accounts shows no notice" do
+    access = activate(connect_simplefin)
+    report = simplefin_report
+    report["accounts"] = []
+
+    sync_again(access, report:)
+    get root_url
+
+    assert_select "main", text: /stopped syncing/, count: 0
+  end
+
   test "an empty Recent offers to type, import a file, or connect a bank, side by side once the list is hidden" do
     users(:one).transactions.each(&:discard)
     users(:one).hide_get_started

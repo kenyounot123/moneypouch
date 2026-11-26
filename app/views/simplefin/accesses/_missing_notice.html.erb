@@ -1,0 +1,6 @@
+<% bank_accounts.each do |bank_account| %>
+  <p class="flex flex-wrap items-baseline gap-x-2 text-sm text-tertiary">
+    <span><%= bank_account.full_name %> stopped syncing.</span>
+    <%= link_to "See Settings", settings_path, class: "font-medium text-secondary hover:text-primary" %>
+  </p>
+<% end %>

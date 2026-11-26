@@ -58,6 +58,7 @@
           <% if @get_started.pending? %>
             <%= render "welcome/get_started", get_started: @get_started %>
           <% end %>
+          <%= render "simplefin/accesses/missing_notice", bank_accounts: @missing_accounts %>
           <% if @review&.pending? || @syncing %>
             <%= render "simplefin/reviews/block", review: @review, rows: @review_rows, categories: @categories, syncing: @syncing %>
           <% end %>

@@ -110,6 +110,18 @@ class Simplefin::Access < ApplicationRecord
     end
   end
 
+  def stopped_accounts
+    pickable_accounts.skipped
+  end
+
+  def missing_accounts
+    if active?
+      bank_accounts.missing.order(:id)
+    else
+      bank_accounts.none
+    end
+  end
+
   def replacements
     bank_accounts.missing.filter_map(&:replacement)
   end

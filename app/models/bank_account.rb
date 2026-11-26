@@ -7,6 +7,8 @@ class BankAccount < ApplicationRecord
 
   enum :status, %w[ pending synced skipped ].index_by(&:itself)
 
+  scope :not_syncing, -> { pending.or(skipped) }
+
   def self.refresh(simplefin_account)
     sent_as(simplefin_account.id).tap do |bank_account|
       bank_account.update!(
@@ -35,6 +37,13 @@ class BankAccount < ApplicationRecord
   def sync_recent_history
     start_syncing(from: simplefin_access.longest_history_start)
     simplefin_access.sync_later
+  end
+
+  def resume
+    unless replacing?
+      bank_transactions.doubt_ids
+      sync_recent_history
+    end
   end
 
   def short_history?

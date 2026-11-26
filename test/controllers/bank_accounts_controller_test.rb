@@ -34,7 +34,60 @@ class BankAccountsControllerTest < ActionDispatch::IntegrationTest
 
     assert @card.reload.skipped?
     follow_redirect!
-    assert_select "li", text: /SimpleFIN Credit Card/, count: 0
+    assert_select "section > ul > li", text: /SimpleFIN Credit Card/, count: 0
+    assert_select "details#not_syncing li", text: /SimpleFIN Credit Card/
+  end
+
+  test "a stopped account waits under Not syncing until Sync it starts it again" do
+    savings = users(:one).bank_accounts.find_by!(external_id: "Demo Savings")
+    savings.skip
+    get settings_url
+
+    assert_select "details#not_syncing summary", text: /Not syncing \(2\)/
+    assert_select "details#not_syncing li", text: /#{savings.name}/
+
+    patch bank_account_url(savings), params: { bank_account: { status: "synced" } }
+    follow_redirect!
+
+    assert savings.reload.synced?
+    assert_select "details#not_syncing summary", text: /Not syncing \(1\)/
+  end
+
+  test "an account skipped from the start can be synced later" do
+    patch bank_account_url(@card), params: { bank_account: { status: "skipped" } }
+    patch bank_account_url(@card), params: { bank_account: { status: "synced" } }
+
+    assert @card.reload.synced?
+  end
+
+  test "starting a stopped account again adds nothing it already has" do
+    savings = users(:one).bank_accounts.find_by!(external_id: "Demo Savings")
+    known = savings.bank_transactions.count
+    assert_operator known, :>, 0
+
+    savings.skip
+    assert_no_difference [ "BankTransaction.count", "Transaction.count" ] do
+      perform_enqueued_jobs { patch bank_account_url(savings), params: { bank_account: { status: "synced" } } }
+    end
+
+    assert_equal known, savings.reload.bank_transactions.count
+  end
+
+  test "starting a stopped account again keeps one row per purchase when the bank renumbered them meanwhile" do
+    savings = users(:one).bank_accounts.find_by!(external_id: "Demo Savings")
+    known = savings.bank_transactions.count
+    savings.skip
+    report = simplefin_report
+    demo_account(report, "Demo Savings")["transactions"].each { |transaction| transaction["id"] = "renumbered-#{transaction["id"]}" }
+    demo_account(report, "Demo Savings")["transactions"] << { "id" => "while-stopped", "posted" => 2.days.ago.to_i, "amount" => "-12.00", "description" => "Bike shop" }
+    stub_simplefin_accounts(body: report.to_json)
+
+    assert_difference -> { Transaction.count } => 1 do
+      perform_enqueued_jobs { patch bank_account_url(savings), params: { bank_account: { status: "synced" } } }
+    end
+
+    assert_equal known + 1, savings.reload.bank_transactions.count
+    assert savings.bank_transactions.pluck(:external_id).all? { |id| id.start_with?("renumbered-") || id == "while-stopped" }
   end
 
   test "an account already decided cannot be flipped from here" do

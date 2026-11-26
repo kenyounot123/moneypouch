@@ -7,6 +7,8 @@ class BankAccounts::ReplacementsController < ApplicationController
     if bank_account.replacement_for(params[:replacement_id])
       bank_account.carry_on_with_replacement(params[:replacement_id])
       redirect_to settings_path, status: :see_other
+    elsif params[:replacement_id].blank? && bank_account.replacement_choices.exists?
+      redirect_to settings_path, status: :see_other
     else
       head :not_found
     end

@@ -39,8 +39,9 @@
       <% if replacement %>
         <%= button_to "Same account", bank_account_replacement_path(bank_account), class: "outline-button" %>
       <% elsif choices.any? %>
+        <% choice_required = choices.many? || choices.any?(&:skipped?) %>
         <%= form_with url: bank_account_replacement_path(bank_account), class: "flex max-w-full items-center gap-1" do |form| %>
-          <%= form.select :replacement_id, choices.map { |choice| [ replacement_choice_label(choice), choice.id ] }, {}, class: "min-w-0 truncate rounded-sm border border-secondary bg-transparent px-2 py-1.5 text-sm text-primary" %>
+          <%= form.select :replacement_id, choices.map { |choice| [ replacement_choice_label(choice), choice.id ] }, (choice_required ? { prompt: "Pick the same account" } : {}), required: choice_required, class: "min-w-0 truncate rounded-sm border border-secondary bg-transparent px-2 py-1.5 text-sm text-primary" %>
           <%= form.submit "Same account", class: "outline-button" %>
         <% end %>
       <% else %>
