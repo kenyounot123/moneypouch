@@ -263,6 +263,41 @@ class BankAccount::RelinkingTest < ActiveSupport::TestCase
     assert_not @savings.missing?
   end
 
+  test "a stale report with only the old id right after a good report marks nothing missing" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    travel 23.hours
+
+    sync_again(@access, report: simplefin_report)
+
+    assert_empty @access.bank_accounts.missing
+  end
+
+  test "stale reports with only the old id for more than a day mark the account missing" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    travel 1.hour
+    sync_again(@access, report: simplefin_report)
+    travel 1.day
+
+    sync_again(@access, report: simplefin_report)
+
+    assert_equal [ @savings ], @access.bank_accounts.missing.to_a
+    assert_equal "Relinked Demo Savings", @savings.reload.external_id
+  end
+
+  test "a fresh report clears the missing notice that stale reports with only the old id left" do
+    sync_again(@access, report: relinked_report)
+    carry_on(relinked_report)
+    travel 2.days
+    sync_again(@access, report: simplefin_report)
+    assert @savings.reload.missing?
+
+    sync_again(@access, report: relinked_report)
+
+    assert_not @savings.reload.missing?
+  end
+
   test "a report that sends both ids takes the one with the newer balance" do
     sync_again(@access, report: relinked_report)
     carry_on(relinked_report)

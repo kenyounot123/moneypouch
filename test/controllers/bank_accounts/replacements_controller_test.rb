@@ -34,6 +34,22 @@ class BankAccounts::ReplacementsControllerTest < ActionDispatch::IntegrationTest
     assert_select "##{dom_id(@savings)}", text: /5 transactions/
   end
 
+  test "settings says SimpleFIN stopped sending an account it sends only under a stale old id for a day" do
+    sync_again(@access, report: relinked_report)
+    perform_enqueued_jobs { post bank_account_replacement_url(@savings) }
+    travel 1.hour
+    sync_again(@access)
+
+    get settings_url
+    assert_select "##{dom_id(@savings)}", text: /stopped sending/, count: 0
+
+    travel 1.day
+    sync_again(@access)
+
+    get settings_url
+    assert_select "##{dom_id(@savings)}", text: /stopped sending this account/
+  end
+
   test "a renamed account offers a choice among the new accounts from its bank" do
     report = simplefin_report
     demo_account(report, "Demo Savings").merge!("id" => "Renamed Savings", "name" => "Premier Savings")

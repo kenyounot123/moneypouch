@@ -15,7 +15,7 @@ module BankAccount::Relinkable
 
       if ids.any?
         where(external_id: ids).update_all(reported_at: Time.current, missing_since: nil)
-        reported.where.not(external_id: ids).where.not(id: sent_as_former(ids)).update_all(missing_since: Time.current)
+        reported.where.not(external_id: ids).where.not(id: sent_as_former(ids).where(reported_at: 1.day.ago..)).update_all(missing_since: Time.current)
       end
     end
 
