@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.28.0](https://github.com/kenyounot123/moneypouch/compare/v0.27.0...v0.28.0) (2026-11-26)
+
+
+### Features
+
+* **bank-sync:** tell the Overview when an account stops syncing and let a stopped one start again ([#268](https://github.com/kenyounot123/moneypouch/issues/268)) ([e3f5d11](https://github.com/kenyounot123/moneypouch/commit/e3f5d113c0ddd4c8dc22778fcac60054bdafd3b8))
+* **categories:** exclude a whole category from totals ([#259](https://github.com/kenyounot123/moneypouch/issues/259)) ([87b5f5b](https://github.com/kenyounot123/moneypouch/commit/87b5f5bc4752b73e876445b396ec134bbde9e223)), closes [#250](https://github.com/kenyounot123/moneypouch/issues/250)
+
+
+### Bug Fixes
+
+* **bank-sync:** keep one bank row per transaction across a relink ([#263](https://github.com/kenyounot123/moneypouch/issues/263)) ([00beab2](https://github.com/kenyounot123/moneypouch/commit/00beab2c6573fb3f9eb3c24bf94eac6ec9d0e6fe))
+* **bank-sync:** stop wrong missing notices and let Same account take a chosen replacement ([#257](https://github.com/kenyounot123/moneypouch/issues/257)) ([1b6f326](https://github.com/kenyounot123/moneypouch/commit/1b6f326092b9cbf7b5b77921dfd43f7beb9e2467))
+* **security:** drop unsafe-inline from style-src ([#265](https://github.com/kenyounot123/moneypouch/issues/265)) ([24fa9f3](https://github.com/kenyounot123/moneypouch/commit/24fa9f30e919eccb39f98577053ef9aec5477354))
+* **transactions:** show the Needs a category dot on every row without a category ([#256](https://github.com/kenyounot123/moneypouch/issues/256)) ([02a076d](https://github.com/kenyounot123/moneypouch/commit/02a076dc458b28a4d68c2d67031edd8c666b934b)), closes [#245](https://github.com/kenyounot123/moneypouch/issues/245)
+
 ## [0.27.0](https://github.com/kenyounot123/moneypouch/compare/v0.26.0...v0.27.0) (2026-11-25)
 
 
