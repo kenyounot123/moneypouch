@@ -18,6 +18,20 @@ module Transaction::Mergeable
     answer_duplicate(bank_rows, same: false)
   end
 
+  def absorb(copy)
+    if copy.kept?
+      if kept?
+        fill_in_from(copy)
+        update!(excluded: excluded? && copy.excluded?)
+      else
+        categorize(copy.categorization) unless paired? && bank_transaction.transfer_partner.linked_transaction.kept?
+        update!(note: copy.note, excluded: copy.excluded?, discarded_at: nil)
+      end
+    end
+
+    copy.destroy!
+  end
+
   def fill_in_from(typed)
     if needs_category?
       categorize(typed.categorization)

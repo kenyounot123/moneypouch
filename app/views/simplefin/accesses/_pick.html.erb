@@ -10,7 +10,7 @@
     </p>
 
     <div class="flex flex-col px-5">
-      <% access.bank_accounts.order(:id).each do |bank_account| %>
+      <% access.pickable_accounts.each do |bank_account| %>
         <label class="group flex cursor-pointer items-center gap-3 border-t border-secondary py-3">
           <span class="relative flex size-4 shrink-0">
             <%= check_box_tag "simplefin_access[account_ids][]", bank_account.id, !bank_account.skipped?, id: dom_id(bank_account, :pick),

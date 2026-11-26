@@ -43,25 +43,54 @@ module BankAccount::Relinkable
   end
 
   def hand_over_to(bank_account)
-    bank_transactions.update_all(bank_account_id: bank_account.id)
+    bank_account.take_over(bank_transactions)
     reload.destroy!
-    bank_account.update!(external_id:, balance_in_cents:, error_message:, reported_at:, missing_since: nil, relinked_at: Time.current)
+    bank_account.update!(external_id:, balance_in_cents:, error_message:, reported_at:, missing_since: nil)
+  end
+
+  def take_over(others)
+    if bank_transactions.exists?(external_id: others.select(:external_id))
+      copies = copies_by_id(others)
+    else
+      copies = BankTransaction.pair_up(bank_transactions, others)
+      bank_transactions.where.not(id: copies.map(&:first)).doubt_ids
+    end
+
+    copies.each { |bank_transaction, copy| bank_transaction.absorb(copy) }
+    others.update_all(bank_account_id: id)
   end
 
   private
+    def copies_by_id(others)
+      mine = bank_transactions.where(external_id: others.select(:external_id)).index_by(&:external_id)
+
+      others.select { |other| mine.key?(other.external_id) }.map { |other| [ mine[other.external_id], other ] }
+    end
+
     def namesakes
       simplefin_access.bank_accounts.where(name:, institution:)
     end
 
     def adopt_new_ids(simplefin_transactions)
-      if relinked_at
-        ids = simplefin_transactions.map(&:id)
-        known = bank_transactions.where(external_id: ids).pluck(:external_id)
-        renamed = bank_transactions.where(created_at: ..relinked_at).where.not(external_id: ids).order(:id).group_by { |bank_transaction| [ bank_transaction.amount_in_cents, bank_transaction.occurred_on ] }
+      ids = simplefin_transactions.map(&:id)
+      in_doubt = bank_transactions.with_id_in_doubt
 
-        simplefin_transactions.uniq(&:id).reject { |simplefin_transaction| simplefin_transaction.id.in?(known) }.each do |simplefin_transaction|
-          renamed[[ simplefin_transaction.amount_in_cents, simplefin_transaction.occurred_on ]]&.shift&.update!(external_id: simplefin_transaction.id)
-        end
+      if in_doubt.exists?(external_id: ids)
+        in_doubt.trust_ids
+      elsif in_doubt.exists?
+        known = bank_transactions.where(external_id: ids).pluck(:external_id)
+        unknown = simplefin_transactions.uniq(&:id).reject { |simplefin_transaction| simplefin_transaction.id.in?(known) }
+
+        BankTransaction.pair_up(in_doubt, unknown).each { |bank_transaction, simplefin_transaction| bank_transaction.adopt(simplefin_transaction) }
+        in_doubt.where(occurred_on: ...simplefin_access.history_start.to_date - BankTransaction::PAIR_WINDOW).trust_ids
+      end
+    end
+
+    def note_posted_times(simplefin_transactions)
+      unposted = bank_transactions.where(external_id: simplefin_transactions.map(&:id), posted_at: nil).index_by(&:external_id)
+
+      simplefin_transactions.each do |simplefin_transaction|
+        unposted.delete(simplefin_transaction.id)&.note_times(simplefin_transaction)
       end
     end
 end

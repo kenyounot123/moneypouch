@@ -5,6 +5,10 @@ module Transaction::Discardable
     scope :kept, -> { where(discarded_at: nil) }
   end
 
+  def kept?
+    discarded_at.nil?
+  end
+
   def discard
     update!(discarded_at: Time.current)
   end
