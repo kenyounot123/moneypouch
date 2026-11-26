@@ -15,7 +15,7 @@
 
   <div class="<%= class_names "grid h-5 grid-cols-12 items-end gap-0.5 @max-2xl:hidden", "opacity-50": category.excluded? %>" aria-hidden="true">
     <% months.each do |month, cents| %>
-      <div class="<%= class_names "rounded-[1px]", month_bar_color(usage.span, month, cents) %>" style="height: <%= [ month_bar_height(cents, peak, CategoriesHelper::SPARK_HEIGHT), 1 ].max %>px" title="<%= month_title month %> · <%= money cents %>"></div>
+      <div class="<%= class_names "rounded-[1px]", month_bar_color(usage.span, month, cents) %>" data-controller="style" data-style-declarations-value="<%= style_declarations height: "#{[ month_bar_height(cents, peak, CategoriesHelper::SPARK_HEIGHT), 1 ].max}px" %>" title="<%= month_title month %> · <%= money cents %>"></div>
     <% end %>
   </div>
 
@@ -23,7 +23,7 @@
   <div class="flex items-center gap-2 @max-2xl:hidden" title="<%= "#{share_of total, section_total} of #{category_kind(category).downcase}" if shared %>">
     <div class="h-1.5 flex-1 rounded-bar bg-data-track" aria-hidden="true">
       <% if shared %>
-        <div class="h-full rounded-bar bg-data" style="width: max(2px, <%= (total * 100.0 / section_total).round(1) %>%)"></div>
+        <div class="h-full rounded-bar bg-data" data-controller="style" data-style-declarations-value="<%= style_declarations width: "max(2px, #{(total * 100.0 / section_total).round(1)}%)" %>"></div>
       <% end %>
     </div>
     <span class="w-8 shrink-0 text-right font-amount text-xs text-tertiary" data-field="share"><%= share_of total, section_total if shared %></span>

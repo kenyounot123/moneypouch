@@ -1,10 +1,10 @@
 <% menu_id = dom_id(category, :manage) %>
 <button type="button" popovertarget="<%= menu_id %>" aria-label="Manage <%= category.name %>" title="Manage <%= category.name %>"
-  class="relative z-10 flex icon-button" style="anchor-name: <%= anchor %>">
+  class="relative z-10 flex icon-button" data-controller="style" data-style-declarations-value="<%= style_declarations anchor_name: anchor %>">
   <%= icon_tag "more" %>
 </button>
 
-<div id="<%= menu_id %>" popover class="anchored-menu" style="position-anchor: <%= anchor %>">
+<div id="<%= menu_id %>" popover class="anchored-menu" data-controller="style" data-style-declarations-value="<%= style_declarations position_anchor: anchor %>">
   <%= form_with model: category, method: :patch, class: "flex flex-col gap-1.5" do |form| %>
     <%= form.label :name, "Rename", for: dom_id(category, :name), class: "text-xs text-tertiary" %>
     <div class="flex gap-2">
